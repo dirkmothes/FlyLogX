@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flylogx-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-flylogx}
+      POSTGRES_USER: ${POSTGRES_USER:-flylogx}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flylogx}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-flylogx} -d ${POSTGRES_DB:-flylogx}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: flylogx-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://flylogx:flylogx@postgres:5432/flylogx}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production}
+      JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-120}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://flylogx.tog.wan64.de,http://localhost:3000}
+    expose:
+      - "8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_default"
+      - "traefik.http.routers.flylogx-api.entrypoints=websecure"
+      - "traefik.http.routers.flylogx-api.rule=Host(`flylogx.tog.wan64.de`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.flylogx-api.priority=1000"
+      - "traefik.http.routers.flylogx-api.tls=true"
+      - "traefik.http.routers.flylogx-api.tls.certresolver=production"
+      - "traefik.http.services.flylogx-api.loadbalancer.server.port=8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - traefik_default
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: flylogx-frontend
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://backend:8000
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/}
+    expose:
+      - "3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_default"
+      - "traefik.http.routers.flylogx-ui.entrypoints=websecure"
+      - "traefik.http.routers.flylogx-ui.rule=Host(`flylogx.tog.wan64.de`)"
+      - "traefik.http.routers.flylogx-ui.priority=100"
+      - "traefik.http.routers.flylogx-ui.tls=true"
+      - "traefik.http.routers.flylogx-ui.tls.certresolver=production"
+      - "traefik.http.routers.flylogx-ui.middlewares=flylogx-security-headers"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.flylogx-security-headers.headers.frameDeny=true"
+      - "traefik.http.services.flylogx-ui.loadbalancer.server.port=3000"
+    depends_on:
+      - backend
+    networks:
+      - default
+      - traefik_default
+
+volumes:
+  postgres_data:
+
+networks:
+  traefik_default:
+    external: true
