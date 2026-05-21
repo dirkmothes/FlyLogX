@@ -96,10 +96,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
     two_factor_enabled: false,
   });
 
-  const activeUsers = users.filter((user) => user.active && !user.is_deleted).length;
-  const supervisorCount = users.filter((user) => user.role === "supervisor").length;
-  const adminCount = users.filter((user) => user.role === "admin").length;
-
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
     { id: "users", label: "Nutzer", count: users.length },
     { id: "units", label: "Einheiten", count: units.length },
@@ -316,25 +312,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
             Nutzer anlegen
           </button>
         </div>
-      </section>
-
-      <section className="admin-stat-grid" aria-label="Administrationskennzahlen">
-        <article>
-          <span>Aktive Nutzer</span>
-          <strong>{activeUsers}</strong>
-        </article>
-        <article>
-          <span>Vorgesetzte</span>
-          <strong>{supervisorCount}</strong>
-        </article>
-        <article>
-          <span>Admins</span>
-          <strong>{adminCount}</strong>
-        </article>
-        <article>
-          <span>Einheiten</span>
-          <strong>{units.length}</strong>
-        </article>
       </section>
 
       <section className="admin-directory">

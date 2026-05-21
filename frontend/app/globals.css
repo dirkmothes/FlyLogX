@@ -60,7 +60,6 @@
 :root[data-theme="dark"] .mini-card,
 :root[data-theme="dark"] .form-card,
 :root[data-theme="dark"] .admin-command,
-:root[data-theme="dark"] .admin-stat-grid article,
 :root[data-theme="dark"] .admin-directory-sidebar,
 :root[data-theme="dark"] .admin-directory-main,
 :root[data-theme="dark"] .admin-record-card,
@@ -442,6 +441,10 @@ p {
   grid-template-columns: minmax(0, 1fr) 312px;
   gap: 26px;
   min-width: 0;
+}
+
+.content-grid--full {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .content-flow {
@@ -1242,38 +1245,6 @@ p {
   justify-content: flex-end;
 }
 
-.admin-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.admin-stat-grid article {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.78), transparent 44%),
-    var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-
-.admin-stat-grid span {
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 850;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.admin-stat-grid strong {
-  font-size: 1.85rem;
-  line-height: 1;
-}
-
 .admin-directory {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -1847,7 +1818,6 @@ p {
   .admin-hero-badges,
   .admin-item-form,
   .admin-form-grid,
-  .admin-stat-grid,
   .admin-dialog-grid,
   .admin-directory-sidebar,
   .admin-command-actions,
