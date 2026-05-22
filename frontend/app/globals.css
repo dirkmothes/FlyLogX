@@ -81,9 +81,9 @@
 :root[data-theme="dark"] .brand-block,
 :root[data-theme="dark"] .sidebar-user,
 :root[data-theme="dark"] .admin-dialog-header,
-:root[data-theme="dark"] .admin-filter-bar,
+:root[data-theme="dark"] .admin-user-toolbar,
 :root[data-theme="dark"] .admin-record-field,
-:root[data-theme="dark"] .admin-filter-result,
+:root[data-theme="dark"] .admin-chip-count,
 :root[data-theme="dark"] .admin-switch-row label,
 :root[data-theme="dark"] .workflow-step,
 :root[data-theme="dark"] .filter-chip,
@@ -113,7 +113,10 @@
 :root[data-theme="dark"] .sidebar-group-label,
 :root[data-theme="dark"] .sidebar-foot,
 :root[data-theme="dark"] .sidebar-user span,
-:root[data-theme="dark"] .command-search strong {
+:root[data-theme="dark"] .command-search strong,
+:root[data-theme="dark"] .admin-search-field span,
+:root[data-theme="dark"] .admin-chip-label,
+:root[data-theme="dark"] .admin-chip-count span {
   color: var(--muted);
 }
 
@@ -163,8 +166,9 @@
 :root[data-theme="dark"] .chart-column span,
 :root[data-theme="dark"] .admin-primary-cell span,
 :root[data-theme="dark"] .admin-muted-cell,
-:root[data-theme="dark"] .admin-filter-field span,
-:root[data-theme="dark"] .admin-filter-result span,
+:root[data-theme="dark"] .admin-search-field span,
+:root[data-theme="dark"] .admin-chip-label,
+:root[data-theme="dark"] .admin-chip-count span,
 :root[data-theme="dark"] .admin-record-field > span,
 :root[data-theme="dark"] .field span,
 :root[data-theme="dark"] .field label,
@@ -1448,11 +1452,11 @@ select.input option {
   padding: 12px;
 }
 
-.admin-filter-bar {
+.admin-user-toolbar {
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(150px, 0.7fr) minmax(150px, 0.7fr) auto;
-  gap: 10px;
-  align-items: end;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  align-items: start;
   min-width: 0;
   padding: 14px;
   border: 1px solid var(--line);
@@ -1460,14 +1464,15 @@ select.input option {
   background: var(--surface-2);
 }
 
-.admin-filter-field {
+.admin-search-field {
   display: grid;
   gap: 6px;
   min-width: 0;
 }
 
-.admin-filter-field span,
-.admin-filter-result span {
+.admin-search-field span,
+.admin-chip-label,
+.admin-chip-count span {
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 800;
@@ -1475,17 +1480,42 @@ select.input option {
   text-transform: uppercase;
 }
 
-.admin-filter-result {
+.admin-chip-group {
   display: grid;
-  gap: 5px;
-  min-width: 76px;
-  padding: 9px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-chip-button {
+  min-width: auto;
+  min-height: 34px;
+  padding: 7px 11px;
+  border-radius: 999px;
   background: var(--surface);
 }
 
-.admin-filter-result strong {
+.admin-chip-button-active {
+  border-color: rgba(47, 110, 166, 0.32);
+  background: rgba(47, 110, 166, 0.1);
+  color: var(--blue);
+}
+
+.admin-chip-count {
+  display: grid;
+  gap: 5px;
+  min-width: 80px;
+  align-content: start;
+  justify-items: start;
+  padding: 0.25rem 0;
+}
+
+.admin-chip-count strong {
   font-size: 1rem;
 }
 
@@ -1634,6 +1664,35 @@ select.input option {
   display: grid;
   gap: 5px;
   min-width: 0;
+}
+
+.admin-user-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-status-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.admin-status-active {
+  color: var(--green);
+  background: rgba(31, 122, 77, 0.1);
+}
+
+.admin-status-blocked {
+  color: var(--red);
+  background: rgba(162, 58, 58, 0.1);
 }
 
 .admin-primary-cell strong,
@@ -1866,7 +1925,7 @@ select.input option {
 
   .admin-record-top,
   .admin-record-meta,
-  .admin-filter-bar {
+  .admin-user-toolbar {
     grid-template-columns: 1fr;
   }
 }
@@ -1950,7 +2009,8 @@ select.input option {
   .admin-command-actions,
   .admin-user-row,
   .admin-unit-row,
-  .admin-org-row {
+  .admin-org-row,
+  .admin-user-toolbar {
     grid-template-columns: 1fr;
   }
 
@@ -2002,7 +2062,6 @@ select.input option {
 /* Keep native select controls aligned with the app skin after all responsive overrides. */
 select.input,
 .field select.input,
-.admin-filter-field select.input,
 .admin-dialog-form select.input {
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
@@ -2031,7 +2090,6 @@ select.input option {
 
 :root[data-theme="dark"] select.input,
 :root[data-theme="dark"] .field select.input,
-:root[data-theme="dark"] .admin-filter-field select.input,
 :root[data-theme="dark"] .admin-dialog-form select.input {
   background-color: #0d1a2b !important;
   border-color: var(--line) !important;

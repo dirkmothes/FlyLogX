@@ -95,7 +95,7 @@ def list_organizations(db: Session) -> list[Organization]:
 
 
 def list_users(db: Session) -> list[User]:
-    rows = db.scalars(select(UserModel).where(UserModel.is_deleted.is_(False)).order_by(UserModel.name)).all()
+    rows = db.scalars(select(UserModel).order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
     return [_user_to_domain(row) for row in rows]
 
 

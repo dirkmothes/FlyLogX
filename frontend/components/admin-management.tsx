@@ -334,8 +334,8 @@ export function AdminManagement({ organizations, units, users }: Props) {
         <div className="admin-directory-main">
           {activeTab === "users" ? (
             <div className="admin-card-list">
-              <div className="admin-filter-bar">
-                <label className="admin-filter-field">
+              <div className="admin-user-toolbar">
+                <label className="admin-search-field">
                   <span>Suche</span>
                   <input
                     className="input"
@@ -344,24 +344,58 @@ export function AdminManagement({ organizations, units, users }: Props) {
                     onChange={(event) => setUserSearch(event.target.value)}
                   />
                 </label>
-                <label className="admin-filter-field">
-                  <span>Rolle</span>
-                  <select className="input" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as "all" | RoleName)}>
-                    <option value="all">Alle Rollen</option>
-                    <option value="pilot">Piloten</option>
-                    <option value="supervisor">Vorgesetzte</option>
-                    <option value="admin">Admins</option>
-                  </select>
-                </label>
-                <label className="admin-filter-field">
-                  <span>Status</span>
-                  <select className="input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "all" | "active" | "inactive")}>
-                    <option value="all">Alle Status</option>
-                    <option value="active">Aktiv</option>
-                    <option value="inactive">Inaktiv</option>
-                  </select>
-                </label>
-                <div className="admin-filter-result">
+
+                <div className="admin-chip-group">
+                  <span className="admin-chip-label">Rolle</span>
+                  <div className="admin-chip-row">
+                    <button
+                      type="button"
+                      className={`filter-chip admin-chip-button ${roleFilter === "all" ? "admin-chip-button-active" : ""}`}
+                      onClick={() => setRoleFilter("all")}
+                    >
+                      Alle Rollen
+                    </button>
+                    {(["pilot", "supervisor", "admin"] as RoleName[]).map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        className={`filter-chip admin-chip-button ${roleFilter === role ? "admin-chip-button-active" : ""}`}
+                        onClick={() => setRoleFilter(role)}
+                      >
+                        {roleLabel[role]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="admin-chip-group">
+                  <span className="admin-chip-label">Status</span>
+                  <div className="admin-chip-row">
+                    <button
+                      type="button"
+                      className={`filter-chip admin-chip-button ${statusFilter === "all" ? "admin-chip-button-active" : ""}`}
+                      onClick={() => setStatusFilter("all")}
+                    >
+                      Alle
+                    </button>
+                    <button
+                      type="button"
+                      className={`filter-chip admin-chip-button ${statusFilter === "active" ? "admin-chip-button-active" : ""}`}
+                      onClick={() => setStatusFilter("active")}
+                    >
+                      Aktiv
+                    </button>
+                    <button
+                      type="button"
+                      className={`filter-chip admin-chip-button ${statusFilter === "inactive" ? "admin-chip-button-active" : ""}`}
+                      onClick={() => setStatusFilter("inactive")}
+                    >
+                      Gesperrt
+                    </button>
+                  </div>
+                </div>
+
+                <div className="admin-chip-count">
                   <span>Treffer</span>
                   <strong>{filteredUsers.length}</strong>
                 </div>
@@ -372,6 +406,12 @@ export function AdminManagement({ organizations, units, users }: Props) {
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
                       <strong>{user.name}</strong>
+                      <span className="admin-user-status-line">
+                        <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
+                          {user.active && !user.is_deleted ? "aktiv" : "gesperrt"}
+                        </span>
+                        <span>{roleLabel[user.role]}</span>
+                      </span>
                     </div>
                     <div className="admin-record-actions">
                       <button type="button" className="admin-action-button" title="Nutzer bearbeiten" onClick={() => openEditUser(user)}>
@@ -380,11 +420,11 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       <button
                         type="button"
                         className="admin-action-button admin-danger-button"
-                        title="Nutzer deaktivieren"
+                        title={user.active && !user.is_deleted ? "Nutzer sperren" : "Nutzer ist gesperrt"}
                         disabled={busy === `user-delete-${user.id}`}
-                        onClick={() => deactivate(`/api/users/${user.id}`, `user-delete-${user.id}`, "Benutzer konnte nicht deaktiviert werden")}
+                        onClick={() => deactivate(`/api/users/${user.id}`, `user-delete-${user.id}`, "Benutzer konnte nicht gesperrt werden")}
                       >
-                        Sperren
+                        {user.active && !user.is_deleted ? "Sperren" : "Gesperrt"}
                       </button>
                     </div>
                   </div>
