@@ -484,24 +484,18 @@ export function AdminManagement({ organizations, units, users }: Props) {
           {activeTab === "units" ? (
             <div className="admin-card-list">
               {units.map((unit) => (
-                <article className="admin-record-card" key={unit.id}>
+                <article className="admin-record-card admin-user-record-card" key={unit.id}>
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
-                      <strong>{unit.name}</strong>
+                      <div className="admin-user-headline">
+                        <strong>{unit.name}</strong>
+                        <span className="admin-mini-badge">Einheit</span>
+                      </div>
                       <span className="admin-code-cell">{unit.code}</span>
                     </div>
                     <div className="admin-record-actions">
                       <button type="button" className="admin-action-button admin-action-button-edit" title="Einheit bearbeiten" onClick={() => openEditUnit(unit)}>
                         Bearbeiten
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-action-button admin-danger-button"
-                        title="Einheit deaktivieren"
-                        disabled={busy === `unit-delete-${unit.id}`}
-                        onClick={() => deactivate(`/api/units/${unit.id}`, `unit-delete-${unit.id}`, "Einheit konnte nicht deaktiviert werden")}
-                      >
-                        Sperren
                       </button>
                     </div>
                   </div>
@@ -523,10 +517,13 @@ export function AdminManagement({ organizations, units, users }: Props) {
           {activeTab === "organizations" ? (
             <div className="admin-card-list">
               {organizations.map((organization) => (
-                <article className="admin-record-card" key={organization.id}>
+                <article className="admin-record-card admin-user-record-card" key={organization.id}>
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
-                      <strong>{organization.name}</strong>
+                      <div className="admin-user-headline">
+                        <strong>{organization.name}</strong>
+                        <span className="admin-mini-badge">Organisation</span>
+                      </div>
                       <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
                     </div>
                     <div className="admin-record-actions">
@@ -537,21 +534,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
                         onClick={() => openEditOrganization(organization)}
                       >
                         Bearbeiten
-                      </button>
-                      <button
-                        type="button"
-                        className="admin-action-button admin-danger-button"
-                        title="Organisation deaktivieren"
-                        disabled={busy === `org-delete-${organization.id}`}
-                        onClick={() =>
-                          deactivate(
-                            `/api/organizations/${organization.id}`,
-                            `org-delete-${organization.id}`,
-                            "Organisation konnte nicht deaktiviert werden",
-                          )
-                        }
-                      >
-                        Sperren
                       </button>
                     </div>
                   </div>
