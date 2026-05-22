@@ -16,6 +16,21 @@ type AccountForm = {
   two_factor_enabled: boolean;
 };
 
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2Zm0 2.3c-4.1 0-7.5 2.4-7.5 5.4v.1h15v-.1c0-3-3.4-5.4-7.5-5.4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
 export function AccountDialog({ user }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -107,8 +122,15 @@ export function AccountDialog({ user }: Props) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="topbar-button topbar-button-secondary">
-        Mein Konto
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="topbar-icon-button topbar-icon-button-secondary"
+        aria-label="Mein Konto"
+        title="Mein Konto"
+      >
+        <UserIcon />
+        <span className="sr-only">Mein Konto</span>
       </button>
 
       {open ? (

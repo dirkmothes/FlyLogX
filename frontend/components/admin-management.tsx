@@ -70,6 +70,21 @@ function shortId(id: string) {
   return id.length > 18 ? `${id.slice(0, 10)}...${id.slice(-4)}` : id;
 }
 
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 5v14m-7-7h14"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 export function AdminManagement({ organizations, units, users }: Props) {
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -311,8 +326,15 @@ export function AdminManagement({ organizations, units, users }: Props) {
           <h2>Identitäten, Einheiten und Organisationsstruktur</h2>
         </div>
         <div className="admin-command-actions">
-          <button type="button" className="button button-primary" onClick={() => openCreate(activeCreateType)}>
-            {activeCreateLabel}
+          <button
+            type="button"
+            className="admin-command-button"
+            onClick={() => openCreate(activeCreateType)}
+            aria-label={activeCreateLabel}
+            title={activeCreateLabel}
+          >
+            <PlusIcon />
+            <span className="sr-only">{activeCreateLabel}</span>
           </button>
         </div>
       </section>
