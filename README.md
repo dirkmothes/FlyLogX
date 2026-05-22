@@ -4,7 +4,7 @@ FlyLogX ist ein digitales Flugzeitennachweis- und Prüfverwaltungssystem für Dr
 
 ## Zielbild
 
-- revisionssichere Flugerfassung
+- digitale Flugerfassung
 - digitale Nachweisheft-Ansicht
 - Rollen für Pilot, Vorgesetzten und Admin
 - Luftfahrzeug- und Einheitenverwaltung
