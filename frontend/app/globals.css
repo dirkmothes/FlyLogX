@@ -1558,12 +1558,18 @@ select.input option {
   min-width: 0;
 }
 
+.admin-user-record-card .admin-record-top {
+  grid-template-columns: minmax(0, 1fr) minmax(238px, auto);
+  align-items: center;
+}
+
 .admin-record-actions {
   display: flex;
   flex: 0 0 auto;
   gap: 8px;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .admin-action-button {
@@ -1932,6 +1938,16 @@ select.input option {
   .admin-record-meta,
   .admin-user-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .admin-user-record-card .admin-record-top {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .admin-record-actions {
+    flex-wrap: wrap;
+    white-space: normal;
   }
 }
 

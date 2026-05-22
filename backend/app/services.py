@@ -89,6 +89,17 @@ def _require_user(db: Session, user_id: str) -> UserModel:
     return user
 
 
+def _is_test_user(user: UserModel) -> bool:
+    name = (user.name or "").strip().lower()
+    email = (user.email or "").strip().lower()
+    return (
+        email.startswith("crud-")
+        or email.startswith("test-")
+        or "crud" in name
+        or "updated name" in name
+    )
+
+
 def list_organizations(db: Session) -> list[Organization]:
     rows = db.scalars(select(OrganizationModel).where(OrganizationModel.is_deleted.is_(False)).order_by(OrganizationModel.name)).all()
     return [_organization_to_domain(row) for row in rows]
@@ -96,6 +107,7 @@ def list_organizations(db: Session) -> list[Organization]:
 
 def list_users(db: Session) -> list[User]:
     rows = db.scalars(select(UserModel).order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
+    rows = [row for row in rows if not _is_test_user(row)]
     return [_user_to_domain(row) for row in rows]
 
 
