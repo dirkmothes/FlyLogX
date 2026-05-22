@@ -114,6 +114,12 @@
   border-color: rgba(93, 163, 226, 0.28);
 }
 
+:root[data-theme="dark"] .sidebar-link-active {
+  color: #f7fbff;
+  background: rgba(93, 163, 226, 0.18);
+  border-color: rgba(93, 163, 226, 0.34);
+}
+
 :root[data-theme="dark"] .topbar-button-danger {
   background: #7f2f2f;
   color: #fff5f5;
@@ -447,6 +453,12 @@ p {
   background: rgba(47, 110, 166, 0.08);
   border-color: rgba(47, 110, 166, 0.12);
   transform: none;
+}
+
+.sidebar-link-active {
+  color: var(--blue);
+  background: rgba(47, 110, 166, 0.12);
+  border-color: rgba(47, 110, 166, 0.2);
 }
 
 .sidebar-link::before {

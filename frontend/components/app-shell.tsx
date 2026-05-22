@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { navItems } from "@/lib/mock";
@@ -17,6 +20,7 @@ type Props = {
 };
 
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
+  const pathname = usePathname();
   const hasAside = Boolean(aside);
   const visibleNavItems = navItems.filter((item) => {
     if (!user?.role || !("roles" in item)) {
@@ -48,7 +52,12 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
               <div className="sidebar-group-label">{group.label}</div>
               <div className="sidebar-group-links">
                 {group.items.map((item) => (
-                  <Link key={item.href} href={item.href} className="sidebar-link">
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`sidebar-link ${pathname === item.href ? "sidebar-link-active" : ""}`}
+                    aria-current={pathname === item.href ? "page" : undefined}
+                  >
                     {item.label}
                   </Link>
                 ))}
