@@ -72,6 +72,17 @@ function shortId(id: string) {
   return id.length > 18 ? `${id.slice(0, 10)}...${id.slice(-4)}` : id;
 }
 
+function normalizeSupervisorOrganizationIds(
+  organizationIds: string[],
+  preferredOrganizationId: string,
+  availableOrganizationIds: string[],
+) {
+  const available = new Set(availableOrganizationIds);
+  const validIds = organizationIds.filter((organizationId) => available.has(organizationId));
+  const fallbackIds = preferredOrganizationId && available.has(preferredOrganizationId) ? [preferredOrganizationId] : [];
+  return Array.from(new Set([...validIds, ...fallbackIds]));
+}
+
 function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -140,9 +151,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           : "";
   const activeSupervisorOrganizationIds =
     userForm.role === "supervisor"
-      ? userForm.supervised_organization_ids.length > 0
-        ? userForm.supervised_organization_ids
-        : [userForm.organization_id]
+      ? normalizeSupervisorOrganizationIds(
+          userForm.supervised_organization_ids,
+          userForm.organization_id,
+          organizations.map((organization) => organization.id),
+        )
       : [];
 
   const filteredUsers = users.filter((user) => {
@@ -172,7 +185,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   function organizationSupervisors(organizationId: string) {
     const names = users
-      .filter((user) => user.role === "supervisor" && user.supervised_organization_ids.includes(organizationId))
+      .filter((user) => user.role === "supervisor" && user.supervised_organization_ids?.includes(organizationId))
       .map((user) => user.name);
     return names.length > 0 ? names.join(", ") : "Kein Supervisor";
   }
@@ -235,9 +248,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       active: user.active && !user.is_deleted,
       is_deleted: user.is_deleted || !user.active,
       supervised_organization_ids:
-        user.role === "supervisor" && user.supervised_organization_ids.length === 0
-          ? [user.organization_id]
-          : user.supervised_organization_ids ?? [],
+        user.role === "supervisor"
+          ? normalizeSupervisorOrganizationIds(
+              user.supervised_organization_ids ?? [],
+              user.organization_id,
+              organizations.map((organization) => organization.id),
+            )
+          : [],
     });
     setDialog({ type: "user", mode: "edit", id: user.id });
   }
@@ -360,6 +377,31 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Benutzer konnte nicht entsperrt werden");
       setBusy(null);
+    }
+  }
+
+  async function deleteDialogEntity() {
+    if (!dialog) {
+      return;
+    }
+
+    const confirmed = window.confirm("Möchten Sie diesen Datensatz wirklich löschen?");
+    if (!confirmed) {
+      return;
+    }
+
+    if (dialog.type === "organization" && viewerRole === "admin" && dialog.id) {
+      await deactivate(`/api/organizations/${dialog.id}`, "organization-delete", "Organisation konnte nicht gelöscht werden");
+      return;
+    }
+
+    if (dialog.type === "unit" && viewerRole === "admin" && dialog.id) {
+      await deactivate(`/api/units/${dialog.id}`, "unit-delete", "Einheit konnte nicht gelöscht werden");
+      return;
+    }
+
+    if (dialog.type === "user" && dialog.id) {
+      await deactivate(`/api/users/${dialog.id}`, "user-delete", "Benutzer konnte nicht gelöscht werden");
     }
   }
 
@@ -623,7 +665,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       ))}
                     </select>
                 </label>
-                <DialogActions busy={busy === "organization-save"} onCancel={() => setDialog(null)} />
+                <DialogActions
+                  busy={busy === "organization-save"}
+                  deleteBusy={busy === "organization-delete"}
+                  canDelete={dialog.mode === "edit" && viewerRole === "admin"}
+                  onDelete={deleteDialogEntity}
+                  onCancel={() => setDialog(null)}
+                />
               </form>
             ) : null}
 
@@ -653,7 +701,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <input className="input" value={unitForm.name} onChange={(event) => setUnitForm((current) => ({ ...current, name: event.target.value }))} />
                   </label>
                 </div>
-                <DialogActions busy={busy === "unit-save"} onCancel={() => setDialog(null)} />
+                <DialogActions
+                  busy={busy === "unit-save"}
+                  deleteBusy={busy === "unit-delete"}
+                  canDelete={dialog.mode === "edit" && viewerRole === "admin"}
+                  onDelete={deleteDialogEntity}
+                  onCancel={() => setDialog(null)}
+                />
               </form>
             ) : null}
 
@@ -683,7 +737,19 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       onChange={(event) => {
                         const organization_id = event.target.value;
                         const firstUnit = units.find((unit) => unit.organization_id === organization_id);
-                        setUserForm((current) => ({ ...current, organization_id, unit_id: firstUnit?.id ?? "" }));
+                        setUserForm((current) => ({
+                          ...current,
+                          organization_id,
+                          unit_id: firstUnit?.id ?? "",
+                          supervised_organization_ids:
+                            current.role === "supervisor"
+                              ? normalizeSupervisorOrganizationIds(
+                                  current.supervised_organization_ids,
+                                  organization_id,
+                                  organizations.map((organization) => organization.id),
+                                )
+                              : [],
+                        }));
                       }}
                     >
                       {organizations.map((organization) => (
@@ -721,9 +787,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                             role,
                             supervised_organization_ids:
                               role === "supervisor"
-                                ? current.supervised_organization_ids.length > 0
-                                  ? current.supervised_organization_ids
-                                  : [current.organization_id]
+                                ? normalizeSupervisorOrganizationIds(
+                                    current.supervised_organization_ids,
+                                    current.organization_id,
+                                    organizations.map((organization) => organization.id),
+                                  )
                                 : [],
                           };
                         })
@@ -747,27 +815,40 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <label className="field">
                     <span>Zugewiesene Organisationen</span>
-                    <select
-                      className="input"
-                      multiple
-                      size={Math.min(Math.max(3, organizations.length), 8)}
-                      value={activeSupervisorOrganizationIds}
-                      onChange={(event) =>
-                        setUserForm((current) => ({
-                          ...current,
-                          supervised_organization_ids: (() => {
-                            const selected = Array.from(event.currentTarget.selectedOptions, (option) => option.value);
-                            return selected.length > 0 ? selected : [current.organization_id];
-                          })(),
-                        }))
-                      }
-                    >
-                      {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                          {organization.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="admin-org-checkbox-list">
+                      {organizations.map((organization) => {
+                        const checked = activeSupervisorOrganizationIds.includes(organization.id);
+                        return (
+                          <label key={organization.id} className={`admin-org-checkbox ${checked ? "admin-org-checkbox-active" : ""}`}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setUserForm((current) => {
+                                  const currentIds = normalizeSupervisorOrganizationIds(
+                                    current.supervised_organization_ids,
+                                    current.organization_id,
+                                    organizations.map((item) => item.id),
+                                  );
+                                  const nextIds = checked
+                                    ? currentIds.filter((id) => id !== organization.id)
+                                    : Array.from(new Set([...currentIds, organization.id]));
+                                  return {
+                                    ...current,
+                                    supervised_organization_ids: normalizeSupervisorOrganizationIds(
+                                      nextIds,
+                                      current.organization_id,
+                                      organizations.map((item) => item.id),
+                                    ),
+                                  };
+                                })
+                              }
+                            />
+                            <span>{organization.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </label>
                 ) : null}
                 <div className="admin-state-group">
@@ -793,7 +874,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     </label>
                   </div>
                 </div>
-                <DialogActions busy={busy === "user-save"} onCancel={() => setDialog(null)} />
+                <DialogActions
+                  busy={busy === "user-save"}
+                  deleteBusy={busy === "user-delete"}
+                  canDelete={dialog.mode === "edit"}
+                  onDelete={deleteDialogEntity}
+                  onCancel={() => setDialog(null)}
+                />
               </form>
             ) : null}
           </section>
@@ -803,12 +890,29 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   );
 }
 
-function DialogActions({ busy, onCancel }: { busy: boolean; onCancel: () => void }) {
+function DialogActions({
+  busy,
+  deleteBusy = false,
+  canDelete = false,
+  onDelete,
+  onCancel,
+}: {
+  busy: boolean;
+  deleteBusy?: boolean;
+  canDelete?: boolean;
+  onDelete?: () => Promise<void>;
+  onCancel: () => void;
+}) {
   return (
     <div className="admin-dialog-actions">
       <button type="button" className="button button-secondary" onClick={onCancel}>
         Abbrechen
       </button>
+      {canDelete && onDelete ? (
+        <button type="button" className="button button-danger" disabled={deleteBusy} onClick={() => void onDelete()}>
+          Löschen
+        </button>
+      ) : null}
       <button type="submit" className="button button-primary" disabled={busy}>
         Speichern
       </button>
