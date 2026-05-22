@@ -130,7 +130,7 @@ async def protect_api_routes(request: Request, call_next):
     if path.startswith("/api") and path not in EXEMPT_API_PATHS:
         token = _extract_token(request)
         if not token:
-            return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Missing bearer token"})
+            return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Authentication token is missing"})
         with SessionLocal() as db:
             try:
                 request.state.current_user = _load_user_from_token(token, db)
@@ -150,14 +150,14 @@ def get_current_user(
 
     token = credentials.credentials if credentials is not None else _extract_token(request)
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication token is missing")
     return _load_user_from_token(token, db)
 
 
 def require_role(*roles: RoleName):
     def dependency(user=Depends(get_current_user)):
         if user.role not in roles:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
         return user
 
     return dependency
@@ -167,11 +167,11 @@ def _ensure_scope(user, db, organization_id: str | None = None, unit_id: str | N
     if user.role == RoleName.admin:
         return
     if organization_id is not None and not organization_in_scope(db, user, organization_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     if unit_id is not None and not unit_in_scope(db, user, unit_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     if user_id is not None and not user_in_scope(db, user, user_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
 
 
 @app.get("/")
@@ -190,7 +190,7 @@ def api_root(user=Depends(get_current_user)):
     return HTMLResponse(
         f"""
         <!doctype html>
-        <html lang="de">
+        <html lang="en">
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -206,7 +206,7 @@ def api_root(user=Depends(get_current_user)):
         <body>
           <main>
             <h1>FlyLogX API</h1>
-            <p>Eingeloggt als <strong>{user.name}</strong> ({user.role.value}).</p>
+            <p>Logged in as <strong>{user.name}</strong> ({user.role.value}).</p>
             <div class="card">
               <p><a href="/api/docs">Swagger UI</a></p>
               <p><a href="/api/redoc">ReDoc</a></p>
@@ -285,17 +285,17 @@ def login(payload: LoginRequest, request: Request, response: Response, db=Depend
 @app.post("/api/auth/logout")
 def logout(response: Response, _: object = Depends(get_current_user)):
     response.delete_cookie(key="flylogx-token", path="/")
-    return {"message": "Session closed"}
+    return {"message": "Session ended"}
 
 
 @app.post("/api/auth/request-password-reset")
 def request_password_reset(payload: PasswordResetRequest):
-    return {"message": f"Password reset link prepared for {payload.email}"}
+    return {"message": f"Password reset email prepared for {payload.email}"}
 
 
 @app.post("/api/auth/reset-password")
 def reset_password():
-    return {"message": "Password reset workflow scaffolded"}
+    return {"message": "Password reset flow is not implemented yet"}
 
 
 @app.get("/api/auth/sessions")
@@ -314,12 +314,12 @@ def me(user=Depends(get_current_user)):
 def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), db=Depends(get_session)):
     changes = payload.model_dump(exclude_unset=True)
     if not changes:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No profile changes provided")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No profile changes were provided")
 
     if "name" in changes and (changes["name"] is None or not str(changes["name"]).strip()):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name is required")
     if "email" in changes and (changes["email"] is None or not str(changes["email"]).strip()):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email cannot be empty")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is required")
 
     try:
         return update_user(
@@ -466,9 +466,9 @@ def user_create(
 ):
     _ensure_scope(user, db, organization_id=payload.organization_id, unit_id=payload.unit_id)
     if user.role == RoleName.supervisor and payload.role == RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     if user.role != RoleName.admin and payload.supervised_organization_ids:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
         return create_user(db, payload, actor_id=user.id)
     except KeyError as exc:
@@ -482,7 +482,7 @@ def user_create(
             detail = "Unit not found"
             status_code = status.HTTP_404_NOT_FOUND
         elif key == "unit_organization_mismatch":
-            detail = "Unit does not belong to organization"
+            detail = "Unit does not belong to the selected organization"
         elif key == "user_email_exists":
             detail = "Email already exists"
         raise HTTPException(status_code=status_code, detail=detail)
@@ -502,15 +502,15 @@ def user_update(
     changes = payload.model_dump(exclude_unset=True)
     if user.role == RoleName.supervisor:
         if target_user.role == RoleName.admin or changes.get("role") == RoleName.admin:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
         if "organization_id" in changes and changes["organization_id"] is not None:
             _ensure_scope(user, db, organization_id=changes["organization_id"])
         if "unit_id" in changes and changes["unit_id"] is not None:
             _ensure_scope(user, db, unit_id=changes["unit_id"])
         if "supervised_organization_ids" in changes and changes["supervised_organization_ids"]:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     elif "supervised_organization_ids" in changes and changes["supervised_organization_ids"] is not None and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
         return update_user(db, user_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -522,7 +522,7 @@ def user_update(
         elif key == "unit_not_found":
             detail = "Unit not found"
         elif key == "unit_organization_mismatch":
-            detail = "Unit does not belong to organization"
+            detail = "Unit does not belong to the selected organization"
             status_code = status.HTTP_400_BAD_REQUEST
         elif key == "user_email_exists":
             detail = "Email already exists"
@@ -544,7 +544,7 @@ def user_delete(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     _ensure_scope(user, db, user_id=user_id)
     if user.role == RoleName.supervisor and target_user.role == RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
         return delete_user(db, user_id, actor_id=user.id)
     except KeyError as exc:
@@ -582,7 +582,7 @@ def flights(
     db=Depends(get_session),
 ):
     if user_id and user.role not in {RoleName.supervisor, RoleName.admin} and user_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     return list_flights(db, organization_id=user.organization_id, user_id=user_id, aircraft_id=aircraft_id, status=status_filter)
 
 
@@ -597,7 +597,7 @@ def flight_detail(flight_id: str, user=Depends(get_current_user), db=Depends(get
 @app.post("/api/flights")
 def flight_create(payload: FlightCreateRequest, user=Depends(get_current_user), db=Depends(get_session)):
     if user.id != payload.pilot_id and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Can only create own flights")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only create your own flights")
     try:
         return create_flight(db, payload, actor_id=user.id)
     except KeyError:
@@ -610,7 +610,7 @@ def flight_submit(flight_id: str, user=Depends(get_current_user), db=Depends(get
     if flight is None or flight.is_deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
     if user.id != flight.pilot_id and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Can only submit own flights")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only submit your own flights")
     try:
         return submit_flight(db, flight_id, user.id)
     except KeyError:
@@ -635,7 +635,7 @@ def flight_review(flight_id: str, payload: ReviewRequest, user=Depends(require_r
 @app.get("/api/dashboards/pilot/{user_id}")
 def pilot_dashboard(user_id: str, user=Depends(get_current_user), db=Depends(get_session)):
     if user.id != user_id and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not allowed")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
         return dashboard_for_user(db, user_id)
     except KeyError:
