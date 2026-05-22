@@ -130,6 +130,20 @@
   color: #fff5f5;
 }
 
+:root[data-theme="dark"] .admin-status-active {
+  color: #f6fff9;
+  background: linear-gradient(145deg, #2ea868, #1f7a4d);
+  border-color: rgba(67, 185, 120, 0.34);
+  box-shadow: 0 8px 18px rgba(67, 185, 120, 0.18);
+}
+
+:root[data-theme="dark"] .admin-status-blocked {
+  color: #fff7f7;
+  background: linear-gradient(145deg, #d35e5e, #9e3636);
+  border-color: rgba(228, 109, 109, 0.34);
+  box-shadow: 0 8px 18px rgba(228, 109, 109, 0.18);
+}
+
 :root[data-theme="dark"] .brand-subtitle,
 :root[data-theme="dark"] .sidebar-group-label,
 :root[data-theme="dark"] .sidebar-foot,
@@ -559,9 +573,9 @@ p {
 
 .topbar-icon-button-secondary,
 .admin-command-button {
-  background: linear-gradient(145deg, #1d314f, #28446b);
-  color: #f7fbff;
-  border-color: rgba(125, 149, 179, 0.16);
+  background: linear-gradient(145deg, #ffffff, #f3f7fb);
+  color: var(--blue);
+  border-color: rgba(47, 110, 166, 0.18);
 }
 
 .topbar-icon-button-danger {
@@ -1838,25 +1852,25 @@ select.input option {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 9px;
+  padding: 3px 7px;
   border-radius: 999px;
   font-weight: 800;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   border: 1px solid transparent;
 }
 
 .admin-status-active {
-  color: #f6fff9;
-  background: linear-gradient(145deg, rgba(25, 122, 75, 0.95), rgba(32, 150, 91, 0.92));
-  border-color: rgba(31, 122, 77, 0.2);
-  box-shadow: 0 8px 18px rgba(31, 122, 77, 0.14);
+  color: #f7fff9;
+  background: linear-gradient(145deg, #2f8f5a, #216f46);
+  border-color: rgba(31, 122, 77, 0.25);
+  box-shadow: 0 6px 14px rgba(31, 122, 77, 0.18);
 }
 
 .admin-status-blocked {
-  color: #fff7f7;
-  background: linear-gradient(145deg, rgba(162, 58, 58, 0.95), rgba(126, 32, 32, 0.95));
-  border-color: rgba(162, 58, 58, 0.22);
-  box-shadow: 0 8px 18px rgba(162, 58, 58, 0.14);
+  color: #fff8f8;
+  background: linear-gradient(145deg, #b84545, #8d2f2f);
+  border-color: rgba(162, 58, 58, 0.25);
+  box-shadow: 0 6px 14px rgba(162, 58, 58, 0.18);
 }
 
 .admin-primary-cell strong,
