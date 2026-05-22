@@ -2038,3 +2038,48 @@ select.input option {
     flex-direction: column-reverse;
   }
 }
+
+/* Keep native select controls aligned with the app skin after all responsive overrides. */
+select.input,
+.field select.input,
+.admin-filter-field select.input,
+.admin-dialog-form select.input {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  min-height: 46px;
+  border-radius: 12px !important;
+  background-color: var(--surface) !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) !important;
+  background-position:
+    calc(100% - 20px) 52%,
+    calc(100% - 15px) 52% !important;
+  background-size:
+    5px 5px,
+    5px 5px !important;
+  background-repeat: no-repeat !important;
+  background-clip: padding-box;
+  color: var(--text) !important;
+}
+
+select.input option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] select.input,
+:root[data-theme="dark"] .field select.input,
+:root[data-theme="dark"] .admin-filter-field select.input,
+:root[data-theme="dark"] .admin-dialog-form select.input {
+  background-color: #0d1a2b !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] select.input option {
+  background: #0d1a2b;
+  color: var(--text);
+}
