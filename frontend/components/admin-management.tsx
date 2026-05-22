@@ -410,6 +410,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     }
   }
 
+  function openDeleteTarget(target: DeleteTarget) {
+    if (!target) {
+      return;
+    }
+    setDeleteTarget(target);
+  }
+
   function openDeleteConfirmation() {
     if (!dialog || dialog.mode !== "edit" || !dialog.id) {
       return;
@@ -662,6 +669,22 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       >
                         Edit
                       </button>
+                      {viewerRole === "admin" ? (
+                        <button
+                          type="button"
+                          className="admin-action-button admin-danger-button"
+                          title="Delete organization"
+                          onClick={() =>
+                            openDeleteTarget({
+                              type: "organization",
+                              id: organization.id,
+                              label: organization.name,
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </article>
@@ -708,14 +731,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         <option key={organization.id} value={organization.id}>
                         {organization.name}
                       </option>
-                    ))}
+                      ))}
                     </select>
                 </label>
                 <DialogActions
                   busy={busy === "organization-save"}
-                  deleteBusy={busy === "organization-delete"}
-                  canDelete={dialog.mode === "edit" && viewerRole === "admin"}
-                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
