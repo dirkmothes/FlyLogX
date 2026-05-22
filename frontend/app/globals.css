@@ -2177,6 +2177,10 @@ select.input option {
   overflow: auto;
 }
 
+.admin-dialog-message {
+  margin-bottom: 2px;
+}
+
 .admin-confirm-copy {
   display: grid;
   gap: 8px;

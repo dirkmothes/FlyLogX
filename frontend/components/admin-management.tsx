@@ -496,7 +496,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   return (
     <div className="admin-console">
-      {message ? <div className="form-note admin-message">{message}</div> : null}
+      {!dialog && !deleteTarget && message ? <div className="form-note admin-message">{message}</div> : null}
 
       <section className="admin-command">
         <div>
@@ -767,6 +767,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
             {dialog.type === "organization" ? (
               <form className="admin-dialog-form" onSubmit={saveOrganization}>
+                {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
                 <label className="field">
                   <span>Name</span>
                   <input
@@ -801,6 +802,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
             {dialog.type === "unit" ? (
               <form className="admin-dialog-form" onSubmit={saveUnit}>
+                {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
                 <label className="field">
                   <span>Organization</span>
                   <select
@@ -834,6 +836,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
             {dialog.type === "user" ? (
               <form className="admin-dialog-form" onSubmit={saveUser}>
+                {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
                 <div className="admin-dialog-grid">
                   <label className="field">
                     <span>Name</span>
