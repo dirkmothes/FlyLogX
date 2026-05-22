@@ -16,7 +16,7 @@ type Props = {
   breadcrumbs?: string[];
   children: ReactNode;
   aside?: ReactNode;
-  user?: Pick<ApiUser, "name" | "role" | "email" | "organization_id" | "unit_id" | "two_factor_enabled">;
+  user?: Pick<ApiUser, "name" | "role" | "email" | "organization_id" | "unit_id">;
 };
 
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
@@ -92,8 +92,6 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
       </aside>
 
       <div className="main-column">
-        <header className="topbar" aria-label="Seitenkopf" />
-
         <section className="page-heading">
           <div>
             <div className="breadcrumbs">

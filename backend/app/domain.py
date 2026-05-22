@@ -92,7 +92,6 @@ class User(BaseModel):
     name: str
     email: str
     active: bool = True
-    two_factor_enabled: bool = False
     is_deleted: bool = False
 
 
@@ -104,7 +103,6 @@ class UserCreateRequest(BaseModel):
     email: str
     password: str
     active: bool = True
-    two_factor_enabled: bool = False
 
 
 class UserUpdateRequest(BaseModel):
@@ -115,7 +113,6 @@ class UserUpdateRequest(BaseModel):
     email: str | None = None
     password: str | None = None
     active: bool | None = None
-    two_factor_enabled: bool | None = None
     is_deleted: bool | None = None
 
 
@@ -123,7 +120,6 @@ class OwnProfileUpdateRequest(BaseModel):
     name: str | None = None
     email: str | None = None
     password: str | None = None
-    two_factor_enabled: bool | None = None
 
 
 class Aircraft(BaseModel):

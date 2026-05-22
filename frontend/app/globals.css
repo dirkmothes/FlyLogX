@@ -82,7 +82,8 @@
 :root[data-theme="dark"] .admin-user-toolbar,
 :root[data-theme="dark"] .admin-record-field,
 :root[data-theme="dark"] .admin-chip-count,
-:root[data-theme="dark"] .admin-switch-row label,
+:root[data-theme="dark"] .admin-state-option,
+:root[data-theme="dark"] .account-note-box,
 :root[data-theme="dark"] .workflow-step,
 :root[data-theme="dark"] .filter-chip,
 :root[data-theme="dark"] .form-note,
@@ -166,6 +167,18 @@
   border-color: rgba(93, 163, 226, 0.4);
   color: #d5ebff;
   box-shadow: none;
+}
+
+:root[data-theme="dark"] .admin-state-option {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-state-option-active {
+  background: rgba(93, 163, 226, 0.18);
+  border-color: rgba(93, 163, 226, 0.36);
+  color: #d5ebff;
 }
 
 :root[data-theme="dark"] .brand-subtitle,
@@ -2088,20 +2101,88 @@ select.input option {
   gap: 14px;
 }
 
-.admin-switch-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.admin-state-group {
+  display: grid;
+  gap: 8px;
 }
 
-.admin-switch-row label {
+.admin-state-label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-state-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.admin-state-option {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 12px;
+  min-height: 40px;
+  padding: 9px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
+  color: var(--text);
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-state-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(47, 110, 166, 0.28);
+}
+
+.admin-state-option:focus-within {
+  border-color: rgba(47, 110, 166, 0.42);
+  box-shadow: var(--ring);
+}
+
+.admin-state-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-state-option-active {
+  background: rgba(47, 110, 166, 0.1);
+  border-color: rgba(47, 110, 166, 0.24);
+  color: var(--blue);
+}
+
+.account-note-box {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.account-note-box span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.account-note-box p {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .admin-dialog-actions {

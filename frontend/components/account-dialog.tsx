@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import type { ApiUser } from "@/lib/api";
 
 type Props = {
-  user: Pick<ApiUser, "name" | "email" | "role" | "organization_id" | "unit_id" | "two_factor_enabled">;
+  user: Pick<ApiUser, "name" | "email" | "role" | "organization_id" | "unit_id">;
 };
 
 type AccountForm = {
   name: string;
   email: string;
   password: string;
-  two_factor_enabled: boolean;
 };
 
 function UserIcon() {
@@ -40,7 +39,6 @@ export function AccountDialog({ user }: Props) {
     name: user.name,
     email: user.email,
     password: "",
-    two_factor_enabled: user.two_factor_enabled,
   });
 
   useEffect(() => {
@@ -52,7 +50,6 @@ export function AccountDialog({ user }: Props) {
       name: user.name,
       email: user.email,
       password: "",
-      two_factor_enabled: user.two_factor_enabled,
     });
     setMessage(null);
   }, [open, user]);
@@ -86,7 +83,6 @@ export function AccountDialog({ user }: Props) {
     const payload: Record<string, unknown> = {
       name: form.name.trim(),
       email: form.email.trim(),
-      two_factor_enabled: form.two_factor_enabled,
     };
 
     if (form.password.trim()) {
@@ -164,7 +160,7 @@ export function AccountDialog({ user }: Props) {
               <div className="mini-card">
                 <h3>{user.name}</h3>
                 <p>
-                  Rolle: <strong>{user.role}</strong> · 2FA: {user.two_factor_enabled ? "aktiv" : "inaktiv"}
+                  Rolle: <strong>{user.role}</strong>
                 </p>
               </div>
 
@@ -198,20 +194,10 @@ export function AccountDialog({ user }: Props) {
                     onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
                   />
                 </label>
-                <div className="admin-switch-row account-switch-row">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={form.two_factor_enabled}
-                      onChange={(event) => setForm((current) => ({ ...current, two_factor_enabled: event.target.checked }))}
-                    />
-                    2FA aktivieren
-                  </label>
+                <div className="account-note-box">
+                  <span>Hinweis</span>
+                  <p>Das Passwortfeld bleibt leer, wenn nur Name oder E-Mail geändert werden soll.</p>
                 </div>
-              </div>
-
-              <div className="form-note">
-                Das Passwortfeld bleibt leer, wenn nur Name, E-Mail oder 2FA geändert werden soll.
               </div>
 
               {message ? <div className="form-error">{message}</div> : null}

@@ -37,7 +37,7 @@ type UserForm = {
   email: string;
   password: string;
   active: boolean;
-  two_factor_enabled: boolean;
+  is_deleted: boolean;
 };
 
 const roleLabel: Record<RoleName, string> = {
@@ -108,7 +108,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
     email: "",
     password: "",
     active: true,
-    two_factor_enabled: false,
+    is_deleted: false,
   });
 
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
@@ -169,7 +169,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
         email: "",
         password: "",
         active: true,
-        two_factor_enabled: false,
+        is_deleted: false,
       });
     }
     setDialog({ type, mode: "create" });
@@ -196,8 +196,8 @@ export function AdminManagement({ organizations, units, users }: Props) {
       name: user.name,
       email: user.email,
       password: "",
-      active: user.active,
-      two_factor_enabled: user.two_factor_enabled,
+      active: user.active && !user.is_deleted,
+      is_deleted: user.is_deleted || !user.active,
     });
     setDialog({ type: "user", mode: "edit", id: user.id });
   }
@@ -277,7 +277,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
         email: userForm.email.trim(),
         password: userForm.password.trim() || null,
         active: userForm.active,
-        two_factor_enabled: userForm.two_factor_enabled,
+        is_deleted: userForm.is_deleted,
       };
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/users/${dialog.id}`, "PATCH", body);
@@ -299,6 +299,21 @@ export function AdminManagement({ organizations, units, users }: Props) {
       window.location.reload();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : fallback);
+      setBusy(null);
+    }
+  }
+
+  async function restoreUser(userId: string, busyKey: string) {
+    setBusy(busyKey);
+    setMessage(null);
+    try {
+      await requestJson(`/api/users/${userId}`, "PATCH", {
+        active: true,
+        is_deleted: false,
+      });
+      window.location.reload();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Benutzer konnte nicht entsperrt werden");
       setBusy(null);
     }
   }
@@ -448,12 +463,16 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="admin-action-button admin-danger-button"
-                        title={user.active && !user.is_deleted ? "Nutzer sperren" : "Nutzer ist gesperrt"}
-                        disabled={busy === `user-delete-${user.id}`}
-                        onClick={() => deactivate(`/api/users/${user.id}`, `user-delete-${user.id}`, "Benutzer konnte nicht gesperrt werden")}
+                        className={`admin-action-button ${user.active && !user.is_deleted ? "admin-danger-button" : "admin-action-button-edit"}`}
+                        title={user.active && !user.is_deleted ? "Nutzer sperren" : "Nutzer entsperren"}
+                        disabled={busy === `user-toggle-${user.id}`}
+                        onClick={() =>
+                          user.active && !user.is_deleted
+                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "Benutzer konnte nicht gesperrt werden")
+                            : restoreUser(user.id, `user-toggle-${user.id}`)
+                        }
                       >
-                        {user.active && !user.is_deleted ? "Sperren" : "Gesperrt"}
+                        {user.active && !user.is_deleted ? "Sperren" : "Entsperren"}
                       </button>
                     </div>
                   </div>
@@ -692,19 +711,28 @@ export function AdminManagement({ organizations, units, users }: Props) {
                     />
                   </label>
                 </div>
-                <div className="admin-switch-row">
-                  <label>
-                    <input type="checkbox" checked={userForm.active} onChange={(event) => setUserForm((current) => ({ ...current, active: event.target.checked }))} />
-                    Aktiv
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={userForm.two_factor_enabled}
-                      onChange={(event) => setUserForm((current) => ({ ...current, two_factor_enabled: event.target.checked }))}
-                    />
-                    2FA
-                  </label>
+                <div className="admin-state-group">
+                  <span className="admin-state-label">Status</span>
+                  <div className="admin-state-toggle" role="radiogroup" aria-label="Nutzerstatus">
+                    <label className={`admin-state-option ${userForm.active && !userForm.is_deleted ? "admin-state-option-active" : ""}`}>
+                      <input
+                        type="radio"
+                        name="user-state"
+                        checked={userForm.active && !userForm.is_deleted}
+                        onChange={() => setUserForm((current) => ({ ...current, active: true, is_deleted: false }))}
+                      />
+                      Aktiv
+                    </label>
+                    <label className={`admin-state-option ${!userForm.active || userForm.is_deleted ? "admin-state-option-active" : ""}`}>
+                      <input
+                        type="radio"
+                        name="user-state"
+                        checked={!userForm.active || userForm.is_deleted}
+                        onChange={() => setUserForm((current) => ({ ...current, active: false, is_deleted: true }))}
+                      />
+                      Gesperrt
+                    </label>
+                  </div>
                 </div>
                 <DialogActions busy={busy === "user-save"} onCancel={() => setDialog(null)} />
               </form>

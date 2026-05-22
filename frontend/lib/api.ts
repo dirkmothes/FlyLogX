@@ -12,7 +12,6 @@ export type ApiUser = {
   name: string;
   email: string;
   active: boolean;
-  two_factor_enabled: boolean;
   is_deleted: boolean;
 };
 

@@ -82,9 +82,9 @@ def _require_unit(db: Session, unit_id: str) -> UnitModel:
     return unit
 
 
-def _require_user(db: Session, user_id: str) -> UserModel:
+def _require_user(db: Session, user_id: str, *, include_deleted: bool = False) -> UserModel:
     user = db.get(UserModel, user_id)
-    if user is None or user.is_deleted:
+    if user is None or (user.is_deleted and not include_deleted):
         raise KeyError("user_not_found")
     return user
 
@@ -294,7 +294,6 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
         email=payload.email,
         password_hash=hash_password(payload.password),
         active=payload.active,
-        two_factor_enabled=payload.two_factor_enabled,
     )
     db.add(user)
     db.flush()
@@ -314,7 +313,7 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
 
 
 def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id: str) -> User:
-    user = _require_user(db, user_id)
+    user = _require_user(db, user_id, include_deleted=True)
     changes = payload.model_dump(exclude_unset=True)
     before = User.model_validate(user).model_dump(mode="json")
 
@@ -352,12 +351,12 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
         user.password_hash = hash_password(changes["password"])
     if "active" in changes and changes["active"] is not None:
         user.active = changes["active"]
-    if "two_factor_enabled" in changes and changes["two_factor_enabled"] is not None:
-        user.two_factor_enabled = changes["two_factor_enabled"]
     if "is_deleted" in changes and changes["is_deleted"] is not None:
         user.is_deleted = changes["is_deleted"]
         if changes["is_deleted"]:
             user.active = False
+        elif changes.get("active") is None:
+            user.active = True
 
     db.flush()
     after = User.model_validate(user).model_dump(mode="json")

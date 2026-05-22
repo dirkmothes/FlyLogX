@@ -83,7 +83,6 @@ EXEMPT_API_PATHS = {
     "/api/auth/login",
     "/api/auth/request-password-reset",
     "/api/auth/reset-password",
-    "/api/auth/two-factor/verify",
 }
 
 app.add_middleware(
@@ -285,11 +284,6 @@ def reset_password():
     return {"message": "Password reset workflow scaffolded"}
 
 
-@app.post("/api/auth/two-factor/verify")
-def verify_two_factor():
-    return {"message": "2FA verification scaffolded"}
-
-
 @app.get("/api/auth/sessions")
 def sessions(_: object = Depends(get_current_user)):
     return [
@@ -321,7 +315,6 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
                 name=changes.get("name"),
                 email=changes.get("email"),
                 password=changes.get("password"),
-                two_factor_enabled=changes.get("two_factor_enabled"),
             ),
             actor_id=user.id,
         )

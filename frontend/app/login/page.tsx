@@ -62,7 +62,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="muted-list">
-          <div>• Login, Passwort-Reset und optionale 2FA</div>
+          <div>• Login und Passwort-Reset</div>
           <div>• Rollen: Pilot, Vorgesetzter, Admin</div>
           <div>• Digitale Freigabe und Änderungsverlauf</div>
         </div>
