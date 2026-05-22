@@ -1221,7 +1221,7 @@ select.input option {
 }
 
 .button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.72;
 }
 
@@ -1821,7 +1821,7 @@ select.input option {
 }
 
 .admin-action-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
 }
 
@@ -2102,7 +2102,7 @@ select.input option {
 }
 
 .admin-icon-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
 }
 
