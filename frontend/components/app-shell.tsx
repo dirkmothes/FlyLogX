@@ -70,10 +70,6 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
 
       <div className="main-column">
         <header className="topbar" aria-label="Schnellzugriff">
-          <div className="command-search">
-            <span>Suche</span>
-            <strong>Seiten, Aktionen, Einträge</strong>
-          </div>
           <div className="topbar-actions">
             <ThemeToggle />
             {user ? (

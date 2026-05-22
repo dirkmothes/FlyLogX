@@ -63,7 +63,6 @@
 :root[data-theme="dark"] .form-card,
 :root[data-theme="dark"] .sidebar,
 :root[data-theme="dark"] .topbar,
-:root[data-theme="dark"] .command-search,
 :root[data-theme="dark"] .admin-command,
 :root[data-theme="dark"] .admin-directory-sidebar,
 :root[data-theme="dark"] .admin-directory-main,
@@ -120,7 +119,6 @@
 :root[data-theme="dark"] .sidebar-group-label,
 :root[data-theme="dark"] .sidebar-foot,
 :root[data-theme="dark"] .sidebar-user span,
-:root[data-theme="dark"] .command-search strong,
 :root[data-theme="dark"] .admin-search-field span,
 :root[data-theme="dark"] .admin-chip-label,
 :root[data-theme="dark"] .admin-chip-count span {
@@ -451,7 +449,7 @@ p {
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   min-height: 68px;
   margin-bottom: 20px;
@@ -460,36 +458,6 @@ p {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-soft);
-}
-
-.command-search {
-  width: min(520px, 100%);
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--muted);
-}
-
-.command-search span {
-  flex: 0 0 auto;
-  color: var(--blue);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.command-search strong {
-  min-width: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .page-heading {
@@ -2100,10 +2068,6 @@ select.input option {
   .page-heading {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .command-search {
-    width: 100%;
   }
 
   .grid-2,
