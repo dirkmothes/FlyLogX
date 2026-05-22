@@ -24,6 +24,7 @@
   --radius: 12px;
   --radius-sm: 8px;
   --ring: 0 0 0 4px rgba(47, 110, 166, 0.14);
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
@@ -44,6 +45,7 @@
   --yellow: #e3b846;
   --red: #e46d6d;
   --ring: 0 0 0 4px rgba(74, 143, 207, 0.24);
+  color-scheme: dark;
 }
 
 :root[data-theme="dark"] body {
@@ -129,10 +131,15 @@
 }
 
 :root[data-theme="dark"] select.input {
-  background-color: #0d1a2b;
+  background-color: #0d1a2b !important;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--muted) 50%),
     linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+}
+
+:root[data-theme="dark"] select.input option {
+  background: #0d1a2b;
+  color: var(--text);
 }
 
 :root[data-theme="dark"] .input::placeholder,
@@ -972,9 +979,11 @@ p {
 }
 
 select.input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   padding-right: 42px;
-  background-color: var(--surface);
+  background-color: var(--surface) !important;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--muted) 50%),
     linear-gradient(135deg, var(--muted) 50%, transparent 50%);
@@ -985,10 +994,17 @@ select.input {
     5px 5px,
     5px 5px;
   background-repeat: no-repeat;
+  color: var(--text);
+  line-height: 1.2;
 }
 
 select.input:focus {
-  background-color: var(--surface);
+  background-color: var(--surface) !important;
+}
+
+select.input option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .textarea {
