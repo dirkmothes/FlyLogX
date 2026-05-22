@@ -451,9 +451,18 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         ? dialog.mode === "edit"
           ? "Einheit bearbeiten"
           : "Einheit anlegen"
-        : dialog?.mode === "edit"
-          ? "Organisation bearbeiten"
-          : "Organisation anlegen";
+      : dialog?.mode === "edit"
+        ? "Organisation bearbeiten"
+        : "Organisation anlegen";
+
+  const deleteTargetTypeLabel =
+    deleteTarget?.type === "organization"
+      ? "Organisation"
+      : deleteTarget?.type === "unit"
+        ? "Einheit"
+        : deleteTarget?.type === "user"
+          ? "Nutzer"
+          : "";
 
   return (
     <div className="admin-console">
@@ -933,7 +942,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
             aria-labelledby="delete-dialog-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <div className="admin-dialog-header">
+            <div className="admin-dialog-header admin-confirm-header">
               <div>
                 <span className="admin-kicker">Löschen bestätigen</span>
                 <h3 id="delete-dialog-title">{deleteTarget.label}</h3>
@@ -942,15 +951,19 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 X
               </button>
             </div>
-            <p className="admin-confirm-copy">
-              Dieser Vorgang löscht den Datensatz aus der Verwaltung. Die Aktion kann nicht über die Oberfläche rückgängig gemacht werden.
-            </p>
+            <div className="admin-confirm-copy">
+              <div className="admin-confirm-warning">Achtung: {deleteTargetTypeLabel} endgültig löschen</div>
+              <p>
+                Der Datensatz wird aus der Verwaltung entfernt und in der Oberfläche nicht mehr angezeigt. Der Vorgang sollte nur
+                ausgeführt werden, wenn du ihn wirklich beabsichtigst.
+              </p>
+            </div>
             <div className="admin-dialog-actions">
               <button type="button" className="button button-secondary" onClick={() => setDeleteTarget(null)}>
                 Abbrechen
               </button>
               <button type="button" className="button button-danger" disabled={busy === "organization-delete" || busy === "unit-delete" || busy === "user-delete"} onClick={() => void deleteDialogEntity()}>
-                Löschen
+                Endgültig löschen
               </button>
             </div>
           </section>

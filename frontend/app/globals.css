@@ -2102,6 +2102,13 @@ select.input option {
 .admin-confirm-dialog {
   width: min(560px, 100%);
   grid-template-rows: auto auto auto;
+  border-color: rgba(198, 59, 64, 0.34);
+}
+
+.admin-confirm-header {
+  background:
+    linear-gradient(180deg, rgba(198, 59, 64, 0.12), rgba(198, 59, 64, 0.04)),
+    var(--surface-2);
 }
 
 .admin-dialog-header {
@@ -2139,10 +2146,32 @@ select.input option {
 }
 
 .admin-confirm-copy {
+  display: grid;
+  gap: 10px;
   margin: 0;
   padding: 20px 22px 0;
-  color: var(--muted);
   line-height: 1.55;
+}
+
+.admin-confirm-warning {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(198, 59, 64, 0.3);
+  border-radius: var(--radius-sm);
+  background: rgba(198, 59, 64, 0.08);
+  color: var(--red);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-confirm-copy p {
+  margin: 0;
+  color: var(--muted);
 }
 
 .admin-dialog-grid {
