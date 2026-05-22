@@ -105,6 +105,38 @@ def _require_unit(db: Session, unit_id: str) -> UnitModel:
     return unit
 
 
+def organization_has_dependencies(db: Session, organization_id: str) -> bool:
+    scope_ids = organization_scope_ids(db, organization_id)
+    if scope_ids != {organization_id}:
+        return True
+
+    if db.scalar(
+        select(OrganizationSupervisorModel.supervisor_user_id).where(OrganizationSupervisorModel.organization_id == organization_id)
+    ) is not None:
+        return True
+
+    if db.scalar(select(UserModel.id).where(UserModel.organization_id.in_(scope_ids), UserModel.is_deleted.is_(False))) is not None:
+        return True
+
+    if db.scalar(select(UnitModel.id).where(UnitModel.organization_id.in_(scope_ids), UnitModel.is_deleted.is_(False))) is not None:
+        return True
+
+    if db.scalar(select(AircraftModel.id).where(AircraftModel.organization_id.in_(scope_ids), AircraftModel.is_deleted.is_(False))) is not None:
+        return True
+
+    return db.scalar(select(FlightModel.id).where(FlightModel.organization_id.in_(scope_ids), FlightModel.is_deleted.is_(False))) is not None
+
+
+def unit_has_dependencies(db: Session, unit_id: str) -> bool:
+    if db.scalar(select(UserModel.id).where(UserModel.unit_id == unit_id, UserModel.is_deleted.is_(False))) is not None:
+        return True
+
+    if db.scalar(select(AircraftModel.id).where(AircraftModel.owner_unit_id == unit_id, AircraftModel.is_deleted.is_(False))) is not None:
+        return True
+
+    return db.scalar(select(FlightModel.id).where(FlightModel.unit_id == unit_id, FlightModel.is_deleted.is_(False))) is not None
+
+
 def _require_user(db: Session, user_id: str, *, include_deleted: bool = False) -> UserModel:
     user = db.get(UserModel, user_id)
     if user is None or (user.is_deleted and not include_deleted):
@@ -263,6 +295,9 @@ def update_organization(
     before = Organization.model_validate(organization).model_dump(mode="json")
     changes = payload.model_dump(exclude_unset=True)
 
+    if changes.get("is_deleted") is True and not before["is_deleted"] and organization_has_dependencies(db, organization_id):
+        raise KeyError("organization_has_dependencies")
+
     if "parent_id" in changes and changes["parent_id"] is not None:
         if changes["parent_id"] == organization.id:
             raise KeyError("organization_parent_invalid")
@@ -354,6 +389,9 @@ def update_unit(db: Session, unit_id: str, payload: UnitUpdateRequest, actor_id:
     unit = _require_unit(db, unit_id)
     before = Unit.model_validate(unit).model_dump(mode="json")
     changes = payload.model_dump(exclude_unset=True)
+
+    if changes.get("is_deleted") is True and not before["is_deleted"] and unit_has_dependencies(db, unit_id):
+        raise KeyError("unit_has_dependencies")
 
     if "organization_id" in changes and changes["organization_id"] is not None:
         _require_organization(db, changes["organization_id"])

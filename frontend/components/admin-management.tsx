@@ -197,6 +197,19 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     return names.length > 0 ? names.join(", ") : "No supervisor";
   }
 
+  function organizationHasLinkedRecords(organizationId: string) {
+    return (
+      organizations.some((organization) => organization.parent_id === organizationId) ||
+      units.some((unit) => unit.organization_id === organizationId && !unit.is_deleted) ||
+      users.some((user) => user.organization_id === organizationId && !user.is_deleted) ||
+      users.some((user) => user.role === "supervisor" && user.supervised_organization_ids?.includes(organizationId) && !user.is_deleted)
+    );
+  }
+
+  function unitHasLinkedRecords(unitId: string) {
+    return users.some((user) => user.unit_id === unitId && !user.is_deleted);
+  }
+
   function openCreate(type: "organization" | "unit" | "user") {
     if (type !== "user" && !canCreateStructure) {
       return;
@@ -643,84 +656,100 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
           {activeTab === "units" ? (
             <div className="admin-card-list">
-              {units.map((unit) => (
-                <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={unit.id}>
-                  <div className="admin-record-top">
-                    <div className="admin-primary-cell">
-                      <div className="admin-entity-headline">
-                        <strong>{unit.name}</strong>
-                        <span>{organizationName(unit.organization_id)}</span>
-                        <span className="admin-code-cell">{unit.code}</span>
+              {units.map((unit) => {
+                const deleteBlocked = unitHasLinkedRecords(unit.id);
+                return (
+                  <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={unit.id}>
+                    <div className="admin-record-top">
+                      <div className="admin-primary-cell">
+                        <div className="admin-entity-headline">
+                          <strong>{unit.name}</strong>
+                          <span>{organizationName(unit.organization_id)}</span>
+                          <span className="admin-code-cell">{unit.code}</span>
+                        </div>
+                      </div>
+                      <div className="admin-record-actions">
+                        <button type="button" className="admin-action-button admin-action-button-edit" title="Edit unit" onClick={() => openEditUnit(unit)}>
+                          Edit
+                        </button>
+                        {viewerRole === "admin" ? (
+                          <button
+                            type="button"
+                            className="admin-action-button admin-danger-button"
+                            title={deleteBlocked ? "Delete unavailable while users are assigned" : "Delete unit"}
+                            disabled={deleteBlocked}
+                            onClick={() =>
+                              deleteBlocked
+                                ? null
+                                : openDeleteTarget({
+                                    type: "unit",
+                                    id: unit.id,
+                                    label: unit.name,
+                                  })
+                            }
+                          >
+                            Delete
+                          </button>
+                        ) : null}
                       </div>
                     </div>
-                    <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button admin-action-button-edit" title="Edit unit" onClick={() => openEditUnit(unit)}>
-                        Edit
-                      </button>
-                      {viewerRole === "admin" ? (
-                        <button
-                          type="button"
-                          className="admin-action-button admin-danger-button"
-                          title="Delete unit"
-                          onClick={() =>
-                            openDeleteTarget({
-                              type: "unit",
-                              id: unit.id,
-                              label: unit.name,
-                            })
-                          }
-                        >
-                          Delete
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : null}
 
           {activeTab === "organizations" ? (
             <div className="admin-card-list">
-              {organizations.map((organization) => (
-                <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={organization.id}>
-                  <div className="admin-record-top">
-                    <div className="admin-primary-cell">
-                      <div className="admin-entity-headline">
-                        <strong>{organization.name}</strong>
-                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Top-level organization"}</span>
-                        <span>Supervisors: {organizationSupervisors(organization.id)}</span>
+              {organizations.map((organization) => {
+                const deleteBlocked = organizationHasLinkedRecords(organization.id);
+                return (
+                  <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={organization.id}>
+                    <div className="admin-record-top">
+                      <div className="admin-primary-cell">
+                        <div className="admin-entity-headline">
+                          <strong>{organization.name}</strong>
+                          <span>{organization.parent_id ? organizationName(organization.parent_id) : "Top-level organization"}</span>
+                          <span>Supervisors: {organizationSupervisors(organization.id)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="admin-record-actions">
-                      <button
-                        type="button"
-                        className="admin-action-button admin-action-button-edit"
-                        title="Edit organization"
-                        onClick={() => openEditOrganization(organization)}
-                      >
-                        Edit
-                      </button>
-                      {viewerRole === "admin" ? (
+                      <div className="admin-record-actions">
                         <button
                           type="button"
-                          className="admin-action-button admin-danger-button"
-                          title="Delete organization"
-                          onClick={() =>
-                            openDeleteTarget({
-                              type: "organization",
-                              id: organization.id,
-                              label: organization.name,
-                            })
-                          }
+                          className="admin-action-button admin-action-button-edit"
+                          title="Edit organization"
+                          onClick={() => openEditOrganization(organization)}
                         >
-                          Delete
+                          Edit
                         </button>
-                      ) : null}
+                        {viewerRole === "admin" ? (
+                          <button
+                            type="button"
+                            className="admin-action-button admin-danger-button"
+                            title={
+                              deleteBlocked
+                                ? "Delete unavailable while linked records exist"
+                                : "Delete organization"
+                            }
+                            disabled={deleteBlocked}
+                            onClick={() =>
+                              deleteBlocked
+                                ? null
+                                : openDeleteTarget({
+                                    type: "organization",
+                                    id: organization.id,
+                                    label: organization.name,
+                                  })
+                            }
+                          >
+                            Delete
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : null}
         </div>

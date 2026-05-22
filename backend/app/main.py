@@ -380,6 +380,9 @@ def organization_update(
         detail = "Organization not found"
         if key == "organization_parent_invalid":
             detail = "Organization cannot reference itself as parent"
+        elif key == "organization_has_dependencies":
+            detail = "Organization still has linked records"
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST if key == "organization_parent_invalid" else status.HTTP_404_NOT_FOUND, detail=detail)
 
 
@@ -391,7 +394,10 @@ def organization_delete(
 ):
     try:
         return delete_organization(db, organization_id, actor_id=user.id)
-    except KeyError:
+    except KeyError as exc:
+        key = exc.args[0] if exc.args else "organization_not_found"
+        if key == "organization_has_dependencies":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Organization still has linked records")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
 
 
@@ -441,6 +447,9 @@ def unit_update(
         elif key == "unit_code_exists":
             detail = "Unit code already exists"
             status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "unit_has_dependencies":
+            detail = "Unit still has linked records"
+            status_code = status.HTTP_409_CONFLICT
         raise HTTPException(status_code=status_code, detail=detail)
 
 
@@ -448,7 +457,10 @@ def unit_update(
 def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
     try:
         return delete_unit(db, unit_id, actor_id=user.id)
-    except KeyError:
+    except KeyError as exc:
+        key = exc.args[0] if exc.args else "unit_not_found"
+        if key == "unit_has_dependencies":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Unit still has linked records")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
 
 
