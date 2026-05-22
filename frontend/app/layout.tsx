@@ -6,6 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "FlyLogX",
   description: "Digitale Flugzeitennachweis- und Prüfverwaltung für Luftfahrzeuge und Drohnen.",
+  icons: {
+    icon: "/fly-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

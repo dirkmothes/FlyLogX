@@ -402,23 +402,22 @@ p {
   background: transparent;
 }
 
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(145deg, var(--nav), var(--blue));
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #ffffff;
-  box-shadow: 0 12px 22px rgba(47, 110, 166, 0.22);
+.brand-block--logo {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.brand-title {
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: 0;
+.brand-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.login-hero .brand-logo {
+  width: 94px;
+  height: 94px;
 }
 
 .brand-subtitle {

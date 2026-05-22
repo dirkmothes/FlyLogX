@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -48,12 +49,9 @@ export default function LoginPage() {
   return (
     <div className="login-layout">
       <section className="login-hero">
-        <div className="brand-block" style={{ borderBottomColor: "rgba(255,255,255,0.1)" }}>
-          <div className="brand-mark">FX</div>
-          <div>
-            <div className="brand-title">FlyLogX</div>
-            <div className="brand-subtitle">Digitales Flugzeitennachweisheft</div>
-          </div>
+        <div className="brand-block brand-block--logo" style={{ borderBottomColor: "rgba(255,255,255,0.1)" }}>
+          <Image className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" width={112} height={112} priority />
+          <div className="brand-subtitle">Digitales Flugzeitennachweisheft</div>
         </div>
         <div>
           <h1>Digitale Flugerfassung für Piloten und Organisationen.</h1>
