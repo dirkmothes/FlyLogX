@@ -499,12 +499,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       </button>
                     </div>
                   </div>
-                  <div className="admin-record-meta">
-                    <div className="admin-record-field">
-                      <span>ID</span>
-                      <strong className="admin-mono-cell">{shortId(unit.id)}</strong>
-                    </div>
-                  </div>
                 </article>
               ))}
             </div>
@@ -530,12 +524,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       >
                         Bearbeiten
                       </button>
-                    </div>
-                  </div>
-                  <div className="admin-record-meta">
-                    <div className="admin-record-field">
-                      <span>ID</span>
-                      <strong className="admin-mono-cell">{shortId(organization.id)}</strong>
                     </div>
                   </div>
                 </article>
