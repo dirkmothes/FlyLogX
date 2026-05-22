@@ -937,7 +937,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   </label>
                 </div>
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
-                  <label className="field">
+                  <div className="field">
                     <span>Supervised organizations</span>
                     <div className="admin-org-badge-list" role="group" aria-label="Supervised organizations">
                       {organizations.map((organization) => {
@@ -971,11 +971,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                             }
                           >
                             <span>{organization.name}</span>
-                          </button>
+                            </button>
                         );
                       })}
                     </div>
-                  </label>
+                  </div>
                 ) : null}
                 <div className="admin-state-group">
                   <span className="admin-state-label">Status</span>

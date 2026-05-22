@@ -2286,6 +2286,7 @@ select.input option {
 .admin-org-badge {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 30px;
   max-width: 100%;
   padding: 0 11px;
@@ -2296,6 +2297,7 @@ select.input option {
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -2312,13 +2314,16 @@ select.input option {
 }
 
 .admin-org-badge:hover {
-  transform: translateY(-1px);
   background: rgba(47, 110, 166, 0.06);
   border-color: rgba(47, 110, 166, 0.18);
 }
 
 .admin-org-badge:focus-visible {
   box-shadow: var(--ring);
+}
+
+.admin-org-badge:active {
+  transform: none;
 }
 
 .admin-org-badge-active {
