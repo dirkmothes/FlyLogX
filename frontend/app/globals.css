@@ -410,14 +410,17 @@ p {
 
 .brand-logo {
   display: block;
-  width: 72px;
-  height: 72px;
+  width: min(100%, 260px);
+  height: auto;
   object-fit: contain;
 }
 
+.sidebar .brand-logo {
+  width: 180px;
+}
+
 .login-hero .brand-logo {
-  width: 94px;
-  height: 94px;
+  width: min(100%, 320px);
 }
 
 .brand-subtitle {

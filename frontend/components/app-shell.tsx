@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -40,7 +39,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-block brand-block--logo">
-          <Image className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" width={88} height={88} priority />
+          <img className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" />
           <div className="brand-subtitle">Flight Logbook System</div>
         </div>
 
