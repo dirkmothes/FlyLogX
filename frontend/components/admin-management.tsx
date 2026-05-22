@@ -34,7 +34,6 @@ type OrganizationForm = {
 type UnitForm = {
   organization_id: string;
   name: string;
-  code: string;
 };
 
 type UserForm = {
@@ -122,7 +121,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [unitForm, setUnitForm] = useState<UnitForm>({
     organization_id: organizations[0]?.id ?? "",
     name: "",
-    code: "",
   });
   const [userForm, setUserForm] = useState<UserForm>({
     organization_id: organizations[0]?.id ?? "",
@@ -231,7 +229,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setOrganizationForm({ name: "", parent_id: "" });
     }
     if (type === "unit") {
-      setUnitForm({ organization_id: organizations[0]?.id ?? "", name: "", code: "" });
+      setUnitForm({ organization_id: organizations[0]?.id ?? "", name: "" });
     }
     if (type === "user") {
       const organization_id = organizations[0]?.id ?? "";
@@ -263,7 +261,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   function openEditUnit(unit: ApiUnit) {
     setMessage(null);
-    setUnitForm({ organization_id: unit.organization_id, name: unit.name, code: unit.code });
+    setUnitForm({ organization_id: unit.organization_id, name: unit.name });
     setDialog({ type: "unit", mode: "edit", id: unit.id });
   }
 
@@ -325,8 +323,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   async function saveUnit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!unitForm.organization_id || !unitForm.name.trim() || !unitForm.code.trim()) {
-      setMessage("Please provide an organization, code, and name for the unit.");
+    if (!unitForm.organization_id || !unitForm.name.trim()) {
+      setMessage("Please provide an organization and name for the unit.");
       return;
     }
 
@@ -336,7 +334,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       const body = {
         organization_id: unitForm.organization_id,
         name: unitForm.name.trim(),
-        code: unitForm.code.trim(),
       };
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/units/${dialog.id}`, "PATCH", body);
@@ -676,7 +673,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         <div className="admin-entity-headline">
                           <strong>{unit.name}</strong>
                           <span>{organizationName(unit.organization_id)}</span>
-                          <span className="admin-code-cell">{unit.code}</span>
                         </div>
                       </div>
                       <div className="admin-record-actions">
@@ -832,10 +828,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   </select>
                 </label>
                 <div className="admin-dialog-grid">
-                  <label className="field">
-                    <span>Code</span>
-                    <input className="input" value={unitForm.code} onChange={(event) => setUnitForm((current) => ({ ...current, code: event.target.value }))} />
-                  </label>
                   <label className="field">
                     <span>Name</span>
                     <input className="input" value={unitForm.name} onChange={(event) => setUnitForm((current) => ({ ...current, name: event.target.value }))} />

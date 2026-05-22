@@ -72,7 +72,7 @@ class Unit(BaseModel):
 class UnitCreateRequest(BaseModel):
     organization_id: str
     name: str
-    code: str
+    code: str | None = None
 
 
 class UnitUpdateRequest(BaseModel):

@@ -5,6 +5,7 @@ from csv import writer
 from io import StringIO
 from io import BytesIO
 from datetime import datetime, timezone
+import re
 from uuid import uuid4
 
 from sqlalchemy import func, select
@@ -112,6 +113,31 @@ def _normalize_user_name(first_name: str | None, last_name: str | None) -> tuple
         raise KeyError("user_name_required")
     display_name = f"{normalized_first_name} {normalized_last_name}".strip()
     return normalized_first_name, normalized_last_name, display_name
+
+
+def _normalize_unit_code(name: str, code: str | None = None) -> str:
+    candidate = (code or "").strip()
+    if candidate:
+        return candidate
+    fallback = re.sub(r"[^A-Za-z0-9]+", "-", name.strip().lower()).strip("-")
+    return fallback.upper() if fallback else f"UNIT-{uuid4().hex[:6].upper()}"
+
+
+def _unique_unit_code(db: Session, name: str, code: str | None = None, *, exclude_id: str | None = None) -> str:
+    base_code = _normalize_unit_code(name, code)
+    candidate = base_code
+    suffix = 2
+    while True:
+        stmt = select(UnitModel.id).where(func.lower(UnitModel.code) == candidate.lower())
+        if exclude_id is not None:
+            stmt = stmt.where(UnitModel.id != exclude_id)
+        existing = db.scalar(stmt)
+        if existing is None:
+            return candidate
+        if code:
+            raise KeyError("unit_code_exists")
+        candidate = f"{base_code}-{suffix}"
+        suffix += 1
 
 
 def organization_has_dependencies(db: Session, organization_id: str) -> bool:
@@ -263,7 +289,7 @@ def list_units(db: Session, user: UserModel | None = None) -> list[Unit]:
     stmt = select(UnitModel).where(UnitModel.is_deleted.is_(False))
     if user is not None and user.role != RoleName.admin:
         stmt = stmt.where(UnitModel.organization_id.in_(accessible_organization_ids(db, user)))
-    rows = db.scalars(stmt.order_by(UnitModel.code)).all()
+    rows = db.scalars(stmt.order_by(UnitModel.name)).all()
     return [_unit_to_domain(row) for row in rows]
 
 
@@ -372,14 +398,12 @@ def set_supervisor_organization_ids(db: Session, supervisor_user_id: str, organi
 
 def create_unit(db: Session, payload: UnitCreateRequest, actor_id: str) -> Unit:
     _require_organization(db, payload.organization_id)
-    existing = db.scalar(select(UnitModel).where(UnitModel.code == payload.code))
-    if existing is not None and not existing.is_deleted:
-        raise KeyError("unit_code_exists")
+    normalized_code = _unique_unit_code(db, payload.name, payload.code)
     unit = UnitModel(
         id=f"unit-{uuid4().hex[:12]}",
         organization_id=payload.organization_id,
         name=payload.name,
-        code=payload.code,
+        code=normalized_code,
     )
     db.add(unit)
     db.flush()
@@ -413,10 +437,9 @@ def update_unit(db: Session, unit_id: str, payload: UnitUpdateRequest, actor_id:
     if "name" in changes and changes["name"] is not None:
         unit.name = changes["name"]
     if "code" in changes and changes["code"] is not None:
-        existing = db.scalar(select(UnitModel).where(UnitModel.code == changes["code"], UnitModel.id != unit.id))
-        if existing is not None and not existing.is_deleted:
-            raise KeyError("unit_code_exists")
-        unit.code = changes["code"]
+        unit.code = _unique_unit_code(db, unit.name, changes["code"], exclude_id=unit.id)
+    elif "name" in changes and changes["name"] is not None:
+        unit.code = _normalize_unit_code(unit.name, unit.code)
     if "is_deleted" in changes and changes["is_deleted"] is not None:
         unit.is_deleted = changes["is_deleted"]
 
