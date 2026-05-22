@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { API_BASE_URL } from "@/lib/api";
+
+export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,7 +63,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="muted-list">
-          <div>• Login und Passwort-Reset</div>
+          <div>• Login und Rollenverwaltung</div>
           <div>• Rollen: Pilot, Vorgesetzter, Admin</div>
           <div>• Digitale Freigabe und Änderungsverlauf</div>
         </div>
@@ -93,9 +94,6 @@ export default function LoginPage() {
             </label>
             {error ? <div className="form-error">{error}</div> : null}
             <div className="form-actions">
-              <button className="button button-secondary" type="button" onClick={() => setPassword("")}>
-                Passwort zurücksetzen
-              </button>
               <button className="button button-primary" type="submit" disabled={loading}>
                 {loading ? "Anmeldung..." : "Anmelden"}
               </button>
@@ -108,11 +106,6 @@ export default function LoginPage() {
             Pilot, Supervisor oder Admin mit dem Passwort <code>flylogx-demo</code>.
           </div>
 
-          <div style={{ marginTop: 22 }}>
-            <Link href="/dashboard" className="topbar-button topbar-button-secondary">
-              Zum Dashboard
-            </Link>
-          </div>
         </div>
       </section>
     </div>
