@@ -2231,23 +2231,26 @@ select.input option {
 }
 
 .admin-state-toggle {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
 }
 
 .admin-state-option {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 9px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text);
+  font-size: 0.82rem;
   font-weight: 800;
   cursor: pointer;
   transition:
@@ -2258,25 +2261,103 @@ select.input option {
 }
 
 .admin-state-option:hover {
-  transform: translateY(-1px);
-  border-color: rgba(47, 110, 166, 0.28);
+  background: rgba(47, 110, 166, 0.08);
+  border-color: rgba(47, 110, 166, 0.12);
 }
 
-.admin-state-option:focus-within {
-  border-color: rgba(47, 110, 166, 0.42);
+.admin-state-option:focus-visible {
+  border-color: rgba(47, 110, 166, 0.24);
   box-shadow: var(--ring);
 }
 
-.admin-state-option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+.admin-state-option-active {
+  background: rgba(47, 110, 166, 0.12);
+  border-color: rgba(47, 110, 166, 0.18);
+  color: var(--blue);
 }
 
-.admin-state-option-active {
-  background: rgba(47, 110, 166, 0.1);
-  border-color: rgba(47, 110, 166, 0.24);
+.admin-org-badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-org-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  max-width: 100%;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-org-badge span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-org-badge:hover {
+  transform: translateY(-1px);
+  background: rgba(47, 110, 166, 0.06);
+  border-color: rgba(47, 110, 166, 0.18);
+}
+
+.admin-org-badge:focus-visible {
+  box-shadow: var(--ring);
+}
+
+.admin-org-badge-active {
+  background: rgba(47, 110, 166, 0.12);
+  border-color: rgba(47, 110, 166, 0.22);
   color: var(--blue);
+}
+
+:root[data-theme="dark"] .admin-state-toggle {
+  background: var(--surface-2);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .admin-state-option:hover {
+  background: rgba(93, 163, 226, 0.1);
+  border-color: rgba(93, 163, 226, 0.16);
+}
+
+:root[data-theme="dark"] .admin-state-option-active {
+  background: rgba(93, 163, 226, 0.16);
+  border-color: rgba(93, 163, 226, 0.24);
+  color: #d5ebff;
+}
+
+:root[data-theme="dark"] .admin-org-badge {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-org-badge:hover {
+  background: rgba(93, 163, 226, 0.08);
+  border-color: rgba(93, 163, 226, 0.18);
+}
+
+:root[data-theme="dark"] .admin-org-badge-active {
+  background: rgba(93, 163, 226, 0.16);
+  border-color: rgba(93, 163, 226, 0.24);
+  color: #d5ebff;
 }
 
 .account-note-box {

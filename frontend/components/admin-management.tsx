@@ -939,37 +939,39 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <label className="field">
                     <span>Supervised organizations</span>
-                    <div className="admin-org-checkbox-list">
+                    <div className="admin-org-badge-list" role="group" aria-label="Supervised organizations">
                       {organizations.map((organization) => {
                         const checked = activeSupervisorOrganizationIds.includes(organization.id);
                         return (
-                          <label key={organization.id} className={`admin-org-checkbox ${checked ? "admin-org-checkbox-active" : ""}`}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() =>
-                                setUserForm((current) => {
-                                  const currentIds = normalizeSupervisorOrganizationIds(
-                                    current.supervised_organization_ids,
+                          <button
+                            key={organization.id}
+                            type="button"
+                            className={`admin-org-badge ${checked ? "admin-org-badge-active" : ""}`}
+                            aria-pressed={checked}
+                            title={organization.name}
+                            onClick={() =>
+                              setUserForm((current) => {
+                                const currentIds = normalizeSupervisorOrganizationIds(
+                                  current.supervised_organization_ids,
+                                  current.organization_id,
+                                  organizations.map((item) => item.id),
+                                );
+                                const nextIds = checked
+                                  ? currentIds.filter((id) => id !== organization.id)
+                                  : Array.from(new Set([...currentIds, organization.id]));
+                                return {
+                                  ...current,
+                                  supervised_organization_ids: normalizeSupervisorOrganizationIds(
+                                    nextIds,
                                     current.organization_id,
                                     organizations.map((item) => item.id),
-                                  );
-                                  const nextIds = checked
-                                    ? currentIds.filter((id) => id !== organization.id)
-                                    : Array.from(new Set([...currentIds, organization.id]));
-                                  return {
-                                    ...current,
-                                    supervised_organization_ids: normalizeSupervisorOrganizationIds(
-                                      nextIds,
-                                      current.organization_id,
-                                      organizations.map((item) => item.id),
-                                    ),
-                                  };
-                                })
-                              }
-                            />
+                                  ),
+                                };
+                              })
+                            }
+                          >
                             <span>{organization.name}</span>
-                          </label>
+                          </button>
                         );
                       })}
                     </div>
@@ -977,25 +979,23 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 ) : null}
                 <div className="admin-state-group">
                   <span className="admin-state-label">Status</span>
-                  <div className="admin-state-toggle" role="radiogroup" aria-label="User status">
-                    <label className={`admin-state-option ${userForm.active && !userForm.is_deleted ? "admin-state-option-active" : ""}`}>
-                      <input
-                        type="radio"
-                        name="user-state"
-                        checked={userForm.active && !userForm.is_deleted}
-                        onChange={() => setUserForm((current) => ({ ...current, active: true, is_deleted: false }))}
-                      />
+                  <div className="admin-state-toggle" role="group" aria-label="User status">
+                    <button
+                      type="button"
+                      className={`admin-state-option ${userForm.active && !userForm.is_deleted ? "admin-state-option-active" : ""}`}
+                      aria-pressed={userForm.active && !userForm.is_deleted}
+                      onClick={() => setUserForm((current) => ({ ...current, active: true, is_deleted: false }))}
+                    >
                       Active
-                    </label>
-                    <label className={`admin-state-option ${!userForm.active || userForm.is_deleted ? "admin-state-option-active" : ""}`}>
-                      <input
-                        type="radio"
-                        name="user-state"
-                        checked={!userForm.active || userForm.is_deleted}
-                        onChange={() => setUserForm((current) => ({ ...current, active: false, is_deleted: true }))}
-                      />
+                    </button>
+                    <button
+                      type="button"
+                      className={`admin-state-option ${!userForm.active || userForm.is_deleted ? "admin-state-option-active" : ""}`}
+                      aria-pressed={!userForm.active || userForm.is_deleted}
+                      onClick={() => setUserForm((current) => ({ ...current, active: false, is_deleted: true }))}
+                    >
                       Blocked
-                    </label>
+                    </button>
                   </div>
                 </div>
                 <DialogActions
