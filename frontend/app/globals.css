@@ -1969,23 +1969,23 @@ select.input option {
   }
 
   .admin-user-record-card .admin-record-top {
-    grid-template-columns: 1fr;
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
   }
 
-  .admin-record-actions {
-    flex-wrap: wrap;
-    white-space: normal;
-    align-items: flex-start;
-    justify-content: flex-start;
+  .admin-user-record-card .admin-record-actions {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   .admin-user-headline {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 
   .admin-user-headline strong {
-    white-space: normal;
+    white-space: nowrap;
   }
 }
 
