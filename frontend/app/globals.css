@@ -2148,7 +2148,7 @@ select.input option {
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  padding: 20px 22px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-2);
 }
@@ -2179,18 +2179,18 @@ select.input option {
 
 .admin-confirm-copy {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
-  padding: 20px 22px 0;
-  line-height: 1.55;
+  padding: 16px 20px 0;
+  line-height: 1.45;
 }
 
 .admin-confirm-warning {
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 30px;
+  padding: 0 9px;
   border: 1px solid rgba(198, 59, 64, 0.3);
   border-radius: var(--radius-sm);
   background: rgba(198, 59, 64, 0.08);
@@ -2204,6 +2204,11 @@ select.input option {
 .admin-confirm-copy p {
   margin: 0;
   color: var(--muted);
+}
+
+.admin-confirm-dialog .admin-dialog-actions {
+  padding: 0 20px 20px;
+  gap: 10px;
 }
 
 .admin-dialog-grid {

@@ -1027,10 +1027,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
               </button>
             </div>
             <div className="admin-confirm-copy">
-              <div className="admin-confirm-warning">Warning: {deleteTargetTypeLabel} permanently delete</div>
-              <p>
-                The record will be removed from administration and hidden from the UI. Only continue if you are sure.
-              </p>
+              <div className="admin-confirm-warning">Warning: permanent deletion</div>
+              <p>The {deleteTargetTypeLabel.toLowerCase()} will be removed from administration. This cannot be undone.</p>
             </div>
             <div className="admin-dialog-actions">
               <button type="button" className="button button-secondary" onClick={() => setDeleteTarget(null)}>
