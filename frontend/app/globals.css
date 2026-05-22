@@ -2620,3 +2620,13 @@ select.input option {
   background: #0d1a2b;
   color: var(--text);
 }
+
+/* Final disabled-button cursor override. */
+.button:disabled,
+.admin-action-button:disabled,
+.admin-icon-button:disabled,
+.button-danger:disabled,
+.admin-danger-button:disabled,
+.admin-record-actions button:disabled {
+  cursor: not-allowed !important;
+}
