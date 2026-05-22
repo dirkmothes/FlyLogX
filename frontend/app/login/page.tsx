@@ -56,7 +56,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div>
-          <h1>Revisionssichere Flugerfassung für Piloten und Organisationen.</h1>
+          <h1>Digitale Flugerfassung für Piloten und Organisationen.</h1>
           <p>
             Erfasse Flüge digital, prüfe Einträge mit klaren Rollen, exportiere Nachweise als PDF und behalte jederzeit
             den auditierbaren Gesamtstatus im Blick.
