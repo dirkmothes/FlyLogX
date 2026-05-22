@@ -88,7 +88,7 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
           >
             {units.map((unit) => (
               <option key={unit.id} value={unit.id}>
-                {unit.code} · {unit.name}
+                {unit.name}
               </option>
             ))}
           </select>

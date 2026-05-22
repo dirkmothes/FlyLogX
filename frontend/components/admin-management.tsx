@@ -194,7 +194,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   function unitName(id: string | null | undefined) {
     if (!id) return "No unit";
     const unit = units.find((item) => item.id === id);
-    return unit ? `${unit.code} - ${unit.name}` : shortId(id);
+    return unit ? unit.name : shortId(id);
   }
 
   function organizationSupervisors(organizationId: string) {
@@ -919,7 +919,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         .filter((unit) => unit.organization_id === userForm.organization_id)
                         .map((unit) => (
                           <option key={unit.id} value={unit.id}>
-                            {unit.code} - {unit.name}
+                            {unit.name}
                           </option>
                         ))}
                     </select>
