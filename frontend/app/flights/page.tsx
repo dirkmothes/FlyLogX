@@ -99,7 +99,7 @@ export default async function FlightsPage() {
           </div>
           <div className="mini-card">
             <h3>Freigegeben</h3>
-            <p>{rows.filter((row) => row.status === "Freigegeben").length} revisionssichere Einträge</p>
+            <p>{rows.filter((row) => row.status === "Freigegeben").length} bestätigte Einträge</p>
           </div>
           <div className="mini-card">
             <h3>Abgelehnt</h3>

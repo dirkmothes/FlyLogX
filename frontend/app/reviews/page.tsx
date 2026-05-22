@@ -40,7 +40,7 @@ export default async function ReviewsPage() {
             </div>
             <div className="mini-card">
               <h3>Protokollierung</h3>
-              <p>Jede Freigabe erzeugt einen revisionssicheren Audit-Eintrag.</p>
+              <p>Jede Freigabe erzeugt einen nachvollziehbaren Audit-Eintrag.</p>
             </div>
           </div>
         </section>
@@ -65,7 +65,7 @@ export default async function ReviewsPage() {
         <div className="panel-header">
           <div>
             <h2>Freigabeaktion</h2>
-            <p>Kommentar und digitale Bestätigung werden revisionssicher gespeichert</p>
+            <p>Kommentar und digitale Bestätigung werden nachvollziehbar gespeichert</p>
           </div>
         </div>
         <div className="panel-body">

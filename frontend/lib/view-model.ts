@@ -93,7 +93,7 @@ export function mapDashboard(summary: DashboardSummary): DashboardCard[] {
     { label: "Gesamtflugzeit", value: `${summary.total_hours.toFixed(1)} h`, delta: `+${summary.approved_entries} Freigaben`, tone: "blue" },
     { label: "Flüge gesamt", value: `${summary.total_flights}`, delta: `+${summary.recent_flights.length} recent`, tone: "green" },
     { label: "Offene Einträge", value: `${summary.open_entries}`, delta: `${summary.pending_reviews} zur Prüfung`, tone: "yellow" },
-    { label: "Abgelehnt", value: `${summary.rejected_entries}`, delta: "revisionssicher protokolliert", tone: "red" },
+    { label: "Abgelehnt", value: `${summary.rejected_entries}`, delta: "mit Verlauf dokumentiert", tone: "red" },
   ];
 }
 
