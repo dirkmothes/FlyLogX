@@ -115,33 +115,33 @@
 }
 
 :root[data-theme="dark"] .topbar-button-danger {
-  background: linear-gradient(145deg, rgba(182, 74, 74, 0.9), rgba(108, 25, 25, 0.96));
+  background: #7f2f2f;
   color: #fff5f5;
 }
 
 :root[data-theme="dark"] .topbar-icon-button-secondary,
 :root[data-theme="dark"] .admin-command-button {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  background: #16293f;
   color: #f7fbff;
 }
 
 :root[data-theme="dark"] .topbar-icon-button-danger {
-  background: linear-gradient(145deg, rgba(182, 74, 74, 0.9), rgba(108, 25, 25, 0.96));
+  background: #7f2f2f;
   color: #fff5f5;
 }
 
 :root[data-theme="dark"] .admin-status-active {
-  color: #f6fff9;
-  background: linear-gradient(145deg, #2ea868, #1f7a4d);
-  border-color: rgba(67, 185, 120, 0.34);
-  box-shadow: 0 8px 18px rgba(67, 185, 120, 0.18);
+  color: #eaf7ef;
+  background: #234f37;
+  border-color: #2f6f4c;
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .admin-status-blocked {
-  color: #fff7f7;
-  background: linear-gradient(145deg, #d35e5e, #9e3636);
-  border-color: rgba(228, 109, 109, 0.34);
-  box-shadow: 0 8px 18px rgba(228, 109, 109, 0.18);
+  color: #fff0f0;
+  background: #753131;
+  border-color: #8e4040;
+  box-shadow: none;
 }
 
 :root[data-theme="dark"] .brand-subtitle,
@@ -573,7 +573,7 @@ p {
 
 .topbar-icon-button-secondary,
 .admin-command-button {
-  background: linear-gradient(145deg, #ffffff, #f3f7fb);
+  background: #ffffff;
   color: var(--blue);
   border-color: rgba(47, 110, 166, 0.18);
 }
@@ -1860,17 +1860,17 @@ select.input option {
 }
 
 .admin-status-active {
-  color: #f7fff9;
-  background: linear-gradient(145deg, #2f8f5a, #216f46);
-  border-color: rgba(31, 122, 77, 0.25);
-  box-shadow: 0 6px 14px rgba(31, 122, 77, 0.18);
+  color: #1f7a4d;
+  background: #e5f2ea;
+  border-color: #b8dcc7;
+  box-shadow: none;
 }
 
 .admin-status-blocked {
-  color: #fff8f8;
-  background: linear-gradient(145deg, #b84545, #8d2f2f);
-  border-color: rgba(162, 58, 58, 0.25);
-  box-shadow: 0 6px 14px rgba(162, 58, 58, 0.18);
+  color: #a23a3a;
+  background: #f6e7e7;
+  border-color: #deb0b0;
+  box-shadow: none;
 }
 
 .admin-primary-cell strong,
