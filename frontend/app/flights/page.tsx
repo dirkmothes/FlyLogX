@@ -34,8 +34,7 @@ export default async function FlightsPage() {
       title="Flugbuch & Nachweisheft"
       subtitle="Tabellarische Sicht im Stil eines klassischen Flugzeitennachweishefts."
       breadcrumbs={["FlyLogX", "Module", "Flüge"]}
-      userName={session.user.name}
-      userRole={session.user.role}
+      user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">

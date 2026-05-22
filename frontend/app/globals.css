@@ -113,8 +113,7 @@
 :root[data-theme="dark"] .sidebar-group-label,
 :root[data-theme="dark"] .sidebar-foot,
 :root[data-theme="dark"] .sidebar-user span,
-:root[data-theme="dark"] .command-search strong,
-:root[data-theme="dark"] .page-user small {
+:root[data-theme="dark"] .command-search strong {
   color: var(--muted);
 }
 
@@ -489,36 +488,6 @@ p {
   max-width: 760px;
   color: var(--muted);
   line-height: 1.55;
-}
-
-.page-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 220px;
-  justify-content: flex-end;
-}
-
-.page-user span {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--nav);
-  color: #ffffff;
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.page-user div {
-  display: grid;
-  gap: 2px;
-  text-align: right;
-}
-
-.page-user small {
-  color: var(--muted);
 }
 
 .topbar p,
@@ -1962,15 +1931,6 @@ select.input option {
   .page-heading {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .page-user {
-    min-width: 0;
-    justify-content: flex-start;
-  }
-
-  .page-user div {
-    text-align: left;
   }
 
   .command-search {

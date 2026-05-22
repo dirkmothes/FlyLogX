@@ -34,8 +34,7 @@ export default async function DashboardPage() {
       title="Dashboard"
       subtitle="Operativer Überblick über Flugzeiten, Prüfstatus und Nachweisheft-Fortschritt."
       breadcrumbs={["FlyLogX", "Dashboard"]}
-      userName={session.user.name}
-      userRole={session.user.role}
+      user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">

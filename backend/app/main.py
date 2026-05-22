@@ -31,6 +31,7 @@ from .domain import (
     OrganizationCreateRequest,
     OrganizationUpdateRequest,
     PasswordResetRequest,
+    OwnProfileUpdateRequest,
     ReviewDecision,
     ReviewRequest,
     RoleName,
@@ -299,6 +300,39 @@ def sessions(_: object = Depends(get_current_user)):
 @app.get("/api/auth/me", response_model=User)
 def me(user=Depends(get_current_user)):
     return User.model_validate(user)
+
+
+@app.patch("/api/auth/me", response_model=User)
+def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), db=Depends(get_session)):
+    changes = payload.model_dump(exclude_unset=True)
+    if not changes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No profile changes provided")
+
+    if "name" in changes and (changes["name"] is None or not str(changes["name"]).strip()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name cannot be empty")
+    if "email" in changes and (changes["email"] is None or not str(changes["email"]).strip()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email cannot be empty")
+
+    try:
+        return update_user(
+            db,
+            user.id,
+            UserUpdateRequest(
+                name=changes.get("name"),
+                email=changes.get("email"),
+                password=changes.get("password"),
+                two_factor_enabled=changes.get("two_factor_enabled"),
+            ),
+            actor_id=user.id,
+        )
+    except KeyError as exc:
+        key = exc.args[0] if exc.args else "user_not_found"
+        detail = "User not found"
+        status_code = status.HTTP_404_NOT_FOUND
+        if key == "user_email_exists":
+            detail = "Email already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=detail)
 
 
 @app.get("/api/organizations")

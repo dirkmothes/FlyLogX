@@ -119,6 +119,13 @@ class UserUpdateRequest(BaseModel):
     is_deleted: bool | None = None
 
 
+class OwnProfileUpdateRequest(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    password: str | None = None
+    two_factor_enabled: bool | None = None
+
+
 class Aircraft(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

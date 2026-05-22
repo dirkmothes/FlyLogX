@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { navItems } from "@/lib/mock";
+import type { ApiUser } from "@/lib/api";
+import { AccountDialog } from "@/components/account-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -11,18 +13,17 @@ type Props = {
   breadcrumbs?: string[];
   children: ReactNode;
   aside?: ReactNode;
-  userName?: string;
-  userRole?: string;
+  user?: Pick<ApiUser, "name" | "role" | "email" | "organization_id" | "unit_id" | "two_factor_enabled">;
 };
 
-export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, userName, userRole }: Props) {
+export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
   const hasAside = Boolean(aside);
   const visibleNavItems = navItems.filter((item) => {
-    if (!userRole || !("roles" in item)) {
+    if (!user?.role || !("roles" in item)) {
       return true;
     }
 
-    return item.roles.includes(userRole as "pilot" | "supervisor" | "admin");
+    return item.roles.includes(user.role as "pilot" | "supervisor" | "admin");
   });
   const navGroups = [
     { label: "Overview", items: visibleNavItems.filter((item) => ["/dashboard", "/flights", "/aircraft"].includes(item.href)) },
@@ -57,13 +58,11 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
         </nav>
 
         <div className="sidebar-foot">
-          <div>Revision-safe workflow</div>
-          <div>Role-based access control</div>
-          <div>Audit-first design</div>
-          {userName ? (
+          <div className="sidebar-group-label">Angemeldeter Nutzer</div>
+          {user ? (
             <div className="sidebar-user">
-              <strong>{userName}</strong>
-              <span>{userRole}</span>
+              <strong>{user.name}</strong>
+              <span>{user.role}</span>
             </div>
           ) : null}
         </div>
@@ -77,7 +76,16 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
           </div>
           <div className="topbar-actions">
             <ThemeToggle />
-            {userName ? <LogoutButton /> : <Link href="/login" className="topbar-button">Login</Link>}
+            {user ? (
+              <>
+                <AccountDialog user={user} />
+                <LogoutButton />
+              </>
+            ) : (
+              <Link href="/login" className="topbar-button">
+                Login
+              </Link>
+            )}
           </div>
         </header>
 
@@ -89,15 +97,6 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
             <h1>{title}</h1>
             {subtitle ? <p>{subtitle}</p> : null}
           </div>
-          {userName ? (
-            <div className="page-user">
-              <span>{userName.slice(0, 2).toUpperCase()}</span>
-              <div>
-                <strong>{userName}</strong>
-                <small>{userRole}</small>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <main className={`content-grid ${hasAside ? "" : "content-grid--full"}`}>

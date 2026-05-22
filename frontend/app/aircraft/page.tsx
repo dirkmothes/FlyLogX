@@ -34,8 +34,7 @@ export default async function AircraftPage() {
       title="Zentrale Luftfahrzeugverwaltung"
       subtitle="Stammdaten, Einsatzstatus, Wartung und Freigaben für Drohnen und Luftfahrzeuge."
       breadcrumbs={["FlyLogX", "Module", "Luftfahrzeuge"]}
-      userName={session.user.name}
-      userRole={session.user.role}
+      user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">

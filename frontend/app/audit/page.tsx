@@ -25,8 +25,7 @@ export default async function AuditPage() {
       title="Audit-Log"
       subtitle="Lückenlose Nachvollziehbarkeit aller sicherheitsrelevanten Vorgänge."
       breadcrumbs={["FlyLogX", "Module", "Audit"]}
-      userName={session.user.name}
-      userRole={session.user.role}
+      user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">

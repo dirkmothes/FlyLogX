@@ -24,8 +24,7 @@ export default async function ReviewsPage() {
       title="Prüf- und Freigabeprozess"
       subtitle="Einträge werden nachvollziehbar geprüft, bestätigt oder abgelehnt."
       breadcrumbs={["FlyLogX", "Module", "Prüfung"]}
-      userName={session.user.name}
-      userRole={session.user.role}
+      user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
