@@ -1721,6 +1721,11 @@ select.input option {
   padding: 8px 12px;
 }
 
+.admin-entity-record-card {
+  padding: 10px 12px;
+  gap: 10px;
+}
+
 .admin-record-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1730,6 +1735,11 @@ select.input option {
 }
 
 .admin-user-record-card .admin-record-top {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+}
+
+.admin-entity-record-card .admin-record-top {
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
 }
@@ -1798,6 +1808,10 @@ select.input option {
   min-width: 0;
 }
 
+.admin-entity-record-card .admin-record-meta {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .admin-record-field {
   display: grid;
   gap: 6px;
@@ -1820,6 +1834,27 @@ select.input option {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 0.91rem;
+}
+
+.admin-entity-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.admin-entity-headline strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-entity-headline span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .admin-table-head,

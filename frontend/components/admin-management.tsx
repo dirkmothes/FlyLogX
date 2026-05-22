@@ -484,14 +484,14 @@ export function AdminManagement({ organizations, units, users }: Props) {
           {activeTab === "units" ? (
             <div className="admin-card-list">
               {units.map((unit) => (
-                <article className="admin-record-card admin-user-record-card" key={unit.id}>
+                <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={unit.id}>
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
-                      <div className="admin-user-headline">
+                      <div className="admin-entity-headline">
                         <strong>{unit.name}</strong>
-                        <span className="admin-mini-badge">Einheit</span>
+                        <span>{organizationName(unit.organization_id)}</span>
+                        <span className="admin-code-cell">{unit.code}</span>
                       </div>
-                      <span className="admin-code-cell">{unit.code}</span>
                     </div>
                     <div className="admin-record-actions">
                       <button type="button" className="admin-action-button admin-action-button-edit" title="Einheit bearbeiten" onClick={() => openEditUnit(unit)}>
@@ -500,10 +500,6 @@ export function AdminManagement({ organizations, units, users }: Props) {
                     </div>
                   </div>
                   <div className="admin-record-meta">
-                    <div className="admin-record-field">
-                      <span>Organisation</span>
-                      <strong>{organizationName(unit.organization_id)}</strong>
-                    </div>
                     <div className="admin-record-field">
                       <span>ID</span>
                       <strong className="admin-mono-cell">{shortId(unit.id)}</strong>
@@ -517,14 +513,13 @@ export function AdminManagement({ organizations, units, users }: Props) {
           {activeTab === "organizations" ? (
             <div className="admin-card-list">
               {organizations.map((organization) => (
-                <article className="admin-record-card admin-user-record-card" key={organization.id}>
+                <article className="admin-record-card admin-user-record-card admin-entity-record-card" key={organization.id}>
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
-                      <div className="admin-user-headline">
+                      <div className="admin-entity-headline">
                         <strong>{organization.name}</strong>
-                        <span className="admin-mini-badge">Organisation</span>
+                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
                       </div>
-                      <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
                     </div>
                     <div className="admin-record-actions">
                       <button
