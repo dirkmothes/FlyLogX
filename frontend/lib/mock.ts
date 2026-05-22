@@ -6,7 +6,7 @@ export const navItems = [
   { href: "/aircraft", label: "Luftfahrzeuge", roles: ["pilot", "supervisor", "admin"] },
   { href: "/reviews", label: "Prüfung", roles: ["supervisor", "admin"] },
   { href: "/audit", label: "Audit", roles: ["supervisor", "admin"] },
-  { href: "/admin", label: "Administration", roles: ["admin"] },
+  { href: "/admin", label: "Administration", roles: ["supervisor", "admin"] },
 ];
 
 export const kpis = [

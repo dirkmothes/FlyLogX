@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { API_BASE_URL, type ApiOrganization, type ApiUnit, type ApiUser, type RoleName } from "@/lib/api";
 
 type Props = {
+  viewerRole: RoleName;
   organizations: ApiOrganization[];
   units: ApiUnit[];
   users: ApiUser[];
@@ -85,7 +86,7 @@ function PlusIcon() {
   );
 }
 
-export function AdminManagement({ organizations, units, users }: Props) {
+export function AdminManagement({ viewerRole, organizations, units, users }: Props) {
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -117,14 +118,24 @@ export function AdminManagement({ organizations, units, users }: Props) {
     { id: "organizations", label: "Organisationen", count: organizations.length },
   ];
 
+  const canCreateUsers = viewerRole === "admin" || viewerRole === "supervisor";
+  const canCreateStructure = viewerRole === "admin";
   const activeCreateType =
-    activeTab === "users" ? "user" : activeTab === "units" ? "unit" : "organization";
+    activeTab === "users" && canCreateUsers
+      ? "user"
+      : activeTab === "units" && canCreateStructure
+        ? "unit"
+        : activeTab === "organizations" && canCreateStructure
+          ? "organization"
+          : null;
   const activeCreateLabel =
-    activeTab === "users"
+    activeCreateType === "user"
       ? "Nutzer anlegen"
-      : activeTab === "units"
+      : activeCreateType === "unit"
         ? "Einheit anlegen"
-        : "Organisation anlegen";
+        : activeCreateType === "organization"
+          ? "Organisation anlegen"
+          : "";
 
   const filteredUsers = users.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
@@ -152,6 +163,12 @@ export function AdminManagement({ organizations, units, users }: Props) {
   }
 
   function openCreate(type: "organization" | "unit" | "user") {
+    if (type !== "user" && !canCreateStructure) {
+      return;
+    }
+    if (type === "user" && !canCreateUsers) {
+      return;
+    }
     setMessage(null);
     if (type === "organization") {
       setOrganizationForm({ name: "", parent_id: "" });
@@ -341,16 +358,18 @@ export function AdminManagement({ organizations, units, users }: Props) {
           <h2>Identitäten, Einheiten und Organisationsstruktur</h2>
         </div>
         <div className="admin-command-actions">
-          <button
-            type="button"
-            className="admin-command-button"
-            onClick={() => openCreate(activeCreateType)}
-            aria-label={activeCreateLabel}
-            title={activeCreateLabel}
-          >
-            <PlusIcon />
-            <span className="sr-only">{activeCreateLabel}</span>
-          </button>
+          {activeCreateType ? (
+            <button
+              type="button"
+              className="admin-command-button"
+              onClick={() => openCreate(activeCreateType)}
+              aria-label={activeCreateLabel}
+              title={activeCreateLabel}
+            >
+              <PlusIcon />
+              <span className="sr-only">{activeCreateLabel}</span>
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -394,7 +413,9 @@ export function AdminManagement({ organizations, units, users }: Props) {
                   >
                     Alle Rollen
                   </button>
-                  {(["pilot", "supervisor", "admin"] as RoleName[]).map((role) => (
+                  {((viewerRole === "admin"
+                    ? ["pilot", "supervisor", "admin"]
+                    : ["pilot", "supervisor"]) as RoleName[]).map((role) => (
                     <button
                       key={role}
                       type="button"
@@ -663,7 +684,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
                     <select className="input" value={userForm.role} onChange={(event) => setUserForm((current) => ({ ...current, role: event.target.value as RoleName }))}>
                       <option value="pilot">Pilot</option>
                       <option value="supervisor">Vorgesetzter</option>
-                      <option value="admin">Admin</option>
+                      {viewerRole === "admin" ? <option value="admin">Admin</option> : null}
                     </select>
                   </label>
                   <label className="field">

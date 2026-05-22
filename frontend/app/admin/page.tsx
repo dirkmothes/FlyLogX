@@ -2,6 +2,7 @@ import { AppShell } from "@/components/app-shell";
 import { AdminManagement } from "@/components/admin-management";
 import { apiFetch, getAuthHeader, type ApiOrganization, type ApiUnit, type ApiUser } from "@/lib/api";
 import { loadSession } from "@/lib/session";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,9 @@ export default async function AdminPage() {
   const session = await loadSession();
   if (!session) {
     return null;
+  }
+  if (session.user.role !== "admin" && session.user.role !== "supervisor") {
+    redirect("/dashboard");
   }
 
   const [users, units, organizations] = await Promise.all([
@@ -36,7 +40,7 @@ export default async function AdminPage() {
       breadcrumbs={["FlyLogX", "Module", "Administration"]}
       user={session.user}
     >
-      <AdminManagement organizations={organizations} units={units} users={users} />
+      <AdminManagement viewerRole={session.user.role} organizations={organizations} units={units} users={users} />
     </AppShell>
   );
 }

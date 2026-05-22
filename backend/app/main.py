@@ -50,6 +50,7 @@ from .services import (
     create_organization,
     create_unit,
     create_user,
+    organization_in_scope,
     dashboard_for_unit,
     dashboard_for_user,
     export_summary,
@@ -63,6 +64,8 @@ from .services import (
     delete_organization,
     delete_unit,
     delete_user,
+    unit_in_scope,
+    user_in_scope,
     review_flight,
     submit_flight,
     update_organization,
@@ -158,6 +161,17 @@ def require_role(*roles: RoleName):
         return user
 
     return dependency
+
+
+def _ensure_scope(user, db, organization_id: str | None = None, unit_id: str | None = None, user_id: str | None = None):
+    if user.role == RoleName.admin:
+        return
+    if organization_id is not None and not organization_in_scope(db, user.organization_id, organization_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    if unit_id is not None and not unit_in_scope(db, user.organization_id, unit_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    if user_id is not None and not user_in_scope(db, user.organization_id, user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
 
 @app.get("/")
@@ -329,8 +343,9 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
 
 
 @app.get("/api/organizations")
-def organizations(_: object = Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    return list_organizations(db)
+def organizations(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
+    return list_organizations(db, scope_organization_id=scope_organization_id)
 
 
 @app.post("/api/organizations", response_model=Organization)
@@ -349,9 +364,16 @@ def organization_create(
 def organization_update(
     organization_id: str,
     payload: OrganizationUpdateRequest,
-    user=Depends(require_role(RoleName.admin)),
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
     db=Depends(get_session),
 ):
+    target_organization = db.get(OrganizationModel, organization_id)
+    if target_organization is None or target_organization.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+    _ensure_scope(user, db, organization_id=organization_id)
+    changes = payload.model_dump(exclude_unset=True)
+    if user.role == RoleName.supervisor and "parent_id" in changes and changes["parent_id"] is not None:
+        _ensure_scope(user, db, organization_id=changes["parent_id"])
     try:
         return update_organization(db, organization_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -375,8 +397,9 @@ def organization_delete(
 
 
 @app.get("/api/units")
-def units(_: object = Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    return list_units(db)
+def units(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
+    return list_units(db, scope_organization_id=scope_organization_id)
 
 
 @app.post("/api/units", response_model=Unit)
@@ -396,7 +419,19 @@ def unit_create(payload: UnitCreateRequest, user=Depends(require_role(RoleName.a
 
 
 @app.patch("/api/units/{unit_id}")
-def unit_update(unit_id: str, payload: UnitUpdateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def unit_update(
+    unit_id: str,
+    payload: UnitUpdateRequest,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    target_unit = db.get(UnitModel, unit_id)
+    if target_unit is None or target_unit.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
+    _ensure_scope(user, db, unit_id=unit_id)
+    changes = payload.model_dump(exclude_unset=True)
+    if user.role == RoleName.supervisor and "organization_id" in changes and changes["organization_id"] is not None:
+        _ensure_scope(user, db, organization_id=changes["organization_id"])
     try:
         return update_unit(db, unit_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -420,12 +455,21 @@ def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin)), db=Dep
 
 
 @app.get("/api/users")
-def users(_: object = Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    return list_users(db)
+def users(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
+    include_admins = user.role == RoleName.admin
+    return list_users(db, scope_organization_id=scope_organization_id, include_admins=include_admins)
 
 
 @app.post("/api/users", response_model=User)
-def user_create(payload: UserCreateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def user_create(
+    payload: UserCreateRequest,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    _ensure_scope(user, db, organization_id=payload.organization_id, unit_id=payload.unit_id)
+    if user.role == RoleName.supervisor and payload.role == RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return create_user(db, payload, actor_id=user.id)
     except KeyError as exc:
@@ -446,7 +490,24 @@ def user_create(payload: UserCreateRequest, user=Depends(require_role(RoleName.a
 
 
 @app.patch("/api/users/{user_id}")
-def user_update(user_id: str, payload: UserUpdateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def user_update(
+    user_id: str,
+    payload: UserUpdateRequest,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    target_user = db.get(UserModel, user_id)
+    if target_user is None or target_user.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _ensure_scope(user, db, user_id=user_id)
+    changes = payload.model_dump(exclude_unset=True)
+    if user.role == RoleName.supervisor:
+        if target_user.role == RoleName.admin or changes.get("role") == RoleName.admin:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        if "organization_id" in changes and changes["organization_id"] is not None:
+            _ensure_scope(user, db, organization_id=changes["organization_id"])
+        if "unit_id" in changes and changes["unit_id"] is not None:
+            _ensure_scope(user, db, unit_id=changes["unit_id"])
     try:
         return update_user(db, user_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -470,7 +531,17 @@ def user_update(user_id: str, payload: UserUpdateRequest, user=Depends(require_r
 
 
 @app.delete("/api/users/{user_id}")
-def user_delete(user_id: str, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def user_delete(
+    user_id: str,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    target_user = db.get(UserModel, user_id)
+    if target_user is None or target_user.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _ensure_scope(user, db, user_id=user_id)
+    if user.role == RoleName.supervisor and target_user.role == RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return delete_user(db, user_id, actor_id=user.id)
     except KeyError as exc:

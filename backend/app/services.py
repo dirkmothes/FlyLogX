@@ -100,19 +100,64 @@ def _is_test_user(user: UserModel) -> bool:
     )
 
 
-def list_organizations(db: Session) -> list[Organization]:
-    rows = db.scalars(select(OrganizationModel).where(OrganizationModel.is_deleted.is_(False)).order_by(OrganizationModel.name)).all()
+def organization_scope_ids(db: Session, root_organization_id: str) -> set[str]:
+    scope: set[str] = set()
+    frontier = {root_organization_id}
+    while frontier:
+        rows = db.execute(
+            select(OrganizationModel.id).where(
+                OrganizationModel.parent_id.in_(frontier),
+                OrganizationModel.is_deleted.is_(False),
+            )
+        ).scalars().all()
+        next_frontier = {row for row in rows if row not in scope}
+        scope.update(frontier)
+        frontier = next_frontier - scope
+    return scope
+
+
+def organization_in_scope(db: Session, root_organization_id: str, organization_id: str) -> bool:
+    return organization_id in organization_scope_ids(db, root_organization_id)
+
+
+def unit_in_scope(db: Session, root_organization_id: str, unit_id: str) -> bool:
+    unit = db.get(UnitModel, unit_id)
+    if unit is None or unit.is_deleted:
+        return False
+    return organization_in_scope(db, root_organization_id, unit.organization_id)
+
+
+def user_in_scope(db: Session, root_organization_id: str, user_id: str) -> bool:
+    user = db.get(UserModel, user_id)
+    if user is None or user.is_deleted:
+        return False
+    return organization_in_scope(db, root_organization_id, user.organization_id)
+
+
+def list_organizations(db: Session, scope_organization_id: str | None = None) -> list[Organization]:
+    stmt = select(OrganizationModel).where(OrganizationModel.is_deleted.is_(False))
+    if scope_organization_id is not None:
+        stmt = stmt.where(OrganizationModel.id.in_(organization_scope_ids(db, scope_organization_id)))
+    rows = db.scalars(stmt.order_by(OrganizationModel.name)).all()
     return [_organization_to_domain(row) for row in rows]
 
 
-def list_users(db: Session) -> list[User]:
-    rows = db.scalars(select(UserModel).order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
+def list_users(db: Session, scope_organization_id: str | None = None, include_admins: bool = True) -> list[User]:
+    stmt = select(UserModel)
+    if scope_organization_id is not None:
+        stmt = stmt.where(UserModel.organization_id.in_(organization_scope_ids(db, scope_organization_id)))
+        if not include_admins:
+            stmt = stmt.where(UserModel.role != "admin")
+    rows = db.scalars(stmt.order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
     rows = [row for row in rows if not _is_test_user(row)]
     return [_user_to_domain(row) for row in rows]
 
 
-def list_units(db: Session) -> list[Unit]:
-    rows = db.scalars(select(UnitModel).where(UnitModel.is_deleted.is_(False)).order_by(UnitModel.code)).all()
+def list_units(db: Session, scope_organization_id: str | None = None) -> list[Unit]:
+    stmt = select(UnitModel).where(UnitModel.is_deleted.is_(False))
+    if scope_organization_id is not None:
+        stmt = stmt.where(UnitModel.organization_id.in_(organization_scope_ids(db, scope_organization_id)))
+    rows = db.scalars(stmt.order_by(UnitModel.code)).all()
     return [_unit_to_domain(row) for row in rows]
 
 
