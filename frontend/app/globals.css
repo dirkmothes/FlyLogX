@@ -131,16 +131,16 @@
 }
 
 :root[data-theme="dark"] .admin-status-active {
-  color: #eaf7ef;
-  background: #234f37;
-  border-color: #2f6f4c;
+  color: #dff3e7;
+  background: #2a5b40;
+  border-color: #3b7a57;
   box-shadow: none;
 }
 
 :root[data-theme="dark"] .admin-status-blocked {
-  color: #fff0f0;
-  background: #753131;
-  border-color: #8e4040;
+  color: #f6e6e6;
+  background: #6d2f2f;
+  border-color: #874040;
   box-shadow: none;
 }
 
