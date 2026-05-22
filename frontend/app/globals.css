@@ -1222,7 +1222,7 @@ select.input option {
   padding: 72px;
   display: grid;
   align-content: center;
-  gap: 24px;
+  gap: 32px;
   color: #eef4fb;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 36%),
@@ -1234,6 +1234,7 @@ select.input option {
   font-size: clamp(2.6rem, 4vw, 4.8rem);
   line-height: 0.98;
   letter-spacing: 0;
+  margin-bottom: 10px;
 }
 
 .login-hero p {
