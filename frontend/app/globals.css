@@ -2099,6 +2099,11 @@ select.input option {
   overflow: hidden;
 }
 
+.admin-confirm-dialog {
+  width: min(560px, 100%);
+  grid-template-rows: auto auto auto;
+}
+
 .admin-dialog-header {
   display: flex;
   align-items: flex-start;
@@ -2131,6 +2136,13 @@ select.input option {
   min-width: 0;
   padding: 22px;
   overflow: auto;
+}
+
+.admin-confirm-copy {
+  margin: 0;
+  padding: 20px 22px 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .admin-dialog-grid {

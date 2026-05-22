@@ -19,6 +19,12 @@ type DialogState =
   | { type: "user"; mode: DialogMode; id?: string }
   | null;
 
+type DeleteTarget =
+  | { type: "organization"; id: string; label: string }
+  | { type: "unit"; id: string; label: string }
+  | { type: "user"; id: string; label: string }
+  | null;
+
 type OrganizationForm = {
   name: string;
   parent_id: string;
@@ -101,6 +107,7 @@ function PlusIcon() {
 export function AdminManagement({ viewerRole, organizations, units, users }: Props) {
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
@@ -381,27 +388,57 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   }
 
   async function deleteDialogEntity() {
-    if (!dialog) {
+    if (!deleteTarget) {
       return;
     }
 
-    const confirmed = window.confirm("Möchten Sie diesen Datensatz wirklich löschen?");
-    if (!confirmed) {
+    const target = deleteTarget;
+    setDeleteTarget(null);
+
+    if (target.type === "organization" && viewerRole === "admin") {
+      await deactivate(`/api/organizations/${target.id}`, "organization-delete", "Organisation konnte nicht gelöscht werden");
       return;
     }
 
-    if (dialog.type === "organization" && viewerRole === "admin" && dialog.id) {
-      await deactivate(`/api/organizations/${dialog.id}`, "organization-delete", "Organisation konnte nicht gelöscht werden");
+    if (target.type === "unit" && viewerRole === "admin") {
+      await deactivate(`/api/units/${target.id}`, "unit-delete", "Einheit konnte nicht gelöscht werden");
       return;
     }
 
-    if (dialog.type === "unit" && viewerRole === "admin" && dialog.id) {
-      await deactivate(`/api/units/${dialog.id}`, "unit-delete", "Einheit konnte nicht gelöscht werden");
+    if (target.type === "user") {
+      await deactivate(`/api/users/${target.id}`, "user-delete", "Benutzer konnte nicht gelöscht werden");
+    }
+  }
+
+  function openDeleteConfirmation() {
+    if (!dialog || dialog.mode !== "edit" || !dialog.id) {
       return;
     }
 
-    if (dialog.type === "user" && dialog.id) {
-      await deactivate(`/api/users/${dialog.id}`, "user-delete", "Benutzer konnte nicht gelöscht werden");
+    if (dialog.type === "organization" && viewerRole === "admin") {
+      setDeleteTarget({
+        type: "organization",
+        id: dialog.id,
+        label: organizationForm.name.trim() || "Organisation",
+      });
+      return;
+    }
+
+    if (dialog.type === "unit" && viewerRole === "admin") {
+      setDeleteTarget({
+        type: "unit",
+        id: dialog.id,
+        label: unitForm.name.trim() || "Einheit",
+      });
+      return;
+    }
+
+    if (dialog.type === "user") {
+      setDeleteTarget({
+        type: "user",
+        id: dialog.id,
+        label: userForm.name.trim() || "Nutzer",
+      });
     }
   }
 
@@ -669,7 +706,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   busy={busy === "organization-save"}
                   deleteBusy={busy === "organization-delete"}
                   canDelete={dialog.mode === "edit" && viewerRole === "admin"}
-                  onDelete={deleteDialogEntity}
+                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
@@ -705,7 +742,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   busy={busy === "unit-save"}
                   deleteBusy={busy === "unit-delete"}
                   canDelete={dialog.mode === "edit" && viewerRole === "admin"}
-                  onDelete={deleteDialogEntity}
+                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
@@ -878,11 +915,44 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   busy={busy === "user-save"}
                   deleteBusy={busy === "user-delete"}
                   canDelete={dialog.mode === "edit"}
-                  onDelete={deleteDialogEntity}
+                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
             ) : null}
+          </section>
+        </div>
+      ) : null}
+
+      {deleteTarget ? (
+        <div className="admin-dialog-backdrop admin-confirm-backdrop" role="presentation" onMouseDown={() => setDeleteTarget(null)}>
+          <section
+            className="admin-dialog admin-confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="admin-dialog-header">
+              <div>
+                <span className="admin-kicker">Löschen bestätigen</span>
+                <h3 id="delete-dialog-title">{deleteTarget.label}</h3>
+              </div>
+              <button type="button" className="admin-close-button" title="Dialog schließen" onClick={() => setDeleteTarget(null)}>
+                X
+              </button>
+            </div>
+            <p className="admin-confirm-copy">
+              Dieser Vorgang löscht den Datensatz aus der Verwaltung. Die Aktion kann nicht über die Oberfläche rückgängig gemacht werden.
+            </p>
+            <div className="admin-dialog-actions">
+              <button type="button" className="button button-secondary" onClick={() => setDeleteTarget(null)}>
+                Abbrechen
+              </button>
+              <button type="button" className="button button-danger" disabled={busy === "organization-delete" || busy === "unit-delete" || busy === "user-delete"} onClick={() => void deleteDialogEntity()}>
+                Löschen
+              </button>
+            </div>
           </section>
         </div>
       ) : null}
@@ -900,7 +970,7 @@ function DialogActions({
   busy: boolean;
   deleteBusy?: boolean;
   canDelete?: boolean;
-  onDelete?: () => Promise<void>;
+  onDelete?: () => void | Promise<void>;
   onCancel: () => void;
 }) {
   return (
