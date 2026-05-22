@@ -1547,7 +1547,7 @@ select.input option {
 
 .admin-user-record-card {
   gap: 0;
-  padding: 12px 14px;
+  padding: 8px 12px;
 }
 
 .admin-record-top {
@@ -1559,7 +1559,7 @@ select.input option {
 }
 
 .admin-user-record-card .admin-record-top {
-  grid-template-columns: minmax(0, 1fr) minmax(238px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(184px, auto);
   align-items: center;
 }
 
@@ -1573,15 +1573,16 @@ select.input option {
 }
 
 .admin-action-button {
-  min-width: 98px;
-  min-height: 36px;
-  padding: 8px 12px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -1680,17 +1681,17 @@ select.input option {
 .admin-user-status-line {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .admin-status-inline {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 3px 7px;
   border-radius: 999px;
   font-weight: 800;
   letter-spacing: 0.01em;
