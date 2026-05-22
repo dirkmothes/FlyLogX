@@ -144,6 +144,24 @@
   box-shadow: none;
 }
 
+:root[data-theme="dark"] .admin-chip-button {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-chip-button:hover {
+  background: var(--surface-3);
+  border-color: rgba(157, 181, 209, 0.3);
+}
+
+:root[data-theme="dark"] .admin-chip-button-active {
+  background: rgba(93, 163, 226, 0.18);
+  border-color: rgba(93, 163, 226, 0.4);
+  color: #d5ebff;
+  box-shadow: none;
+}
+
 :root[data-theme="dark"] .brand-subtitle,
 :root[data-theme="dark"] .sidebar-group-label,
 :root[data-theme="dark"] .sidebar-foot,
@@ -1618,8 +1636,10 @@ select.input option {
   min-width: auto;
   min-height: 34px;
   padding: 7px 11px;
+  border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
+  color: var(--text);
 }
 
 .admin-chip-button-active {
