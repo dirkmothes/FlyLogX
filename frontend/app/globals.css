@@ -559,9 +559,9 @@ p {
 
 .topbar-icon-button-secondary,
 .admin-command-button {
-  background: var(--nav);
+  background: linear-gradient(145deg, #1d314f, #28446b);
   color: #f7fbff;
-  border-color: transparent;
+  border-color: rgba(125, 149, 179, 0.16);
 }
 
 .topbar-icon-button-danger {
@@ -1838,20 +1838,25 @@ select.input option {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 7px;
+  padding: 4px 9px;
   border-radius: 999px;
   font-weight: 800;
   letter-spacing: 0.01em;
+  border: 1px solid transparent;
 }
 
 .admin-status-active {
-  color: var(--green);
-  background: rgba(31, 122, 77, 0.1);
+  color: #f6fff9;
+  background: linear-gradient(145deg, rgba(25, 122, 75, 0.95), rgba(32, 150, 91, 0.92));
+  border-color: rgba(31, 122, 77, 0.2);
+  box-shadow: 0 8px 18px rgba(31, 122, 77, 0.14);
 }
 
 .admin-status-blocked {
-  color: var(--red);
-  background: rgba(162, 58, 58, 0.1);
+  color: #fff7f7;
+  background: linear-gradient(145deg, rgba(162, 58, 58, 0.95), rgba(126, 32, 32, 0.95));
+  border-color: rgba(162, 58, 58, 0.22);
+  box-shadow: 0 8px 18px rgba(162, 58, 58, 0.14);
 }
 
 .admin-primary-cell strong,
