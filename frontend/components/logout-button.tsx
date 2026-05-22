@@ -20,7 +20,7 @@ export function LogoutButton() {
   }
 
   return (
-    <button type="button" onClick={handleLogout} className="topbar-button">
+    <button type="button" onClick={handleLogout} className="topbar-button topbar-button-danger">
       Abmelden
     </button>
   );

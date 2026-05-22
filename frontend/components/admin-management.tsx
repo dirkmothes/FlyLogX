@@ -418,7 +418,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       </div>
                     </div>
                     <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button" title="Nutzer bearbeiten" onClick={() => openEditUser(user)}>
+                      <button type="button" className="admin-action-button admin-action-button-edit" title="Nutzer bearbeiten" onClick={() => openEditUser(user)}>
                         Bearbeiten
                       </button>
                       <button
@@ -447,7 +447,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
                       <span className="admin-code-cell">{unit.code}</span>
                     </div>
                     <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button" title="Einheit bearbeiten" onClick={() => openEditUnit(unit)}>
+                      <button type="button" className="admin-action-button admin-action-button-edit" title="Einheit bearbeiten" onClick={() => openEditUnit(unit)}>
                         Bearbeiten
                       </button>
                       <button
@@ -488,7 +488,7 @@ export function AdminManagement({ organizations, units, users }: Props) {
                     <div className="admin-record-actions">
                       <button
                         type="button"
-                        className="admin-action-button"
+                        className="admin-action-button admin-action-button-edit"
                         title="Organisation bearbeiten"
                         onClick={() => openEditOrganization(organization)}
                       >

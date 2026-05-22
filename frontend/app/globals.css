@@ -90,6 +90,9 @@
 :root[data-theme="dark"] .table th,
 :root[data-theme="dark"] .button-secondary,
 :root[data-theme="dark"] .topbar-button,
+:root[data-theme="dark"] .topbar-button-danger,
+:root[data-theme="dark"] .admin-action-button-edit,
+:root[data-theme="dark"] .admin-danger-button,
 :root[data-theme="dark"] .admin-action-button,
 :root[data-theme="dark"] .admin-icon-button,
 :root[data-theme="dark"] .pill-neutral {
@@ -106,6 +109,11 @@
   color: #d5ebff;
   background: rgba(93, 163, 226, 0.12);
   border-color: rgba(93, 163, 226, 0.28);
+}
+
+:root[data-theme="dark"] .topbar-button-danger {
+  background: linear-gradient(145deg, rgba(182, 74, 74, 0.9), rgba(108, 25, 25, 0.96));
+  color: #fff5f5;
 }
 
 :root[data-theme="dark"] .brand-subtitle,
@@ -209,6 +217,18 @@
 :root[data-theme="dark"] .admin-role-admin {
   background: #2b5f91;
   color: #ffffff;
+}
+
+:root[data-theme="dark"] .admin-action-button-edit {
+  background: rgba(47, 110, 166, 0.18);
+  border-color: rgba(93, 163, 226, 0.28);
+  color: #d5ebff;
+}
+
+:root[data-theme="dark"] .admin-danger-button {
+  background: rgba(162, 58, 58, 0.18);
+  border-color: rgba(228, 109, 109, 0.28);
+  color: #ffd0d0;
 }
 
 :root[data-theme="dark"] .admin-role-supervisor {
@@ -545,6 +565,12 @@ p {
 .topbar-button-secondary {
   background: var(--nav);
   color: #f7fbff;
+  border-color: transparent;
+}
+
+.topbar-button-danger {
+  background: linear-gradient(145deg, rgba(162, 58, 58, 0.9), rgba(114, 28, 28, 0.95));
+  color: #fff7f7;
   border-color: transparent;
 }
 
@@ -1011,7 +1037,7 @@ select.input option {
 }
 
 .button-primary {
-  background: var(--nav);
+  background: linear-gradient(145deg, var(--nav), var(--blue));
   color: white;
   box-shadow: none;
 }
@@ -1020,6 +1046,14 @@ select.input option {
   background: var(--surface-2);
   color: var(--text);
   border-color: var(--line);
+}
+
+.button-primary:hover,
+.topbar-button-secondary:hover,
+.topbar-button-danger:hover,
+.admin-action-button-edit:hover,
+.admin-danger-button:hover {
+  box-shadow: 0 16px 34px rgba(17, 27, 44, 0.14);
 }
 
 .button:disabled {
@@ -1592,6 +1626,12 @@ select.input option {
     background 160ms ease;
 }
 
+.admin-action-button-edit {
+  background: rgba(47, 110, 166, 0.1);
+  border-color: rgba(47, 110, 166, 0.18);
+  color: var(--blue);
+}
+
 .admin-action-button:hover {
   transform: translateY(-1px);
   border-color: rgba(47, 110, 166, 0.35);
@@ -1601,6 +1641,17 @@ select.input option {
 .admin-action-button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.admin-danger-button {
+  background: rgba(162, 58, 58, 0.1);
+  border-color: rgba(162, 58, 58, 0.18);
+  color: var(--red);
+}
+
+.admin-danger-button:hover {
+  border-color: rgba(162, 58, 58, 0.28);
+  background: rgba(162, 58, 58, 0.16);
 }
 
 .admin-record-meta {
