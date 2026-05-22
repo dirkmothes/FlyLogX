@@ -605,6 +605,22 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <button type="button" className="admin-action-button admin-action-button-edit" title="Edit user" onClick={() => openEditUser(user)}>
                         Edit
                       </button>
+                      {viewerRole === "admin" || viewerRole === "supervisor" ? (
+                        <button
+                          type="button"
+                          className="admin-action-button admin-danger-button"
+                          title="Delete user"
+                          onClick={() =>
+                            openDeleteTarget({
+                              type: "user",
+                              id: user.id,
+                              label: user.name,
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className={`admin-action-button ${user.active && !user.is_deleted ? "admin-danger-button" : "admin-action-button-edit"}`}
@@ -641,6 +657,22 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <button type="button" className="admin-action-button admin-action-button-edit" title="Edit unit" onClick={() => openEditUnit(unit)}>
                         Edit
                       </button>
+                      {viewerRole === "admin" ? (
+                        <button
+                          type="button"
+                          className="admin-action-button admin-danger-button"
+                          title="Delete unit"
+                          onClick={() =>
+                            openDeleteTarget({
+                              type: "unit",
+                              id: unit.id,
+                              label: unit.name,
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </article>
@@ -769,9 +801,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 <DialogActions
                   busy={busy === "unit-save"}
-                  deleteBusy={busy === "unit-delete"}
-                  canDelete={dialog.mode === "edit" && viewerRole === "admin"}
-                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
@@ -942,9 +971,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 <DialogActions
                   busy={busy === "user-save"}
-                  deleteBusy={busy === "user-delete"}
-                  canDelete={dialog.mode === "edit"}
-                  onDelete={openDeleteConfirmation}
                   onCancel={() => setDialog(null)}
                 />
               </form>
