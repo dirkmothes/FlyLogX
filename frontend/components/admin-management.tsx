@@ -102,6 +102,15 @@ export function AdminManagement({ organizations, units, users }: Props) {
     { id: "organizations", label: "Organisationen", count: organizations.length },
   ];
 
+  const activeCreateType =
+    activeTab === "users" ? "user" : activeTab === "units" ? "unit" : "organization";
+  const activeCreateLabel =
+    activeTab === "users"
+      ? "Nutzer anlegen"
+      : activeTab === "units"
+        ? "Einheit anlegen"
+        : "Organisation anlegen";
+
   const filteredUsers = users.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
     const matchesSearch =
@@ -302,14 +311,8 @@ export function AdminManagement({ organizations, units, users }: Props) {
           <h2>Identitäten, Einheiten und Organisationsstruktur</h2>
         </div>
         <div className="admin-command-actions">
-          <button type="button" className="button button-secondary" onClick={() => openCreate("organization")}>
-            Organisation
-          </button>
-          <button type="button" className="button button-secondary" onClick={() => openCreate("unit")}>
-            Einheit
-          </button>
-          <button type="button" className="button button-primary" onClick={() => openCreate("user")}>
-            Nutzer anlegen
+          <button type="button" className="button button-primary" onClick={() => openCreate(activeCreateType)}>
+            {activeCreateLabel}
           </button>
         </div>
       </section>
