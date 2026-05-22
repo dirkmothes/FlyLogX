@@ -40,6 +40,7 @@ class OrganizationModel(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     parent_id: Mapped[str | None] = mapped_column(String(64), ForeignKey("organizations.id"), nullable=True)
+    supervisor_id: Mapped[str | None] = mapped_column(String(64), ForeignKey("users.id"), nullable=True, index=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
@@ -436,6 +437,9 @@ def seed_database(session) -> None:
     )
 
     session.add_all([org, unit, pilot, supervisor, admin])
+    session.flush()
+
+    org.supervisor_id = supervisor.id
     session.flush()
 
     session.add_all([drone, trainer])

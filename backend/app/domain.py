@@ -45,17 +45,20 @@ class Organization(BaseModel):
     id: str
     name: str
     parent_id: str | None = None
+    supervisor_id: str | None = None
     is_deleted: bool = False
 
 
 class OrganizationCreateRequest(BaseModel):
     name: str
     parent_id: str | None = None
+    supervisor_id: str | None = None
 
 
 class OrganizationUpdateRequest(BaseModel):
     name: str | None = None
     parent_id: str | None = None
+    supervisor_id: str | None = None
     is_deleted: bool | None = None
 
 

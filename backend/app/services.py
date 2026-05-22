@@ -23,6 +23,7 @@ from .domain import (
     OrganizationUpdateRequest,
     Organization,
     ReviewDecision,
+    RoleName,
     UnitCreateRequest,
     UnitUpdateRequest,
     Unit,
@@ -75,6 +76,13 @@ def _require_organization(db: Session, organization_id: str) -> OrganizationMode
     return organization
 
 
+def _require_supervisor(db: Session, user_id: str) -> UserModel:
+    user = db.get(UserModel, user_id)
+    if user is None or user.is_deleted or user.role != RoleName.supervisor:
+        raise KeyError("supervisor_not_found")
+    return user
+
+
 def _require_unit(db: Session, unit_id: str) -> UnitModel:
     unit = db.get(UnitModel, unit_id)
     if unit is None or unit.is_deleted:
@@ -116,47 +124,78 @@ def organization_scope_ids(db: Session, root_organization_id: str) -> set[str]:
     return scope
 
 
-def organization_in_scope(db: Session, root_organization_id: str, organization_id: str) -> bool:
-    return organization_id in organization_scope_ids(db, root_organization_id)
+def supervisor_scope_ids(db: Session, supervisor_user_id: str) -> set[str]:
+    roots = set(
+        db.execute(
+            select(OrganizationModel.id).where(
+                OrganizationModel.supervisor_id == supervisor_user_id,
+                OrganizationModel.is_deleted.is_(False),
+            )
+        ).scalars().all()
+    )
+    scope: set[str] = set()
+    frontier = roots
+    while frontier:
+        scope.update(frontier)
+        rows = db.execute(
+            select(OrganizationModel.id).where(
+                OrganizationModel.parent_id.in_(frontier),
+                OrganizationModel.is_deleted.is_(False),
+            )
+        ).scalars().all()
+        frontier = {row for row in rows if row not in scope}
+    return scope
 
 
-def unit_in_scope(db: Session, root_organization_id: str, unit_id: str) -> bool:
+def accessible_organization_ids(db: Session, user: UserModel) -> set[str]:
+    if user.role == RoleName.admin:
+        return set(db.execute(select(OrganizationModel.id).where(OrganizationModel.is_deleted.is_(False))).scalars().all())
+    if user.role == RoleName.supervisor:
+        return supervisor_scope_ids(db, user.id)
+    return {user.organization_id}
+
+
+def organization_in_scope(db: Session, user: UserModel, organization_id: str) -> bool:
+    return organization_id in accessible_organization_ids(db, user)
+
+
+def unit_in_scope(db: Session, user: UserModel, unit_id: str) -> bool:
     unit = db.get(UnitModel, unit_id)
     if unit is None or unit.is_deleted:
         return False
-    return organization_in_scope(db, root_organization_id, unit.organization_id)
+    return organization_in_scope(db, user, unit.organization_id)
 
 
-def user_in_scope(db: Session, root_organization_id: str, user_id: str) -> bool:
-    user = db.get(UserModel, user_id)
-    if user is None or user.is_deleted:
+def user_in_scope(db: Session, user: UserModel, user_id: str) -> bool:
+    target_user = db.get(UserModel, user_id)
+    if target_user is None or target_user.is_deleted:
         return False
-    return organization_in_scope(db, root_organization_id, user.organization_id)
+    return organization_in_scope(db, user, target_user.organization_id)
 
 
-def list_organizations(db: Session, scope_organization_id: str | None = None) -> list[Organization]:
+def list_organizations(db: Session, user: UserModel | None = None) -> list[Organization]:
     stmt = select(OrganizationModel).where(OrganizationModel.is_deleted.is_(False))
-    if scope_organization_id is not None:
-        stmt = stmt.where(OrganizationModel.id.in_(organization_scope_ids(db, scope_organization_id)))
+    if user is not None and user.role != RoleName.admin:
+        stmt = stmt.where(OrganizationModel.id.in_(accessible_organization_ids(db, user)))
     rows = db.scalars(stmt.order_by(OrganizationModel.name)).all()
     return [_organization_to_domain(row) for row in rows]
 
 
-def list_users(db: Session, scope_organization_id: str | None = None, include_admins: bool = True) -> list[User]:
+def list_users(db: Session, user: UserModel | None = None, include_admins: bool = True) -> list[User]:
     stmt = select(UserModel)
-    if scope_organization_id is not None:
-        stmt = stmt.where(UserModel.organization_id.in_(organization_scope_ids(db, scope_organization_id)))
+    if user is not None and user.role != RoleName.admin:
+        stmt = stmt.where(UserModel.organization_id.in_(accessible_organization_ids(db, user)))
         if not include_admins:
-            stmt = stmt.where(UserModel.role != "admin")
+            stmt = stmt.where(UserModel.role != RoleName.admin)
     rows = db.scalars(stmt.order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
     rows = [row for row in rows if not _is_test_user(row)]
     return [_user_to_domain(row) for row in rows]
 
 
-def list_units(db: Session, scope_organization_id: str | None = None) -> list[Unit]:
+def list_units(db: Session, user: UserModel | None = None) -> list[Unit]:
     stmt = select(UnitModel).where(UnitModel.is_deleted.is_(False))
-    if scope_organization_id is not None:
-        stmt = stmt.where(UnitModel.organization_id.in_(organization_scope_ids(db, scope_organization_id)))
+    if user is not None and user.role != RoleName.admin:
+        stmt = stmt.where(UnitModel.organization_id.in_(accessible_organization_ids(db, user)))
     rows = db.scalars(stmt.order_by(UnitModel.code)).all()
     return [_unit_to_domain(row) for row in rows]
 
@@ -169,11 +208,14 @@ def list_aircraft(db: Session) -> list[Aircraft]:
 def create_organization(db: Session, payload: OrganizationCreateRequest, actor_id: str) -> Organization:
     if payload.parent_id is not None:
         _require_organization(db, payload.parent_id)
+    if payload.supervisor_id is not None:
+        _require_supervisor(db, payload.supervisor_id)
 
     organization = OrganizationModel(
         id=f"org-{uuid4().hex[:12]}",
         name=payload.name,
         parent_id=payload.parent_id,
+        supervisor_id=payload.supervisor_id,
     )
     db.add(organization)
     db.flush()
@@ -206,11 +248,15 @@ def update_organization(
         if changes["parent_id"] == organization.id:
             raise KeyError("organization_parent_invalid")
         _require_organization(db, changes["parent_id"])
+    if "supervisor_id" in changes and changes["supervisor_id"] is not None:
+        _require_supervisor(db, changes["supervisor_id"])
 
     if "name" in changes and changes["name"] is not None:
         organization.name = changes["name"]
     if "parent_id" in changes:
         organization.parent_id = changes["parent_id"]
+    if "supervisor_id" in changes:
+        organization.supervisor_id = changes["supervisor_id"]
     if "is_deleted" in changes and changes["is_deleted"] is not None:
         organization.is_deleted = changes["is_deleted"]
 

@@ -19,6 +19,7 @@ export type ApiOrganization = {
   id: string;
   name: string;
   parent_id: string | null;
+  supervisor_id: string | null;
   is_deleted: boolean;
 };
 

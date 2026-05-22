@@ -166,11 +166,11 @@ def require_role(*roles: RoleName):
 def _ensure_scope(user, db, organization_id: str | None = None, unit_id: str | None = None, user_id: str | None = None):
     if user.role == RoleName.admin:
         return
-    if organization_id is not None and not organization_in_scope(db, user.organization_id, organization_id):
+    if organization_id is not None and not organization_in_scope(db, user, organization_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
-    if unit_id is not None and not unit_in_scope(db, user.organization_id, unit_id):
+    if unit_id is not None and not unit_in_scope(db, user, unit_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
-    if user_id is not None and not user_in_scope(db, user.organization_id, user_id):
+    if user_id is not None and not user_in_scope(db, user, user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
 
 
@@ -344,8 +344,7 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
 
 @app.get("/api/organizations")
 def organizations(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
-    return list_organizations(db, scope_organization_id=scope_organization_id)
+    return list_organizations(db, user=user)
 
 
 @app.post("/api/organizations", response_model=Organization)
@@ -374,6 +373,8 @@ def organization_update(
     changes = payload.model_dump(exclude_unset=True)
     if user.role == RoleName.supervisor and "parent_id" in changes and changes["parent_id"] is not None:
         _ensure_scope(user, db, organization_id=changes["parent_id"])
+    if user.role == RoleName.supervisor and "supervisor_id" in changes:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return update_organization(db, organization_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -398,8 +399,7 @@ def organization_delete(
 
 @app.get("/api/units")
 def units(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
-    return list_units(db, scope_organization_id=scope_organization_id)
+    return list_units(db, user=user)
 
 
 @app.post("/api/units", response_model=Unit)
@@ -456,9 +456,8 @@ def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin)), db=Dep
 
 @app.get("/api/users")
 def users(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
-    scope_organization_id = None if user.role == RoleName.admin else user.organization_id
     include_admins = user.role == RoleName.admin
-    return list_users(db, scope_organization_id=scope_organization_id, include_admins=include_admins)
+    return list_users(db, user=user, include_admins=include_admins)
 
 
 @app.post("/api/users", response_model=User)

@@ -22,6 +22,7 @@ type DialogState =
 type OrganizationForm = {
   name: string;
   parent_id: string;
+  supervisor_id: string;
 };
 
 type UnitForm = {
@@ -95,7 +96,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [roleFilter, setRoleFilter] = useState<"all" | RoleName>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({ name: "", parent_id: "" });
+  const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({ name: "", parent_id: "", supervisor_id: "" });
   const [unitForm, setUnitForm] = useState<UnitForm>({
     organization_id: organizations[0]?.id ?? "",
     name: "",
@@ -162,6 +163,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     return unit ? `${unit.code} - ${unit.name}` : shortId(id);
   }
 
+  function supervisorName(id: string | null | undefined) {
+    if (!id) return "Kein Supervisor";
+    return users.find((user) => user.id === id)?.name ?? shortId(id);
+  }
+
   function openCreate(type: "organization" | "unit" | "user") {
     if (type !== "user" && !canCreateStructure) {
       return;
@@ -171,7 +177,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     }
     setMessage(null);
     if (type === "organization") {
-      setOrganizationForm({ name: "", parent_id: "" });
+      setOrganizationForm({ name: "", parent_id: "", supervisor_id: "" });
     }
     if (type === "unit") {
       setUnitForm({ organization_id: organizations[0]?.id ?? "", name: "", code: "" });
@@ -194,7 +200,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   function openEditOrganization(organization: ApiOrganization) {
     setMessage(null);
-    setOrganizationForm({ name: organization.name, parent_id: organization.parent_id ?? "" });
+    setOrganizationForm({
+      name: organization.name,
+      parent_id: organization.parent_id ?? "",
+      supervisor_id: organization.supervisor_id ?? "",
+    });
     setDialog({ type: "organization", mode: "edit", id: organization.id });
   }
 
@@ -229,10 +239,17 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setBusy("organization-save");
     setMessage(null);
     try {
-      const body = {
+      const body: {
+        name: string;
+        parent_id: string | null;
+        supervisor_id?: string | null;
+      } = {
         name: organizationForm.name.trim(),
         parent_id: organizationForm.parent_id || null,
       };
+      if (viewerRole === "admin") {
+        body.supervisor_id = organizationForm.supervisor_id || null;
+      }
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/organizations/${dialog.id}`, "PATCH", body);
       } else {
@@ -534,6 +551,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <div className="admin-entity-headline">
                         <strong>{organization.name}</strong>
                         <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
+                        <span>Vorgesetzter: {supervisorName(organization.supervisor_id)}</span>
                       </div>
                     </div>
                     <div className="admin-record-actions">
@@ -592,8 +610,27 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                           {organization.name}
                         </option>
                       ))}
-                  </select>
+                    </select>
                 </label>
+                {viewerRole === "admin" ? (
+                  <label className="field">
+                    <span>Zuständiger Vorgesetzter</span>
+                    <select
+                      className="input"
+                      value={organizationForm.supervisor_id}
+                      onChange={(event) => setOrganizationForm((current) => ({ ...current, supervisor_id: event.target.value }))}
+                    >
+                      <option value="">Kein Supervisor</option>
+                      {users
+                        .filter((user) => user.role === "supervisor")
+                        .map((user) => (
+                          <option key={user.id} value={user.id}>
+                            {user.name}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                ) : null}
                 <DialogActions busy={busy === "organization-save"} onCancel={() => setDialog(null)} />
               </form>
             ) : null}
