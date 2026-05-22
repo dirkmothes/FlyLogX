@@ -22,7 +22,7 @@ export default async function ReviewsPage() {
   return (
     <AppShell
       title="Review and approval process"
-      subtitle="Entries are reviewed, confirmed, or rejected in a traceable way."
+      subtitle="Entries are reviewed, approved, or rejected with a traceable audit trail."
       breadcrumbs={["FlyLogX", "Module", "Review"]}
       user={session.user}
       aside={
@@ -30,13 +30,13 @@ export default async function ReviewsPage() {
           <div className="panel-header">
             <div>
               <h2>Review rules</h2>
-              <p>Workflow protection</p>
+              <p>Workflow rules</p>
             </div>
           </div>
           <div className="panel-body section-stack">
             <div className="mini-card">
               <h3>No silent changes</h3>
-              <p>Reviewed entries are not changed without a change request.</p>
+              <p>Reviewed entries cannot be changed without a change request.</p>
             </div>
             <div className="mini-card">
               <h3>Logging</h3>
@@ -50,7 +50,7 @@ export default async function ReviewsPage() {
         <div className="panel-header">
           <div>
             <h2>Review queue</h2>
-            <p>Open entries for supervisors and flight controllers</p>
+            <p>Open entries for supervisors and flight controllers.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -65,7 +65,7 @@ export default async function ReviewsPage() {
         <div className="panel-header">
           <div>
             <h2>Approval action</h2>
-            <p>Comments and digital confirmation are stored traceably</p>
+            <p>Comments and digital confirmation are stored in the audit trail.</p>
           </div>
         </div>
         <div className="panel-body">
@@ -77,14 +77,15 @@ export default async function ReviewsPage() {
         <div className="panel-header">
           <div>
             <h2>Change requests</h2>
-            <p>Corrections and follow-up requests that were not approved</p>
+            <p>Corrections and follow-up requests that were not approved.</p>
           </div>
         </div>
         <div className="panel-body">
           <div className="mini-card">
             <h3>No separate change requests yet</h3>
             <p>
-              The change window is prepared and can be connected to the status chain {<StatusPill tone={flightStatusTone("submitted")}>Submitted</StatusPill>}.
+              The change window is prepared and can be connected to the status chain{" "}
+              <StatusPill tone={flightStatusTone("submitted")}>Submitted</StatusPill>.
             </p>
           </div>
         </div>

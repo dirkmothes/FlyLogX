@@ -72,13 +72,13 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Entry could not be created");
+        throw new Error(payload?.detail || "Could not create the entry.");
       }
 
-      setMessage("Draft saved and visible in the logbook view.");
+      setMessage("Draft saved and shown in the logbook.");
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Entry could not be created");
+      setMessage(error instanceof Error ? error.message : "Could not create the entry.");
     } finally {
       setLoading(false);
     }

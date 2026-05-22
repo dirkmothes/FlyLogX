@@ -40,13 +40,13 @@ export default async function DashboardPage() {
           <div className="panel-header">
             <div>
               <h2>Approval pipeline</h2>
-              <p>Status of the current review chain</p>
+              <p>Status of the current approval flow</p>
             </div>
           </div>
           <div className="panel-body workflow">
             <div className="workflow-step">
               <strong>1. Draft</strong>
-              <span>New flights are recorded locally and validated.</span>
+              <span>New flights are created and validated locally.</span>
             </div>
             <div className="workflow-step">
               <strong>2. Submitted</strong>
@@ -110,13 +110,13 @@ export default async function DashboardPage() {
         </section>
       </div>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Export & records</h2>
-            <p>CSV export of the visible flight data for further processing and archiving</p>
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Export & records</h2>
+              <p>Export the visible flight data as CSV or PDF for further processing and archiving.</p>
+            </div>
           </div>
-        </div>
         <div className="panel-body">
           <div className="grid-2">
             <ExportActions format="csv" />

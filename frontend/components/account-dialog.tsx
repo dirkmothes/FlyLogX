@@ -110,7 +110,7 @@ export function AccountDialog({ user }: Props) {
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The account could not be saved.");
+      setMessage(error instanceof Error ? error.message : "Could not save the account.");
     } finally {
       setBusy(false);
     }
@@ -147,9 +147,9 @@ export function AccountDialog({ user }: Props) {
           >
             <div className="admin-dialog-header">
               <div>
-                <span className="admin-mini-badge">Personal area</span>
+                <span className="admin-mini-badge">Account settings</span>
                 <h3 id="account-dialog-title">My account</h3>
-                <p>Own profile data, security, and password management</p>
+                <p>Update your profile details and password here.</p>
               </div>
               <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
                 ×

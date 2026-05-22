@@ -64,13 +64,13 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Aircraft could not be created");
+        throw new Error(payload?.detail || "Could not create the aircraft.");
       }
 
       setMessage("Aircraft created.");
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Aircraft could not be created");
+      setMessage(error instanceof Error ? error.message : "Could not create the aircraft.");
     } finally {
       setLoading(false);
     }

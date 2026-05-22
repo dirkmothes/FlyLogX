@@ -290,7 +290,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Organization could not be saved");
+      setMessage(error instanceof Error ? error.message : "Could not save the organization.");
       setBusy(null);
     }
   }
@@ -317,7 +317,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unit could not be saved");
+      setMessage(error instanceof Error ? error.message : "Could not save the unit.");
       setBusy(null);
     }
   }
@@ -355,7 +355,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "User could not be saved");
+      setMessage(error instanceof Error ? error.message : "Could not save the user.");
       setBusy(null);
     }
   }
@@ -382,7 +382,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       });
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "User could not be unlocked");
+      setMessage(error instanceof Error ? error.message : "Could not unlock the user.");
       setBusy(null);
     }
   }
@@ -396,17 +396,17 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setDeleteTarget(null);
 
     if (target.type === "organization" && viewerRole === "admin") {
-      await deactivate(`/api/organizations/${target.id}`, "organization-delete", "Organization could not be deleted");
+      await deactivate(`/api/organizations/${target.id}`, "organization-delete", "Could not delete the organization.");
       return;
     }
 
     if (target.type === "unit" && viewerRole === "admin") {
-      await deactivate(`/api/units/${target.id}`, "unit-delete", "Unit could not be deleted");
+      await deactivate(`/api/units/${target.id}`, "unit-delete", "Could not delete the unit.");
       return;
     }
 
     if (target.type === "user") {
-      await deactivate(`/api/users/${target.id}`, "user-delete", "User could not be deleted");
+      await deactivate(`/api/users/${target.id}`, "user-delete", "Could not delete the user.");
     }
   }
 
@@ -605,7 +605,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         disabled={busy === `user-toggle-${user.id}`}
                         onClick={() =>
                           user.active && !user.is_deleted
-                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "The user could not be locked.")
+                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "Could not lock the user.")
                             : restoreUser(user.id, `user-toggle-${user.id}`)
                         }
                       >
@@ -649,7 +649,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <div className="admin-primary-cell">
                       <div className="admin-entity-headline">
                         <strong>{organization.name}</strong>
-                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root organization"}</span>
+                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Top-level organization"}</span>
                         <span>Supervisors: {organizationSupervisors(organization.id)}</span>
                       </div>
                     </div>
@@ -860,7 +860,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <label className="field">
-                    <span>Assigned organizations</span>
+                    <span>Supervised organizations</span>
                     <div className="admin-org-checkbox-list">
                       {organizations.map((organization) => {
                         const checked = activeSupervisorOrganizationIds.includes(organization.id);
@@ -954,8 +954,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
             <div className="admin-confirm-copy">
               <div className="admin-confirm-warning">Warning: {deleteTargetTypeLabel} permanently delete</div>
               <p>
-                The record will be removed from administration and will no longer be shown in the UI. Only proceed if you really
-                intend to do this.
+                The record will be removed from administration and hidden from the UI. Only continue if you are sure.
               </p>
             </div>
             <div className="admin-dialog-actions">

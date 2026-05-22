@@ -31,8 +31,8 @@ export default async function FlightsPage() {
 
   return (
     <AppShell
-      title="Flight logbook & records"
-      subtitle="Tabular view in the style of a classic flight logbook."
+      title="Flight logbook and records"
+      subtitle="Tabular view inspired by a classic flight logbook."
       breadcrumbs={["FlyLogX", "Module", "Flights"]}
       user={session.user}
       aside={
@@ -68,7 +68,7 @@ export default async function FlightsPage() {
         <div className="panel-header">
           <div>
             <h2>Create new draft</h2>
-            <p>Digital entry with automatic logbook progression</p>
+            <p>Digital entry with automatic logbook totals</p>
           </div>
         </div>
         <div className="panel-body">
@@ -103,7 +103,7 @@ export default async function FlightsPage() {
           </div>
           <div className="mini-card">
             <h3>Rejected</h3>
-            <p>{rows.filter((row) => row.status === "Rejected").length} entries with comments</p>
+            <p>{rows.filter((row) => row.status === "Rejected").length} entries with remarks</p>
           </div>
         </div>
       </section>

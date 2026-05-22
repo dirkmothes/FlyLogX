@@ -64,7 +64,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
         </nav>
 
         <div className="sidebar-foot">
-          <div className="sidebar-group-label">Signed-in user</div>
+          <div className="sidebar-group-label">Account</div>
           {user ? (
             <div className="sidebar-user">
               <strong>{user.name}</strong>
@@ -72,7 +72,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
             </div>
           ) : null}
 
-          <div className="sidebar-quick-actions" aria-label="Quick access">
+          <div className="sidebar-quick-actions" aria-label="Quick actions">
             <ThemeToggle />
             {user ? (
               <>

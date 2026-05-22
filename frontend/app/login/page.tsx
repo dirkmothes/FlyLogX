@@ -50,10 +50,10 @@ export default function LoginPage() {
       <section className="login-hero">
         <div className="brand-block brand-block--logo" style={{ borderBottomColor: "rgba(255,255,255,0.1)" }}>
           <img className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" />
-          <div className="brand-subtitle">Digital flight logbook</div>
+          <div className="brand-subtitle">Flight operations logbook</div>
         </div>
         <div>
-          <h1>Digital flight logging for pilots and organizations.</h1>
+          <h1>Flight operations logging for pilots and organizations.</h1>
           <p>
             Record flights digitally, review entries with clear roles, export records as PDF, and keep the auditable
             overall status in view at all times.
@@ -62,7 +62,7 @@ export default function LoginPage() {
         <div className="muted-list">
           <div>• Login and role management</div>
           <div>• Roles: Pilot, Supervisor, Admin</div>
-          <div>• Digital approval and change history</div>
+          <div>• Digital approvals and change history</div>
         </div>
       </section>
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
           <div className="panel-header" style={{ padding: 0, borderBottom: "none", marginBottom: 18 }}>
             <div>
               <h2>Sign in</h2>
-              <p>Demo access is seeded in the backend.</p>
+              <p>Demo accounts are seeded in the backend.</p>
             </div>
           </div>
 

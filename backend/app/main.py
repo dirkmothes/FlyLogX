@@ -406,7 +406,7 @@ def unit_create(payload: UnitCreateRequest, user=Depends(require_role(RoleName.a
         return create_unit(db, payload, actor_id=user.id)
     except KeyError as exc:
         key = exc.args[0] if exc.args else "unit_not_found"
-        detail = "Unit could not be created"
+        detail = "Could not create the unit"
         status_code = status.HTTP_400_BAD_REQUEST
         if key == "organization_not_found":
             detail = "Organization not found"
@@ -473,7 +473,7 @@ def user_create(
         return create_user(db, payload, actor_id=user.id)
     except KeyError as exc:
         key = exc.args[0] if exc.args else "user_not_found"
-        detail = "User could not be created"
+        detail = "Could not create the user"
         status_code = status.HTTP_400_BAD_REQUEST
         if key == "organization_not_found":
             detail = "Organization not found"

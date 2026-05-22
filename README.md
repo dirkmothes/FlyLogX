@@ -4,8 +4,8 @@ FlyLogX is a digital flight logbook and review management system for drones and 
 
 ## Goals
 
-- digital flight entry
-- digital logbook view
+- digital flight entries
+- digital logbook records
 - roles for pilot, supervisor, and admin
 - aircraft and unit management
 - audit log, approval workflow, and exports
