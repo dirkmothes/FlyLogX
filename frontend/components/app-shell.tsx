@@ -74,12 +74,8 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
               <span>{user.role}</span>
             </div>
           ) : null}
-        </div>
-      </aside>
 
-      <div className="main-column">
-        <header className="topbar" aria-label="Schnellzugriff">
-          <div className="topbar-actions">
+          <div className="sidebar-quick-actions" aria-label="Schnellzugriff">
             <ThemeToggle />
             {user ? (
               <>
@@ -87,12 +83,16 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
                 <LogoutButton />
               </>
             ) : (
-              <Link href="/login" className="topbar-button">
+              <Link href="/login" className="topbar-button sidebar-login-button">
                 Login
               </Link>
             )}
           </div>
-        </header>
+        </div>
+      </aside>
+
+      <div className="main-column">
+        <header className="topbar" aria-label="Seitenkopf" />
 
         <section className="page-heading">
           <div>
