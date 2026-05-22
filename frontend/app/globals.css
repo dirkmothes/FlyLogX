@@ -131,16 +131,16 @@
 }
 
 :root[data-theme="dark"] .admin-status-active {
-  color: #dff3e7;
-  background: #2a5b40;
-  border-color: #3b7a57;
+  background: rgba(93, 163, 226, 0.18);
+  border-color: rgba(93, 163, 226, 0.28);
+  color: #d5ebff;
   box-shadow: none;
 }
 
 :root[data-theme="dark"] .admin-status-blocked {
-  color: #f6e6e6;
-  background: #6d2f2f;
-  border-color: #874040;
+  background: rgba(228, 109, 109, 0.18);
+  border-color: rgba(228, 109, 109, 0.28);
+  color: #ffd0d0;
   box-shadow: none;
 }
 
@@ -1860,16 +1860,16 @@ select.input option {
 }
 
 .admin-status-active {
-  color: #1f7a4d;
-  background: #e5f2ea;
-  border-color: #b8dcc7;
+  color: var(--blue);
+  background: rgba(47, 110, 166, 0.1);
+  border-color: rgba(47, 110, 166, 0.18);
   box-shadow: none;
 }
 
 .admin-status-blocked {
-  color: #a23a3a;
-  background: #f6e7e7;
-  border-color: #deb0b0;
+  color: var(--red);
+  background: rgba(162, 58, 58, 0.1);
+  border-color: rgba(162, 58, 58, 0.18);
   box-shadow: none;
 }
 
