@@ -178,7 +178,7 @@ def _ensure_scope(user, db, organization_id: str | None = None, unit_id: str | N
 def root():
     return {
         "name": "FlyLogX",
-        "description": "Digitales Flugzeitennachweis- und Prüfverwaltungssystem",
+        "description": "Digital flight logbook and review management system",
         "docs": "/api/docs",
         "health": "/health",
     }
@@ -373,8 +373,6 @@ def organization_update(
     changes = payload.model_dump(exclude_unset=True)
     if user.role == RoleName.supervisor and "parent_id" in changes and changes["parent_id"] is not None:
         _ensure_scope(user, db, organization_id=changes["parent_id"])
-    if user.role == RoleName.supervisor and "supervisor_id" in changes:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return update_organization(db, organization_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -469,6 +467,8 @@ def user_create(
     _ensure_scope(user, db, organization_id=payload.organization_id, unit_id=payload.unit_id)
     if user.role == RoleName.supervisor and payload.role == RoleName.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    if user.role != RoleName.admin and payload.supervised_organization_ids:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return create_user(db, payload, actor_id=user.id)
     except KeyError as exc:
@@ -507,6 +507,10 @@ def user_update(
             _ensure_scope(user, db, organization_id=changes["organization_id"])
         if "unit_id" in changes and changes["unit_id"] is not None:
             _ensure_scope(user, db, unit_id=changes["unit_id"])
+        if "supervised_organization_ids" in changes and changes["supervised_organization_ids"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+    elif "supervised_organization_ids" in changes and changes["supervised_organization_ids"] is not None and user.role != RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     try:
         return update_user(db, user_id, payload, actor_id=user.id)
     except KeyError as exc:

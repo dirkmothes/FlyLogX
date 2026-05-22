@@ -16,7 +16,7 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState({
     owner_unit_id: units[0]?.id ?? "",
-    name: "Neue Drohne",
+    name: "New drone",
     identifier: "FLX-NEW",
     manufacturer: "FlyLogX Systems",
     model: "R-01",
@@ -25,18 +25,18 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
     aircraft_type: "Multirotor",
     uas_class: "C2",
     weight_kg: 4.8,
-    use_case: "Aufklärung",
+    use_case: "Reconnaissance",
     registration_number: "",
     internal_identifier: "INT-NEW",
     battery_type: "Li-ion",
     battery_count: 2,
-    energy_source: "Akku",
-    payload: "Standardkamera",
+    energy_source: "Battery",
+    payload: "Standard camera",
     max_duration_minutes: 35,
     operating_hours: 0,
     maintenance_status: "ok",
     release_status: true,
-    availability: "verfügbar",
+    availability: "available",
     status: "active" as AircraftStatus,
     notes: "",
   });
@@ -64,13 +64,13 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Luftfahrzeug konnte nicht angelegt werden");
+        throw new Error(payload?.detail || "Aircraft could not be created");
       }
 
-      setMessage("Luftfahrzeug angelegt.");
+      setMessage("Aircraft created.");
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Luftfahrzeug konnte nicht angelegt werden");
+      setMessage(error instanceof Error ? error.message : "Aircraft could not be created");
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
     <form className="section-stack" onSubmit={handleSubmit}>
       <div className="field-grid">
         <label className="field">
-          <span>Einheit</span>
+          <span>Unit</span>
           <select
             className="input"
             value={form.owner_unit_id}
@@ -98,15 +98,15 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
           <input className="input" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
         </label>
         <label className="field">
-          <span>Kennung</span>
+          <span>Identifier</span>
           <input className="input" value={form.identifier} onChange={(event) => setForm((current) => ({ ...current, identifier: event.target.value }))} />
         </label>
         <label className="field">
-          <span>Hersteller</span>
+          <span>Manufacturer</span>
           <input className="input" value={form.manufacturer} onChange={(event) => setForm((current) => ({ ...current, manufacturer: event.target.value }))} />
         </label>
         <label className="field">
-          <span>Modell</span>
+          <span>Model</span>
           <input className="input" value={form.model} onChange={(event) => setForm((current) => ({ ...current, model: event.target.value }))} />
         </label>
         <label className="field">
@@ -127,7 +127,7 @@ export function AircraftCreateForm({ organizationId, units }: Props) {
       {message ? <div className="form-note">{message}</div> : null}
       <div className="form-actions">
         <button className="button button-primary" type="submit" disabled={loading}>
-          {loading ? "Speichern..." : "Luftfahrzeug anlegen"}
+          {loading ? "Saving..." : "Create aircraft"}
         </button>
       </div>
     </form>

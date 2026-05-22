@@ -44,6 +44,13 @@ class OrganizationModel(Base):
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
+class OrganizationSupervisorModel(Base):
+    __tablename__ = "organization_supervisors"
+
+    organization_id: Mapped[str] = mapped_column(String(64), ForeignKey("organizations.id"), primary_key=True)
+    supervisor_user_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.id"), primary_key=True)
+
+
 class UnitModel(Base):
     __tablename__ = "units"
 
@@ -222,14 +229,14 @@ def seed_database(session) -> None:
 
     from .core.security import hash_password
 
-    org = OrganizationModel(id="org-bw-01", name="Bundeswehr Cyber- und Informationsraum")
-    unit = UnitModel(id="unit-ops-01", organization_id=org.id, name="Drohnenstaffel Nord", code="DS-NORD")
+    org = OrganizationModel(id="org-bw-01", name="Bundeswehr Cyber and Information Domain Service")
+    unit = UnitModel(id="unit-ops-01", organization_id=org.id, name="Drone Squadron North", code="DS-NORTH")
     pilot = UserModel(
         id="user-pilot-01",
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.pilot,
-        name="HptGefr. M. Beispiel",
+        name="Sgt. M. Example",
         email="pilot@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )
@@ -238,7 +245,7 @@ def seed_database(session) -> None:
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.supervisor,
-        name="Oberstleutnant A. Leiter",
+        name="Lt. Col. A. Leader",
         email="supervisor@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )
@@ -247,14 +254,14 @@ def seed_database(session) -> None:
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.admin,
-        name="Stabsdienst F. Admin",
+        name="Staff Sgt. F. Admin",
         email="admin@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )
     drone = AircraftModel(
         id="aircraft-01",
         organization_id=org.id,
-        name="Aufklärungsdrohne A1",
+        name="Recon Drone A1",
         identifier="FLX-A1",
         manufacturer="FlyLogX Systems",
         model="R-14 Recon",
@@ -263,28 +270,28 @@ def seed_database(session) -> None:
         aircraft_type="Multirotor",
         uas_class="C2",
         weight_kg=8.4,
-        use_case="Aufklärung",
+        use_case="Reconnaissance",
         registration_number="BW-DR-014",
         internal_identifier="INT-DR-014",
         owner_unit_id=unit.id,
         battery_type="Li-ion",
         battery_count=4,
-        energy_source="Akku",
-        payload="EO/IR-Sensorik",
+        energy_source="Battery",
+        payload="EO/IR payload",
         max_duration_minutes=45,
         operating_hours=148.6,
-        maintenance_status="geprüft",
+        maintenance_status="checked",
         last_maintenance=date(2026, 5, 10),
         next_maintenance=date(2026, 7, 10),
         release_status=True,
-        availability="verfügbar",
+        availability="available",
         status=AircraftStatus.active,
-        notes="Einsatzbereit für Tages- und Nachtflüge.",
+        notes="Ready for day and night operations.",
     )
     trainer = AircraftModel(
         id="aircraft-02",
         organization_id=org.id,
-        name="Schulungsplattform T7",
+        name="Training Platform T7",
         identifier="FLX-T7",
         manufacturer="FlyLogX Systems",
         model="Trainer 7",
@@ -293,22 +300,22 @@ def seed_database(session) -> None:
         aircraft_type="Multirotor",
         uas_class="C1",
         weight_kg=3.2,
-        use_case="Ausbildung",
+        use_case="Training",
         internal_identifier="INT-TR-007",
         owner_unit_id=unit.id,
         battery_type="LiPo",
         battery_count=2,
-        energy_source="Akku",
-        payload="Kamera",
+        energy_source="Battery",
+        payload="Camera",
         max_duration_minutes=28,
         operating_hours=76.2,
-        maintenance_status="wartung fällig",
+        maintenance_status="maintenance due",
         last_maintenance=date(2026, 4, 2),
         next_maintenance=date(2026, 5, 24),
         release_status=False,
-        availability="in Wartung",
+        availability="maintenance",
         status=AircraftStatus.maintenance,
-        notes="Nur für Schulungszwecke gesperrt.",
+        notes="Locked for training purposes only.",
     )
     flight_1 = FlightModel(
         id="flight-01",
@@ -318,8 +325,8 @@ def seed_database(session) -> None:
         aircraft_id=drone.id,
         aircraft_identifier=drone.identifier,
         flight_number="FLX-2026-0041",
-        category=FlightCategory.ue,
-        flight_type="Aufklärungsflug",
+        category=FlightCategory.u,
+        flight_type="Reconnaissance Flight",
         status=FlightStatus.approved,
         date=date(2026, 5, 18),
         start_time=datetime(2026, 5, 18, 8, 15).time(),
@@ -328,10 +335,10 @@ def seed_database(session) -> None:
         duration_minutes=42,
         day_flight=True,
         night_flight=False,
-        location="Übungsraum Nord",
+        location="Training Area North",
         coordinates="52.5200, 13.4050",
-        special_notes="Böen bis 18 km/h, Sicht stabil.",
-        remarks="Planmäßig abgeschlossen.",
+        special_notes="Gusts up to 18 km/h, visibility stable.",
+        remarks="Completed as planned.",
         flight_supervisor_name=supervisor.name,
         flight_supervisor_id=supervisor.id,
         flight_supervisor_signature="sig-001",
@@ -359,7 +366,7 @@ def seed_database(session) -> None:
         aircraft_id=trainer.id,
         aircraft_identifier=trainer.identifier,
         category=FlightCategory.s,
-        flight_type="Schulungsflug",
+        flight_type="Training Flight",
         status=FlightStatus.submitted,
         date=date(2026, 5, 20),
         start_time=datetime(2026, 5, 20, 18, 10).time(),
@@ -368,10 +375,10 @@ def seed_database(session) -> None:
         duration_minutes=26,
         day_flight=False,
         night_flight=True,
-        location="Flugfeld West",
+        location="Airfield West",
         coordinates="52.4980, 13.3777",
-        special_notes="Nachtflug mit Lichtführung.",
-        remarks="Zur Prüfung eingereicht.",
+        special_notes="Night flight with light guidance.",
+        remarks="Submitted for review.",
         flight_supervisor_name=supervisor.name,
         flight_supervisor_id=supervisor.id,
         flight_supervisor_signature=None,
@@ -395,7 +402,7 @@ def seed_database(session) -> None:
         aircraft_id=drone.id,
         aircraft_identifier=drone.identifier,
         category=FlightCategory.t,
-        flight_type="Technischer Testflug",
+        flight_type="Technical Test Flight",
         status=FlightStatus.draft,
         date=date(2026, 5, 21),
         start_time=datetime(2026, 5, 21, 9, 30).time(),
@@ -406,8 +413,8 @@ def seed_database(session) -> None:
         night_flight=False,
         location="Hangar 3",
         coordinates=None,
-        special_notes="Sensorcheck und Kalibrierung.",
-        remarks="Entwurf gespeichert.",
+        special_notes="Sensor check and calibration.",
+        remarks="Draft saved.",
         flight_supervisor_name=supervisor.name,
         flight_supervisor_id=supervisor.id,
         flight_supervisor_signature=None,
@@ -433,13 +440,13 @@ def seed_database(session) -> None:
         timestamp=datetime.now(timezone.utc),
         before_state=None,
         after_state={},
-        comment="Freigabe mit Plausibilitätsprüfung.",
+        comment="Approval with plausibility check.",
     )
 
     session.add_all([org, unit, pilot, supervisor, admin])
     session.flush()
 
-    org.supervisor_id = supervisor.id
+    session.add(OrganizationSupervisorModel(organization_id=org.id, supervisor_user_id=supervisor.id))
     session.flush()
 
     session.add_all([drone, trainer])

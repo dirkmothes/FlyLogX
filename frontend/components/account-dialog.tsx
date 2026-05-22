@@ -72,11 +72,11 @@ export function AccountDialog({ user }: Props) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) {
-      setMessage("Bitte einen Namen angeben.");
+      setMessage("Please enter a name.");
       return;
     }
     if (!form.email.trim()) {
-      setMessage("Bitte eine E-Mail-Adresse angeben.");
+      setMessage("Please enter an email address.");
       return;
     }
 
@@ -110,7 +110,7 @@ export function AccountDialog({ user }: Props) {
       setOpen(false);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Konto konnte nicht gespeichert werden");
+      setMessage(error instanceof Error ? error.message : "The account could not be saved.");
     } finally {
       setBusy(false);
     }
@@ -122,11 +122,11 @@ export function AccountDialog({ user }: Props) {
         type="button"
         onClick={() => setOpen(true)}
         className="topbar-icon-button topbar-icon-button-secondary"
-        aria-label="Mein Konto"
-        title="Mein Konto"
+        aria-label="My account"
+        title="My account"
       >
         <UserIcon />
-        <span className="sr-only">Mein Konto</span>
+        <span className="sr-only">My account</span>
       </button>
 
       {open ? (
@@ -147,11 +147,11 @@ export function AccountDialog({ user }: Props) {
           >
             <div className="admin-dialog-header">
               <div>
-                <span className="admin-mini-badge">Persönlicher Bereich</span>
-                <h3 id="account-dialog-title">Mein Konto</h3>
-                <p>Eigene Stammdaten, Sicherheit und Passwortpflege</p>
+                <span className="admin-mini-badge">Personal area</span>
+                <h3 id="account-dialog-title">My account</h3>
+                <p>Own profile data, security, and password management</p>
               </div>
-              <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Dialog schließen">
+              <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
                 ×
               </button>
             </div>
@@ -160,7 +160,7 @@ export function AccountDialog({ user }: Props) {
               <div className="mini-card">
                 <h3>{user.name}</h3>
                 <p>
-                  Rolle: <strong>{user.role}</strong>
+                  Role: <strong>{user.role}</strong>
                 </p>
               </div>
 
@@ -174,7 +174,7 @@ export function AccountDialog({ user }: Props) {
                   />
                 </label>
                 <label className="field">
-                  <span>E-Mail</span>
+                  <span>Email</span>
                   <input
                     className="input"
                     type="email"
@@ -186,7 +186,7 @@ export function AccountDialog({ user }: Props) {
 
               <div className="admin-dialog-grid">
                 <label className="field">
-                  <span>Neues Passwort</span>
+                  <span>New password</span>
                   <input
                     className="input"
                     type="password"
@@ -195,8 +195,8 @@ export function AccountDialog({ user }: Props) {
                   />
                 </label>
                 <div className="account-note-box">
-                  <span>Hinweis</span>
-                  <p>Das Passwortfeld bleibt leer, wenn nur Name oder E-Mail geändert werden soll.</p>
+                  <span>Note</span>
+                  <p>Leave the password field empty if you only want to change the name or email.</p>
                 </div>
               </div>
 
@@ -204,10 +204,10 @@ export function AccountDialog({ user }: Props) {
 
               <div className="admin-dialog-actions">
                 <button type="button" className="button button-secondary" onClick={() => setOpen(false)}>
-                  Abbrechen
+                  Cancel
                 </button>
                 <button type="submit" className="button button-primary" disabled={busy}>
-                  Speichern
+                  Save
                 </button>
               </div>
             </form>

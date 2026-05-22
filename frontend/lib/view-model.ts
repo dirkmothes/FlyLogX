@@ -40,60 +40,77 @@ export type AuditRow = {
 
 export type DashboardCard = { label: string; value: string; delta: string; tone: "blue" | "green" | "yellow" | "red" };
 
+export function flightCategoryLabel(category: ApiFlight["category"] | string): ApiFlight["category"] {
+  switch (category) {
+    case "U Flights":
+      return "U Flights";
+    case "S Flights":
+      return "S Flights";
+    case "E-H Flights":
+      return "E-H Flights";
+    case "T Flights":
+      return "T Flights";
+    case "A Flights":
+      return "A Flights";
+    default:
+      return "U Flights";
+  }
+}
+
 export function flightStatusLabel(status: ApiFlight["status"]) {
   switch (status) {
     case "draft":
-      return "Entwurf";
+      return "Draft";
     case "submitted":
-      return "Eingereicht";
+      return "Submitted";
     case "reviewed":
-      return "Geprüft";
+      return "Reviewed";
     case "approved":
-      return "Freigegeben";
+      return "Approved";
     case "rejected":
-      return "Abgelehnt";
+      return "Rejected";
     default:
       return status;
   }
 }
 
 export function flightStatusTone(status: ApiFlight["status"] | string): "success" | "warning" | "danger" | "info" | "neutral" {
-  if (status === "approved" || status === "Freigegeben") return "success";
-  if (status === "rejected" || status === "Abgelehnt") return "danger";
-  if (status === "submitted" || status === "Eingereicht") return "warning";
-  if (status === "reviewed" || status === "Geprüft") return "info";
+  if (status === "approved" || status === "Approved") return "success";
+  if (status === "rejected" || status === "Rejected") return "danger";
+  if (status === "submitted" || status === "Submitted") return "warning";
+  if (status === "reviewed" || status === "Reviewed") return "info";
   return "neutral";
 }
 
 export function aircraftStatusTone(status: ApiAircraft["status"] | string): "success" | "warning" | "danger" | "info" | "neutral" {
-  if (status === "active" || status === "aktiv") return "success";
-  if (status === "maintenance" || status === "in Wartung") return "warning";
+  if (status === "active" || status === "Active") return "success";
+  if (status === "maintenance" || status === "Maintenance") return "warning";
   return "danger";
 }
 
 export function aircraftStatusLabel(status: ApiAircraft["status"]) {
   switch (status) {
     case "active":
-      return "aktiv";
+      return "Active";
     case "maintenance":
-      return "in Wartung";
+      return "Maintenance";
     case "retired":
-      return "außer Dienst";
+      return "Retired";
     default:
       return status;
   }
 }
 
 export function aircraftReleaseLabel(release: boolean) {
-  return release ? "freigegeben" : "gesperrt";
+  return release ? "Released" : "Locked";
 }
 
 export function mapDashboard(summary: DashboardSummary): DashboardCard[] {
   return [
-    { label: "Gesamtflugzeit", value: `${summary.total_hours.toFixed(1)} h`, delta: `+${summary.approved_entries} Freigaben`, tone: "blue" },
-    { label: "Flüge gesamt", value: `${summary.total_flights}`, delta: `+${summary.recent_flights.length} recent`, tone: "green" },
-    { label: "Offene Einträge", value: `${summary.open_entries}`, delta: `${summary.pending_reviews} zur Prüfung`, tone: "yellow" },
-    { label: "Abgelehnt", value: `${summary.rejected_entries}`, delta: "mit Verlauf dokumentiert", tone: "red" },
+    { label: "Total Flight Time", value: `${summary.total_hours.toFixed(1)} h`, delta: `+${summary.approved_entries} approvals`, tone: "blue" },
+    { label: "Total Flights", value: `${summary.total_flights}`, delta: `+${summary.recent_flights.length} recent`, tone: "green" },
+    { label: "Open Entries", value: `${summary.open_entries}`, delta: `${summary.pending_reviews} pending review`, tone: "yellow" },
+    { label: "Rejected", value: `${summary.rejected_entries}`, delta: "documented in history", tone: "red" },
   ];
 }
 
@@ -105,7 +122,7 @@ export function mapFlightRows(flights: ApiFlight[]): FlightRow[] {
     pilot: flight.pilot_name || flight.pilot_id,
     unit: flight.unit_code || flight.unit_name || flight.unit_id,
     aircraft: flight.aircraft_name ? `${flight.aircraft_identifier} · ${flight.aircraft_name}` : flight.aircraft_identifier,
-    category: flight.category,
+    category: flightCategoryLabel(flight.category),
     duration: formatDuration(flight.duration_minutes),
     type: flight.flight_type,
     status: flightStatusLabel(flight.status),
@@ -136,6 +153,6 @@ export function mapAuditRows(audit: ApiAuditEvent[]): AuditRow[] {
     actor: item.actor_name,
     action: item.action,
     entity: `${item.entity_type} · ${item.entity_id}`,
-    detail: item.comment || "Audit-Eintrag ohne Kommentar",
+    detail: item.comment || "Audit entry without a comment",
   }));
 }

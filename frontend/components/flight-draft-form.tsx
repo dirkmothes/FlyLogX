@@ -11,27 +11,33 @@ type Props = {
   aircraft: ApiAircraft[];
 };
 
-const categories: FlightCategory[] = ["Ü-Flüge", "S-Flüge", "E-H-Flüge", "T-Flüge", "A-Flüge"];
+const categories: Array<{ value: FlightCategory; label: string }> = [
+  { value: "U Flights", label: "U Flights" },
+  { value: "S Flights", label: "S Flights" },
+  { value: "E-H Flights", label: "E-H Flights" },
+  { value: "T Flights", label: "T Flights" },
+  { value: "A Flights", label: "A Flights" },
+];
 
 export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     aircraft_id: aircraft[0]?.id ?? "",
-    category: "Ü-Flüge" as FlightCategory,
-    flight_type: "Aufklärungsflug",
+    category: "U Flights" as FlightCategory,
+    flight_type: "Reconnaissance Flight",
     date: new Date().toISOString().slice(0, 10),
     start_time: "08:00",
     landing_time: "08:45",
     duration_minutes: 45,
-    location: "Übungsraum Nord",
+    location: "Training Area North",
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const aircraftItem = aircraft.find((item) => item.id === form.aircraft_id);
     if (!aircraftItem) {
-      setMessage("Bitte ein Luftfahrzeug auswählen.");
+      setMessage("Please select an aircraft.");
       return;
     }
 
@@ -66,13 +72,13 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Eintrag konnte nicht erstellt werden");
+        throw new Error(payload?.detail || "Entry could not be created");
       }
 
-      setMessage("Draft gespeichert und in der Nachweisheft-Ansicht sichtbar.");
+      setMessage("Draft saved and visible in the logbook view.");
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Eintrag konnte nicht erstellt werden");
+      setMessage(error instanceof Error ? error.message : "Entry could not be created");
     } finally {
       setLoading(false);
     }
@@ -82,7 +88,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
     <form className="section-stack" onSubmit={handleSubmit}>
       <div className="field-grid">
         <label className="field">
-          <span>Luftfahrzeug</span>
+          <span>Aircraft</span>
           <select
             className="input"
             value={form.aircraft_id}
@@ -96,7 +102,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           </select>
         </label>
         <label className="field">
-          <span>Flugart</span>
+          <span>Flight type</span>
           <input
             className="input"
             value={form.flight_type}
@@ -104,7 +110,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           />
         </label>
         <label className="field">
-          <span>Datum</span>
+          <span>Date</span>
           <input
             className="input"
             type="date"
@@ -113,15 +119,15 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           />
         </label>
         <label className="field">
-          <span>Kategorie</span>
+          <span>Category</span>
           <select
             className="input"
             value={form.category}
             onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as FlightCategory }))}
           >
             {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+              <option key={category.value} value={category.value}>
+                {category.label}
               </option>
             ))}
           </select>
@@ -136,7 +142,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           />
         </label>
         <label className="field">
-          <span>Landung</span>
+          <span>Landing</span>
           <input
             className="input"
             type="time"
@@ -145,7 +151,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           />
         </label>
         <label className="field">
-          <span>Flugdauer (Min)</span>
+          <span>Flight duration (min)</span>
           <input
             className="input"
             type="number"
@@ -155,7 +161,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
           />
         </label>
         <label className="field">
-          <span>Einsatzort</span>
+          <span>Location</span>
           <input
             className="input"
             value={form.location}
@@ -166,7 +172,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
       {message ? <div className="form-note">{message}</div> : null}
       <div className="form-actions">
         <button className="button button-primary" type="submit" disabled={loading || aircraft.length === 0}>
-          {loading ? "Speichern..." : "Entwurf anlegen"}
+          {loading ? "Saving..." : "Create draft"}
         </button>
       </div>
     </form>

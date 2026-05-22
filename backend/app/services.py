@@ -10,7 +10,15 @@ from uuid import uuid4
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from .db import AuditEventModel, AircraftModel, FlightModel, OrganizationModel, UnitModel, UserModel
+from .db import (
+    AuditEventModel,
+    AircraftModel,
+    FlightModel,
+    OrganizationModel,
+    OrganizationSupervisorModel,
+    UnitModel,
+    UserModel,
+)
 from .domain import (
     Aircraft,
     AircraftCreateRequest,
@@ -60,8 +68,10 @@ def _unit_to_domain(item: UnitModel) -> Unit:
     return Unit.model_validate(item)
 
 
-def _user_to_domain(item: UserModel) -> User:
-    return User.model_validate(item)
+def _user_to_domain(db: Session, item: UserModel) -> User:
+    payload = User.model_validate(item).model_dump()
+    payload["supervised_organization_ids"] = supervisor_organization_ids(db, item.id)
+    return User.model_validate(payload)
 
 
 def _actor_name(db: Session, actor_id: str) -> str:
@@ -81,6 +91,11 @@ def _require_supervisor(db: Session, user_id: str) -> UserModel:
     if user is None or user.is_deleted or user.role != RoleName.supervisor:
         raise KeyError("supervisor_not_found")
     return user
+
+
+def _validate_organization_ids(db: Session, organization_ids: list[str]) -> None:
+    for organization_id in organization_ids:
+        _require_organization(db, organization_id)
 
 
 def _require_unit(db: Session, unit_id: str) -> UnitModel:
@@ -124,15 +139,22 @@ def organization_scope_ids(db: Session, root_organization_id: str) -> set[str]:
     return scope
 
 
-def supervisor_scope_ids(db: Session, supervisor_user_id: str) -> set[str]:
-    roots = set(
+def supervisor_organization_ids(db: Session, supervisor_user_id: str) -> list[str]:
+    return sorted(
         db.execute(
-            select(OrganizationModel.id).where(
-                OrganizationModel.supervisor_id == supervisor_user_id,
-                OrganizationModel.is_deleted.is_(False),
+            select(OrganizationSupervisorModel.organization_id).where(
+                OrganizationSupervisorModel.supervisor_user_id == supervisor_user_id
             )
         ).scalars().all()
     )
+
+
+def supervisor_scope_ids(db: Session, supervisor_user_id: str) -> set[str]:
+    roots: set[str] = set()
+    for organization_id in supervisor_organization_ids(db, supervisor_user_id):
+        organization = db.get(OrganizationModel, organization_id)
+        if organization is not None and not organization.is_deleted:
+            roots.add(organization_id)
     scope: set[str] = set()
     frontier = roots
     while frontier:
@@ -189,7 +211,7 @@ def list_users(db: Session, user: UserModel | None = None, include_admins: bool 
             stmt = stmt.where(UserModel.role != RoleName.admin)
     rows = db.scalars(stmt.order_by(UserModel.is_deleted.asc(), UserModel.active.desc(), UserModel.name)).all()
     rows = [row for row in rows if not _is_test_user(row)]
-    return [_user_to_domain(row) for row in rows]
+    return [_user_to_domain(db, row) for row in rows]
 
 
 def list_units(db: Session, user: UserModel | None = None) -> list[Unit]:
@@ -208,14 +230,11 @@ def list_aircraft(db: Session) -> list[Aircraft]:
 def create_organization(db: Session, payload: OrganizationCreateRequest, actor_id: str) -> Organization:
     if payload.parent_id is not None:
         _require_organization(db, payload.parent_id)
-    if payload.supervisor_id is not None:
-        _require_supervisor(db, payload.supervisor_id)
 
     organization = OrganizationModel(
         id=f"org-{uuid4().hex[:12]}",
         name=payload.name,
         parent_id=payload.parent_id,
-        supervisor_id=payload.supervisor_id,
     )
     db.add(organization)
     db.flush()
@@ -248,15 +267,11 @@ def update_organization(
         if changes["parent_id"] == organization.id:
             raise KeyError("organization_parent_invalid")
         _require_organization(db, changes["parent_id"])
-    if "supervisor_id" in changes and changes["supervisor_id"] is not None:
-        _require_supervisor(db, changes["supervisor_id"])
 
     if "name" in changes and changes["name"] is not None:
         organization.name = changes["name"]
     if "parent_id" in changes:
         organization.parent_id = changes["parent_id"]
-    if "supervisor_id" in changes:
-        organization.supervisor_id = changes["supervisor_id"]
     if "is_deleted" in changes and changes["is_deleted"] is not None:
         organization.is_deleted = changes["is_deleted"]
 
@@ -286,6 +301,25 @@ def update_organization(
 
 def delete_organization(db: Session, organization_id: str, actor_id: str) -> Organization:
     return update_organization(db, organization_id, OrganizationUpdateRequest(is_deleted=True), actor_id)
+
+
+def get_supervisor_organization_ids(db: Session, supervisor_user_id: str) -> list[str]:
+    return supervisor_organization_ids(db, supervisor_user_id)
+
+
+def set_supervisor_organization_ids(db: Session, supervisor_user_id: str, organization_ids: list[str]) -> None:
+    user = _require_user(db, supervisor_user_id, include_deleted=True)
+    db.query(OrganizationSupervisorModel).filter(OrganizationSupervisorModel.supervisor_user_id == supervisor_user_id).delete(synchronize_session=False)
+    if user.role != RoleName.supervisor:
+        return
+    unique_ids = list(dict.fromkeys(organization_ids))
+    _validate_organization_ids(db, unique_ids)
+    db.add_all(
+        [
+            OrganizationSupervisorModel(organization_id=organization_id, supervisor_user_id=supervisor_user_id)
+            for organization_id in unique_ids
+        ]
+    )
 
 
 def create_unit(db: Session, payload: UnitCreateRequest, actor_id: str) -> Unit:
@@ -388,6 +422,9 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
     )
     db.add(user)
     db.flush()
+    if user.role == RoleName.supervisor:
+        set_supervisor_organization_ids(db, user.id, payload.supervised_organization_ids or [user.organization_id])
+    domain_user = _user_to_domain(db, user)
     append_audit(
         db,
         organization_id=user.organization_id,
@@ -396,17 +433,18 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
         action="created",
         actor_id=actor_id,
         actor_name=_actor_name(db, actor_id),
-        after_state=User.model_validate(user).model_dump(mode="json"),
+        after_state=domain_user.model_dump(mode="json"),
     )
     db.commit()
     db.refresh(user)
-    return User.model_validate(user)
+    return _user_to_domain(db, user)
 
 
 def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id: str) -> User:
     user = _require_user(db, user_id, include_deleted=True)
     changes = payload.model_dump(exclude_unset=True)
     before = User.model_validate(user).model_dump(mode="json")
+    previous_role = user.role
 
     if user.id == actor_id and (changes.get("active") is False or changes.get("is_deleted") is True):
         raise KeyError("cannot_delete_self")
@@ -450,7 +488,15 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
             user.active = True
 
     db.flush()
-    after = User.model_validate(user).model_dump(mode="json")
+    if "role" in changes and changes["role"] is not None and changes["role"] != RoleName.supervisor:
+        set_supervisor_organization_ids(db, user.id, [])
+    if user.role == RoleName.supervisor:
+        org_ids = changes.get("supervised_organization_ids")
+        if org_ids is not None:
+            set_supervisor_organization_ids(db, user.id, org_ids or [user.organization_id])
+        elif previous_role != RoleName.supervisor:
+            set_supervisor_organization_ids(db, user.id, [user.organization_id])
+    after = _user_to_domain(db, user).model_dump(mode="json")
     action = "updated"
     if before["is_deleted"] is False and after["is_deleted"] is True:
         action = "deleted"
@@ -474,7 +520,7 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
     )
     db.commit()
     db.refresh(user)
-    return User.model_validate(user)
+    return _user_to_domain(db, user)
 
 
 def delete_user(db: Session, user_id: str, actor_id: str) -> User:
@@ -717,7 +763,7 @@ def dashboard_for_user(db: Session, user_id: str) -> DashboardSummary:
     if user is None or user.is_deleted:
         raise KeyError("user_not_found")
     flights = list_flights(db, organization_id=user.organization_id, user_id=user_id)
-    return build_dashboard_summary(flights, title=f"{user.name} Dashboard")
+    return build_dashboard_summary(flights, title=f"{user.name} dashboard")
 
 
 def dashboard_for_unit(db: Session, unit_id: str) -> DashboardSummary:
@@ -726,11 +772,11 @@ def dashboard_for_unit(db: Session, unit_id: str) -> DashboardSummary:
         raise KeyError("unit_not_found")
     flights = list_flights(db, organization_id=unit.organization_id)
     flights = [flight for flight in flights if flight.unit_id == unit_id]
-    summary = build_dashboard_summary(flights, title=f"Einheit {unit.name}")
+    summary = build_dashboard_summary(flights, title=f"Unit {unit.name}")
     summary.unit_comparison = [
-        {"label": "Piloten", "value": len({flight.pilot_id for flight in flights})},
-        {"label": "Flüge", "value": len(flights)},
-        {"label": "Freigaben", "value": len([flight for flight in flights if flight.status == FlightStatus.approved])},
+        {"label": "Pilots", "value": len({flight.pilot_id for flight in flights})},
+        {"label": "Flights", "value": len(flights)},
+        {"label": "Approvals", "value": len([flight for flight in flights if flight.status == FlightStatus.approved])},
     ]
     summary.pending_reviews = len([flight for flight in flights if flight.status == FlightStatus.submitted])
     summary.incomplete_entries = len([flight for flight in flights if flight.status == FlightStatus.draft])
@@ -840,23 +886,23 @@ def export_flights_pdf(db: Session, organization_id: str | None = None, user_id:
     document = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=24, rightMargin=24, topMargin=24, bottomMargin=24)
     styles = getSampleStyleSheet()
     story = [
-        Paragraph("FlyLogX Flugzeitennachweisheft", styles["Title"]),
+        Paragraph("FlyLogX flight logbook", styles["Title"]),
         Spacer(1, 10),
-        Paragraph("Revisionssichere Übersicht der Flugeinträge", styles["Heading2"]),
+        Paragraph("Traceable overview of flight entries", styles["Heading2"]),
         Spacer(1, 12),
     ]
 
     rows = [
         [
-            "Flugnummer",
-            "Datum",
+            "Flight no.",
+            "Date",
             "Pilot",
-            "Einheit",
-            "Luftfahrzeug",
-            "Kategorie",
+            "Unit",
+            "Aircraft",
+            "Category",
             "Status",
-            "Dauer",
-            "Ort",
+            "Duration",
+            "Location",
         ]
     ]
     for flight in flights:
@@ -891,7 +937,7 @@ def export_flights_pdf(db: Session, organization_id: str | None = None, user_id:
     )
     story.append(table)
     story.append(Spacer(1, 14))
-    story.append(Paragraph(f"Einträge gesamt: {len(flights)}", styles["Normal"]))
-    story.append(Paragraph(f"Erstellt am: {datetime.now(timezone.utc).isoformat()}", styles["Normal"]))
+    story.append(Paragraph(f"Total entries: {len(flights)}", styles["Normal"]))
+    story.append(Paragraph(f"Created at: {datetime.now(timezone.utc).isoformat()}", styles["Normal"]))
     document.build(story)
     return buffer.getvalue()

@@ -54,11 +54,11 @@ export function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       className="topbar-icon-button topbar-icon-button-secondary"
-      aria-label={theme === "light" ? "Darkmode aktivieren" : "Lightmode aktivieren"}
-      title={theme === "light" ? "Darkmode" : "Lightmode"}
+      aria-label={theme === "light" ? "Enable dark mode" : "Enable light mode"}
+      title={theme === "light" ? "Dark mode" : "Light mode"}
     >
       {theme === "light" ? <MoonIcon /> : <SunIcon />}
-      <span className="sr-only">{theme === "light" ? "Darkmode" : "Lightmode"}</span>
+      <span className="sr-only">{theme === "light" ? "Dark mode" : "Light mode"}</span>
     </button>
   );
 }

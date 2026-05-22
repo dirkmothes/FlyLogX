@@ -36,7 +36,7 @@ export default async function AdminPage() {
   return (
     <AppShell
       title="Administration"
-      subtitle="Nutzer, Rollen, Einheiten, Stammdaten und Systemkonfiguration."
+      subtitle="Users, roles, units, master data, and system configuration."
       breadcrumbs={["FlyLogX", "Module", "Administration"]}
       user={session.user}
     >

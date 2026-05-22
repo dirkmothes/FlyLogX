@@ -22,40 +22,40 @@ export default async function AuditPage() {
 
   return (
     <AppShell
-      title="Audit-Log"
-      subtitle="Lückenlose Nachvollziehbarkeit aller sicherheitsrelevanten Vorgänge."
+      title="Audit log"
+      subtitle="Complete traceability of all security-relevant actions."
       breadcrumbs={["FlyLogX", "Module", "Audit"]}
       user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Revisionssicherheit</h2>
-              <p>Audit-Qualität</p>
+              <h2>Audit quality</h2>
+              <p>Immutable log</p>
             </div>
           </div>
           <div className="panel-body section-stack">
             <div className="mini-card">
-              <h3>Immutable Log</h3>
-              <p>Einträge werden nicht überschrieben, sondern versioniert ergänzt.</p>
+              <h3>Immutable log</h3>
+              <p>Entries are not overwritten but versioned.</p>
             </div>
             <div className="mini-card">
-              <h3>Soft-Delete</h3>
-              <p>Gelöschte Daten bleiben intern nachvollziehbar erhalten.</p>
+              <h3>Soft delete</h3>
+              <p>Deleted data remains traceable internally.</p>
             </div>
           </div>
         </section>
       }
     >
       <DataTable
-        title="Änderungsverlauf"
-        subtitle="Wer hat wann was an welchem Objekt geändert"
+        title="Change history"
+        subtitle="Who changed what on which object and when"
         rows={rows}
         columns={[
-          { header: "Zeit", render: (row) => row.time },
-          { header: "Akteur", render: (row) => row.actor },
-          { header: "Aktion", render: (row) => row.action },
-          { header: "Objekt", render: (row) => row.entity },
+          { header: "Time", render: (row) => row.time },
+          { header: "Actor", render: (row) => row.actor },
+          { header: "Action", render: (row) => row.action },
+          { header: "Object", render: (row) => row.entity },
           { header: "Detail", render: (row) => row.detail },
         ]}
       />

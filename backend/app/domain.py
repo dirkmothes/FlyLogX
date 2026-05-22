@@ -27,11 +27,11 @@ class AircraftStatus(str, Enum):
 
 
 class FlightCategory(str, Enum):
-    ue = "Ü-Flüge"
-    s = "S-Flüge"
-    eh = "E-H-Flüge"
-    t = "T-Flüge"
-    a = "A-Flüge"
+    u = "U Flights"
+    s = "S Flights"
+    eh = "E-H Flights"
+    t = "T Flights"
+    a = "A Flights"
 
 
 class ReviewDecision(str, Enum):
@@ -45,20 +45,17 @@ class Organization(BaseModel):
     id: str
     name: str
     parent_id: str | None = None
-    supervisor_id: str | None = None
     is_deleted: bool = False
 
 
 class OrganizationCreateRequest(BaseModel):
     name: str
     parent_id: str | None = None
-    supervisor_id: str | None = None
 
 
 class OrganizationUpdateRequest(BaseModel):
     name: str | None = None
     parent_id: str | None = None
-    supervisor_id: str | None = None
     is_deleted: bool | None = None
 
 
@@ -96,6 +93,7 @@ class User(BaseModel):
     email: str
     active: bool = True
     is_deleted: bool = False
+    supervised_organization_ids: list[str] = Field(default_factory=list)
 
 
 class UserCreateRequest(BaseModel):
@@ -106,6 +104,7 @@ class UserCreateRequest(BaseModel):
     email: str
     password: str
     active: bool = True
+    supervised_organization_ids: list[str] = Field(default_factory=list)
 
 
 class UserUpdateRequest(BaseModel):
@@ -117,6 +116,7 @@ class UserUpdateRequest(BaseModel):
     password: str | None = None
     active: bool | None = None
     is_deleted: bool | None = None
+    supervised_organization_ids: list[str] | None = None
 
 
 class OwnProfileUpdateRequest(BaseModel):

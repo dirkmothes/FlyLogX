@@ -39,11 +39,11 @@ export function LogoutButton() {
       type="button"
       onClick={handleLogout}
       className="topbar-icon-button topbar-icon-button-danger"
-      aria-label="Abmelden"
-      title="Abmelden"
+      aria-label="Sign out"
+      title="Sign out"
     >
       <LogoutIcon />
-      <span className="sr-only">Abmelden</span>
+      <span className="sr-only">Sign out</span>
     </button>
   );
 }

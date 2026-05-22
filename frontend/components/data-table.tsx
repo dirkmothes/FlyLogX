@@ -14,7 +14,7 @@ type Props<T> = {
   emptyMessage?: string;
 };
 
-export function DataTable<T>({ title, subtitle, columns, rows, emptyMessage = "Keine Daten vorhanden." }: Props<T>) {
+export function DataTable<T>({ title, subtitle, columns, rows, emptyMessage = "No data available." }: Props<T>) {
   return (
     <section className="panel">
       <div className="panel-header">

@@ -33,12 +33,12 @@ export function ReviewQueue({ flights }: Props) {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Prüfung fehlgeschlagen");
+        throw new Error(payload?.detail || "Review failed");
       }
 
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Prüfung fehlgeschlagen");
+      setMessage(error instanceof Error ? error.message : "Review failed");
     } finally {
       setBusyId(null);
     }
@@ -59,7 +59,7 @@ export function ReviewQueue({ flights }: Props) {
             {flight.date} · {flight.pilot_name || flight.pilot_id} · {flight.aircraft_name || flight.aircraft_identifier} · {flight.location}
           </span>
           <label className="field">
-            <span>Kommentar</span>
+            <span>Comment</span>
             <textarea
               className="textarea"
               value={comments[flight.id] ?? ""}
@@ -73,7 +73,7 @@ export function ReviewQueue({ flights }: Props) {
               onClick={() => reviewFlight(flight.id, "reject")}
               disabled={busyId === flight.id}
             >
-              Ablehnen
+              Reject
             </button>
             <button
               type="button"
@@ -81,7 +81,7 @@ export function ReviewQueue({ flights }: Props) {
               onClick={() => reviewFlight(flight.id, "approve")}
               disabled={busyId === flight.id}
             >
-              {busyId === flight.id ? "Prüfe..." : "Freigeben"}
+              {busyId === flight.id ? "Reviewing..." : "Approve"}
             </button>
           </div>
         </div>

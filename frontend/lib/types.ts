@@ -1,10 +1,10 @@
 export type Role = "pilot" | "supervisor" | "admin";
 
-export type FlightStatus = "Entwurf" | "Eingereicht" | "Geprüft" | "Freigegeben" | "Abgelehnt";
+export type FlightStatus = "Draft" | "Submitted" | "Reviewed" | "Approved" | "Rejected";
 
-export type FlightCategory = "Ü-Flüge" | "S-Flüge" | "E-H-Flüge" | "T-Flüge" | "A-Flüge";
+export type FlightCategory = "U Flights" | "S Flights" | "E-H Flights" | "T Flights" | "A Flights";
 
-export type AircraftStatus = "aktiv" | "in Wartung" | "außer Dienst";
+export type AircraftStatus = "Active" | "Maintenance" | "Retired";
 
 export type FlightRow = {
   id: string;

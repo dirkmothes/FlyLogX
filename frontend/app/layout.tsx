@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "FlyLogX",
-  description: "Digitale Flugzeitennachweis- und Prüfverwaltung für Luftfahrzeuge und Drohnen.",
+  description: "Digital flight logbook and review management for aircraft and drones.",
   icons: {
     icon: "/fly-icon.png",
   },
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   `;
 
   return (
-    <html lang="de">
+    <html lang="en">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

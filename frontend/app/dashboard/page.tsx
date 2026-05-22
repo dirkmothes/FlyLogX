@@ -32,29 +32,29 @@ export default async function DashboardPage() {
   return (
     <AppShell
       title="Dashboard"
-      subtitle="Operativer Überblick über Flugzeiten, Prüfstatus und Nachweisheft-Fortschritt."
+      subtitle="Operational overview of flight times, review status, and logbook progress."
       breadcrumbs={["FlyLogX", "Dashboard"]}
       user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Freigabe-Pipeline</h2>
-              <p>Status der aktuellen Prüfstrecke</p>
+              <h2>Approval pipeline</h2>
+              <p>Status of the current review chain</p>
             </div>
           </div>
           <div className="panel-body workflow">
             <div className="workflow-step">
-              <strong>1. Entwurf</strong>
-              <span>Neue Flüge werden lokal erfasst und validiert.</span>
+              <strong>1. Draft</strong>
+              <span>New flights are recorded locally and validated.</span>
             </div>
             <div className="workflow-step">
-              <strong>2. Eingereicht</strong>
-              <span>Der Pilot übergibt den Eintrag an die Prüfstelle.</span>
+              <strong>2. Submitted</strong>
+              <span>The pilot submits the entry for review.</span>
             </div>
             <div className="workflow-step">
-              <strong>3. Freigegeben</strong>
-              <span>Nach Prüfung wird der Datensatz gesperrt und protokolliert.</span>
+              <strong>3. Approved</strong>
+              <span>After review, the record is locked and logged.</span>
             </div>
           </div>
         </section>
@@ -70,8 +70,8 @@ export default async function DashboardPage() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Flugartenverteilung</h2>
-              <p>Gesamtstunden nach Flugkategorie</p>
+              <h2>Flight category distribution</h2>
+              <p>Total hours by flight category</p>
             </div>
           </div>
           <div className="panel-body bar-list">
@@ -92,8 +92,8 @@ export default async function DashboardPage() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Monatsverlauf</h2>
-              <p>Fortschreibung der Flugstunden</p>
+              <h2>Monthly trend</h2>
+              <p>Flight hour progression</p>
             </div>
           </div>
           <div className="panel-body">
@@ -113,8 +113,8 @@ export default async function DashboardPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Export & Nachweis</h2>
-            <p>CSV-Export der sichtbaren Flugdaten für Weiterverarbeitung und Archivierung</p>
+            <h2>Export & records</h2>
+            <p>CSV export of the visible flight data for further processing and archiving</p>
           </div>
         </div>
         <div className="panel-body">
@@ -126,18 +126,18 @@ export default async function DashboardPage() {
       </section>
 
       <DataTable
-        title="Letzte Flüge"
-        subtitle="Aktuelle Einträge im digitalen Nachweisheft"
+        title="Recent flights"
+        subtitle="Current entries in the digital logbook"
         rows={recentRows}
         columns={[
-          { header: "Datum", render: (row) => row.date },
-          { header: "Flugnummer", render: (row) => row.id },
+          { header: "Date", render: (row) => row.date },
+          { header: "Flight no.", render: (row) => row.id },
           { header: "Pilot", render: (row) => row.pilot },
-          { header: "Drohne", render: (row) => row.aircraft },
-          { header: "Kategorie", render: (row) => row.category },
-          { header: "Dauer", render: (row) => row.duration },
+          { header: "Aircraft", render: (row) => row.aircraft },
+          { header: "Category", render: (row) => row.category },
+          { header: "Duration", render: (row) => row.duration },
           { header: "Status", render: (row) => <StatusPill tone={flightStatusTone(row.status)}>{row.status}</StatusPill> },
-          { header: "Ort", render: (row) => row.location },
+          { header: "Location", render: (row) => row.location },
         ]}
       />
     </AppShell>

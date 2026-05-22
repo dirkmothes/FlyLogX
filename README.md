@@ -1,59 +1,59 @@
 # FlyLogX
 
-FlyLogX ist ein digitales Flugzeitennachweis- und Prüfverwaltungssystem für Drohnen und Luftfahrzeuge.
+FlyLogX is a digital flight logbook and review management system for drones and aircraft.
 
-## Zielbild
+## Goals
 
-- digitale Flugerfassung
-- digitale Nachweisheft-Ansicht
-- Rollen für Pilot, Vorgesetzten und Admin
-- Luftfahrzeug- und Einheitenverwaltung
-- Audit-Log, Freigabe-Workflow und Exporte
+- digital flight entry
+- digital logbook view
+- roles for pilot, supervisor, and admin
+- aircraft and unit management
+- audit log, approval workflow, and exports
 
 ## Stack
 
 - Frontend: Next.js + TypeScript
 - Backend: FastAPI + Python
-- Datenbank: PostgreSQL
-- Container: Docker Compose
+- Database: PostgreSQL
+- Containerization: Docker Compose
 
-## Repo-Struktur
+## Repository Structure
 
-- `frontend/` - Weboberfläche
-- `backend/` - API und Fachlogik
-- `docs/` - Architektur und ERD
+- `frontend/` - web UI
+- `backend/` - API and business logic
+- `docs/` - architecture and ERD
 
-## Entwicklung
+## Development
 
 ```bash
 docker compose up --build
 ```
 
-Die Backend-Initialisierung führt beim Start die Alembic-Migrationen aus und seedet eine Demo-Organisation, wenn die Datenbank leer ist.
+The backend initialization runs Alembic migrations on startup and seeds a demo organization when the database is empty.
 
 Frontend:
 - `https://flylogx.tog.wan64.de`
 
 Backend:
-- intern über Traefik unter `https://flylogx.tog.wan64.de/api`
+- internally via Traefik at `https://flylogx.tog.wan64.de/api`
 
-API-Dokumentation:
-- `https://flylogx.tog.wan64.de/api/docs` oder direkt intern im Backend-Container
+API documentation:
+- `https://flylogx.tog.wan64.de/api/docs` or directly inside the backend container
 
-## Konfiguration
+## Configuration
 
-Beispieldateien für lokale Konfiguration:
+Example files for local configuration:
 
 - `.env.example`
 - `backend/.env.example`
 - `frontend/.env.example`
 
-Laufzeitdaten, Exporte, Uploads und lokale Datenbankdateien sind per `.gitignore` ausgeschlossen und werden nicht versioniert.
+Runtime data, exports, uploads, and local database files are excluded via `.gitignore` and are not versioned.
 
 ## Traefik
 
-FlyLogX ist für den Betrieb hinter dem vorhandenen Traefik vorbereitet.
+FlyLogX is prepared to run behind the existing Traefik instance.
 
 - UI: `flylogx.tog.wan64.de`
 - API: `flylogx.tog.wan64.de/api`
-- TLS: über den Traefik-Certresolver `production`
+- TLS: via the Traefik cert resolver `production`

@@ -1,7 +1,7 @@
 export type RoleName = "pilot" | "supervisor" | "admin";
 
 export type FlightStatus = "draft" | "submitted" | "reviewed" | "approved" | "rejected";
-export type FlightCategory = "Ü-Flüge" | "S-Flüge" | "E-H-Flüge" | "T-Flüge" | "A-Flüge";
+export type FlightCategory = "U Flights" | "S Flights" | "E-H Flights" | "T Flights" | "A Flights";
 export type AircraftStatus = "active" | "maintenance" | "retired";
 
 export type ApiUser = {
@@ -13,13 +13,13 @@ export type ApiUser = {
   email: string;
   active: boolean;
   is_deleted: boolean;
+  supervised_organization_ids: string[];
 };
 
 export type ApiOrganization = {
   id: string;
   name: string;
   parent_id: string | null;
-  supervisor_id: string | null;
   is_deleted: boolean;
 };
 

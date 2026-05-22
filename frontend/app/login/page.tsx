@@ -32,14 +32,14 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Login fehlgeschlagen");
+        throw new Error(payload?.detail || "Login failed");
       }
 
       await response.json();
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login fehlgeschlagen");
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -50,19 +50,19 @@ export default function LoginPage() {
       <section className="login-hero">
         <div className="brand-block brand-block--logo" style={{ borderBottomColor: "rgba(255,255,255,0.1)" }}>
           <img className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" />
-          <div className="brand-subtitle">Digitales Flugzeitennachweisheft</div>
+          <div className="brand-subtitle">Digital flight logbook</div>
         </div>
         <div>
-          <h1>Digitale Flugerfassung für Piloten und Organisationen.</h1>
+          <h1>Digital flight logging for pilots and organizations.</h1>
           <p>
-            Erfasse Flüge digital, prüfe Einträge mit klaren Rollen, exportiere Nachweise als PDF und behalte jederzeit
-            den auditierbaren Gesamtstatus im Blick.
+            Record flights digitally, review entries with clear roles, export records as PDF, and keep the auditable
+            overall status in view at all times.
           </p>
         </div>
         <div className="muted-list">
-          <div>• Login und Rollenverwaltung</div>
-          <div>• Rollen: Pilot, Vorgesetzter, Admin</div>
-          <div>• Digitale Freigabe und Änderungsverlauf</div>
+          <div>• Login and role management</div>
+          <div>• Roles: Pilot, Supervisor, Admin</div>
+          <div>• Digital approval and change history</div>
         </div>
       </section>
 
@@ -70,18 +70,18 @@ export default function LoginPage() {
         <div className="form-card">
           <div className="panel-header" style={{ padding: 0, borderBottom: "none", marginBottom: 18 }}>
             <div>
-              <h2>Anmeldung</h2>
-              <p>Demo-Zugänge sind im Backend-Seed vorgesehen.</p>
+              <h2>Sign in</h2>
+              <p>Demo access is seeded in the backend.</p>
             </div>
           </div>
 
           <form className="section-stack" onSubmit={handleSubmit}>
             <label className="field">
-              <span>E-Mail</span>
+              <span>Email</span>
               <input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </label>
             <label className="field">
-              <span>Passwort</span>
+              <span>Password</span>
               <input
                 className="input"
                 type="password"
@@ -92,17 +92,16 @@ export default function LoginPage() {
             {error ? <div className="form-error">{error}</div> : null}
             <div className="form-actions">
               <button className="button button-primary" type="submit" disabled={loading}>
-                {loading ? "Anmeldung..." : "Anmelden"}
+                {loading ? "Signing in..." : "Sign in"}
               </button>
             </div>
           </form>
 
           <div style={{ marginTop: 16, color: "var(--muted)", lineHeight: 1.6 }}>
-            Demo-Konten:
+            Demo accounts:
             <br />
-            Pilot, Supervisor oder Admin mit dem Passwort <code>flylogx-demo</code>.
+            Pilot, Supervisor, or Admin with the password <code>flylogx-demo</code>.
           </div>
-
         </div>
       </section>
     </div>

@@ -86,7 +86,7 @@ def upgrade() -> None:
         sa.Column("aircraft_id", sa.String(length=64), sa.ForeignKey("aircraft.id"), nullable=False, index=True),
         sa.Column("aircraft_identifier", sa.String(length=64), nullable=False),
         sa.Column("flight_number", sa.String(length=128), nullable=True),
-        sa.Column("category", sa.Enum("Ü-Flüge", "S-Flüge", "E-H-Flüge", "T-Flüge", "A-Flüge", name="flight_category"), nullable=False),
+        sa.Column("category", sa.Enum("U Flights", "S Flights", "E-H Flights", "T Flights", "A Flights", name="flight_category"), nullable=False),
         sa.Column("flight_type", sa.String(length=128), nullable=False),
         sa.Column("status", sa.Enum("draft", "submitted", "reviewed", "approved", "rejected", name="flight_status"), nullable=False),
         sa.Column("date", sa.Date(), nullable=False, index=True),

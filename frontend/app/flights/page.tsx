@@ -31,34 +31,34 @@ export default async function FlightsPage() {
 
   return (
     <AppShell
-      title="Flugbuch & Nachweisheft"
-      subtitle="Tabellarische Sicht im Stil eines klassischen Flugzeitennachweishefts."
-      breadcrumbs={["FlyLogX", "Module", "Flüge"]}
+      title="Flight logbook & records"
+      subtitle="Tabular view in the style of a classic flight logbook."
+      breadcrumbs={["FlyLogX", "Module", "Flights"]}
       user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Filter</h2>
-              <p>Suche und Sortierung</p>
+              <h2>Filters</h2>
+              <p>Search and sorting</p>
             </div>
           </div>
           <div className="panel-body section-stack">
             <div className="filters-row">
-              <span className="filter-chip">Zeitraum</span>
+              <span className="filter-chip">Period</span>
               <span className="filter-chip">Pilot</span>
-              <span className="filter-chip">Drohne</span>
+              <span className="filter-chip">Aircraft</span>
               <span className="filter-chip">Status</span>
-              <span className="filter-chip">Flugart</span>
-              <span className="filter-chip">Dienststelle</span>
+              <span className="filter-chip">Flight type</span>
+              <span className="filter-chip">Unit</span>
             </div>
             <div className="mini-card">
-              <h3>Prüfregeln</h3>
-              <p>Geprüfte Einträge sind gesperrt und nur über Änderungsanträge anpassbar.</p>
+              <h3>Review rules</h3>
+              <p>Reviewed entries are locked and can only be adjusted through change requests.</p>
             </div>
             <div className="mini-card">
               <h3>Export</h3>
-              <p>PDF-, CSV- und Excel-Ausgabe werden für offizielle Nachweise vorbereitet.</p>
+              <p>PDF, CSV, and Excel output are prepared for official records.</p>
             </div>
           </div>
         </section>
@@ -67,8 +67,8 @@ export default async function FlightsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Neuen Entwurf anlegen</h2>
-            <p>Digitale Erfassung mit automatischer Nachweisheft-Fortschreibung</p>
+            <h2>Create new draft</h2>
+            <p>Digital entry with automatic logbook progression</p>
           </div>
         </div>
         <div className="panel-body">
@@ -84,43 +84,43 @@ export default async function FlightsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Statusübersicht</h2>
-            <p>Workflow für Entwurf, Einreichung, Prüfung und Freigabe</p>
+            <h2>Status overview</h2>
+            <p>Workflow for draft, submission, review, and approval</p>
           </div>
         </div>
         <div className="panel-body grid-4">
           <div className="mini-card">
-            <h3>Entwürfe</h3>
-            <p>{rows.filter((row) => row.status === "Entwurf").length} offene Erfassungen</p>
+            <h3>Drafts</h3>
+            <p>{rows.filter((row) => row.status === "Draft").length} open entries</p>
           </div>
           <div className="mini-card">
-            <h3>Eingereicht</h3>
-            <p>{rows.filter((row) => row.status === "Eingereicht").length} Einträge warten auf Prüfung</p>
+            <h3>Submitted</h3>
+            <p>{rows.filter((row) => row.status === "Submitted").length} entries waiting for review</p>
           </div>
           <div className="mini-card">
-            <h3>Freigegeben</h3>
-            <p>{rows.filter((row) => row.status === "Freigegeben").length} bestätigte Einträge</p>
+            <h3>Approved</h3>
+            <p>{rows.filter((row) => row.status === "Approved").length} confirmed entries</p>
           </div>
           <div className="mini-card">
-            <h3>Abgelehnt</h3>
-            <p>{rows.filter((row) => row.status === "Abgelehnt").length} Einträge mit Kommentar</p>
+            <h3>Rejected</h3>
+            <p>{rows.filter((row) => row.status === "Rejected").length} entries with comments</p>
           </div>
         </div>
       </section>
 
       <DataTable
-        title="Digitale Flugnachweise"
-        subtitle="Ansicht in Tabellenform mit Status und Einsatzdaten"
+        title="Digital flight records"
+        subtitle="Table view with status and mission data"
         rows={rows}
         columns={[
-          { header: "Datum", render: (row) => row.date },
-          { header: "Zeit", render: (row) => row.time },
+          { header: "Date", render: (row) => row.date },
+          { header: "Time", render: (row) => row.time },
           { header: "Pilot", render: (row) => row.pilot },
-          { header: "Drohne", render: (row) => row.aircraft },
-          { header: "Kategorie", render: (row) => row.category },
-          { header: "Einsatzart", render: (row) => row.type },
-          { header: "Tag", render: (row) => row.day },
-          { header: "Nacht", render: (row) => row.night },
+          { header: "Aircraft", render: (row) => row.aircraft },
+          { header: "Category", render: (row) => row.category },
+          { header: "Mission type", render: (row) => row.type },
+          { header: "Day", render: (row) => row.day },
+          { header: "Night", render: (row) => row.night },
           { header: "Status", render: (row) => <StatusPill tone={flightStatusTone(row.status)}>{row.status}</StatusPill> },
         ]}
       />
@@ -128,8 +128,8 @@ export default async function FlightsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Luftfahrzeugübersicht</h2>
-            <p>Aktive Systeme in der zentralen Verwaltung</p>
+            <h2>Aircraft overview</h2>
+            <p>Active systems in the central registry</p>
           </div>
         </div>
         <div className="panel-body section-stack">
@@ -139,9 +139,7 @@ export default async function FlightsPage() {
                 <strong>
                   {item.identifier} · {item.name}
                 </strong>
-                <StatusPill tone={item.release_status ? "success" : "warning"}>
-                  {aircraftStatusLabel(item.status)}
-                </StatusPill>
+                <StatusPill tone={item.release_status ? "success" : "warning"}>{aircraftStatusLabel(item.status)}</StatusPill>
               </div>
               <span>
                 {item.manufacturer} · {item.model} · {item.operating_hours.toFixed(1)} h · {item.maintenance_status}

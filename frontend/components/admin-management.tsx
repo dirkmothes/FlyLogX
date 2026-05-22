@@ -50,7 +50,7 @@ type UserForm = {
 
 const roleLabel: Record<RoleName, string> = {
   pilot: "Pilot",
-  supervisor: "Vorgesetzter",
+  supervisor: "Supervisor",
   admin: "Admin",
 };
 
@@ -133,9 +133,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   });
 
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
-    { id: "users", label: "Nutzer", count: users.length },
-    { id: "units", label: "Einheiten", count: units.length },
-    { id: "organizations", label: "Organisationen", count: organizations.length },
+    { id: "users", label: "User", count: users.length },
+    { id: "units", label: "Units", count: units.length },
+    { id: "organizations", label: "Organizations", count: organizations.length },
   ];
 
   const canCreateUsers = viewerRole === "admin" || viewerRole === "supervisor";
@@ -150,11 +150,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           : null;
   const activeCreateLabel =
     activeCreateType === "user"
-      ? "Nutzer anlegen"
+      ? "Create user"
       : activeCreateType === "unit"
-        ? "Einheit anlegen"
+        ? "Create unit"
         : activeCreateType === "organization"
-          ? "Organisation anlegen"
+          ? "Create organization"
           : "";
   const activeSupervisorOrganizationIds =
     userForm.role === "supervisor"
@@ -180,12 +180,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   });
 
   function organizationName(id: string | null | undefined) {
-    if (!id) return "Keine Organisation";
+    if (!id) return "No organization";
     return organizations.find((organization) => organization.id === id)?.name ?? shortId(id);
   }
 
   function unitName(id: string | null | undefined) {
-    if (!id) return "Ohne Einheit";
+    if (!id) return "No unit";
     const unit = units.find((item) => item.id === id);
     return unit ? `${unit.code} - ${unit.name}` : shortId(id);
   }
@@ -194,7 +194,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     const names = users
       .filter((user) => user.role === "supervisor" && user.supervised_organization_ids?.includes(organizationId))
       .map((user) => user.name);
-    return names.length > 0 ? names.join(", ") : "Kein Supervisor";
+    return names.length > 0 ? names.join(", ") : "No supervisor";
   }
 
   function openCreate(type: "organization" | "unit" | "user") {
@@ -269,7 +269,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   async function saveOrganization(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!organizationForm.name.trim()) {
-      setMessage("Bitte einen Organisationsnamen angeben.");
+      setMessage("Please enter an organization name.");
       return;
     }
 
@@ -290,7 +290,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Organisation konnte nicht gespeichert werden");
+      setMessage(error instanceof Error ? error.message : "Organization could not be saved");
       setBusy(null);
     }
   }
@@ -298,7 +298,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   async function saveUnit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!unitForm.organization_id || !unitForm.name.trim() || !unitForm.code.trim()) {
-      setMessage("Bitte Organisation, Kürzel und Namen für die Einheit angeben.");
+      setMessage("Please provide an organization, code, and name for the unit.");
       return;
     }
 
@@ -317,7 +317,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Einheit konnte nicht gespeichert werden");
+      setMessage(error instanceof Error ? error.message : "Unit could not be saved");
       setBusy(null);
     }
   }
@@ -325,11 +325,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   async function saveUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!userForm.organization_id || !userForm.name.trim() || !userForm.email.trim()) {
-      setMessage("Bitte Organisation, Name und E-Mail für den Benutzer angeben.");
+      setMessage("Please provide an organization, name, and email for the user.");
       return;
     }
     if (dialog?.mode === "create" && !userForm.password.trim()) {
-      setMessage("Bitte ein Startpasswort für den Benutzer angeben.");
+      setMessage("Please provide an initial password for the user.");
       return;
     }
 
@@ -355,7 +355,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       }
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Benutzer konnte nicht gespeichert werden");
+      setMessage(error instanceof Error ? error.message : "User could not be saved");
       setBusy(null);
     }
   }
@@ -382,7 +382,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       });
       window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Benutzer konnte nicht entsperrt werden");
+      setMessage(error instanceof Error ? error.message : "User could not be unlocked");
       setBusy(null);
     }
   }
@@ -396,17 +396,17 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setDeleteTarget(null);
 
     if (target.type === "organization" && viewerRole === "admin") {
-      await deactivate(`/api/organizations/${target.id}`, "organization-delete", "Organisation konnte nicht gelöscht werden");
+      await deactivate(`/api/organizations/${target.id}`, "organization-delete", "Organization could not be deleted");
       return;
     }
 
     if (target.type === "unit" && viewerRole === "admin") {
-      await deactivate(`/api/units/${target.id}`, "unit-delete", "Einheit konnte nicht gelöscht werden");
+      await deactivate(`/api/units/${target.id}`, "unit-delete", "Unit could not be deleted");
       return;
     }
 
     if (target.type === "user") {
-      await deactivate(`/api/users/${target.id}`, "user-delete", "Benutzer konnte nicht gelöscht werden");
+      await deactivate(`/api/users/${target.id}`, "user-delete", "User could not be deleted");
     }
   }
 
@@ -419,7 +419,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setDeleteTarget({
         type: "organization",
         id: dialog.id,
-        label: organizationForm.name.trim() || "Organisation",
+        label: organizationForm.name.trim() || "Organization",
       });
       return;
     }
@@ -428,7 +428,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setDeleteTarget({
         type: "unit",
         id: dialog.id,
-        label: unitForm.name.trim() || "Einheit",
+        label: unitForm.name.trim() || "Unit",
       });
       return;
     }
@@ -437,7 +437,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setDeleteTarget({
         type: "user",
         id: dialog.id,
-        label: userForm.name.trim() || "Nutzer",
+        label: userForm.name.trim() || "User",
       });
     }
   }
@@ -445,23 +445,23 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const activeDialogTitle =
     dialog?.type === "user"
       ? dialog.mode === "edit"
-        ? "Nutzer bearbeiten"
-        : "Nutzer anlegen"
+        ? "Edit user"
+        : "Create user"
       : dialog?.type === "unit"
         ? dialog.mode === "edit"
-          ? "Einheit bearbeiten"
-          : "Einheit anlegen"
+          ? "Edit unit"
+          : "Create unit"
       : dialog?.mode === "edit"
-        ? "Organisation bearbeiten"
-        : "Organisation anlegen";
+        ? "Edit organization"
+        : "Create organization";
 
   const deleteTargetTypeLabel =
     deleteTarget?.type === "organization"
-      ? "Organisation"
+      ? "Organization"
       : deleteTarget?.type === "unit"
-        ? "Einheit"
+        ? "Unit"
         : deleteTarget?.type === "user"
-          ? "Nutzer"
+          ? "User"
           : "";
 
   return (
@@ -471,7 +471,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       <section className="admin-command">
         <div>
           <span className="admin-kicker">Administration</span>
-          <h2>Identitäten, Einheiten und Organisationsstruktur</h2>
+          <h2>Identities, units, and organizational structure</h2>
         </div>
         <div className="admin-command-actions">
           {activeCreateType ? (
@@ -491,7 +491,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
       <section className="admin-directory">
         <div className="admin-directory-sidebar-stack">
-          <div className="admin-directory-sidebar" role="tablist" aria-label="Verwaltungsbereiche">
+          <div className="admin-directory-sidebar" role="tablist" aria-label="Administration sections">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -510,24 +510,24 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           {activeTab === "users" ? (
             <div className="admin-user-toolbar">
               <label className="admin-search-field">
-                <span>Suche</span>
+                <span>Search</span>
                 <input
                   className="input"
                   value={userSearch}
-                  placeholder="Name, E-Mail oder Einheit"
+                  placeholder="Name, email, or unit"
                   onChange={(event) => setUserSearch(event.target.value)}
                 />
               </label>
 
               <div className="admin-chip-group">
-                <span className="admin-chip-label">Rolle</span>
+                <span className="admin-chip-label">Role</span>
                 <div className="admin-chip-row">
                   <button
                     type="button"
                     className={`filter-chip admin-chip-button ${roleFilter === "all" ? "admin-chip-button-active" : ""}`}
                     onClick={() => setRoleFilter("all")}
                   >
-                    Alle Rollen
+                    All roles
                   </button>
                   {((viewerRole === "admin"
                     ? ["pilot", "supervisor", "admin"]
@@ -552,27 +552,27 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     className={`filter-chip admin-chip-button ${statusFilter === "all" ? "admin-chip-button-active" : ""}`}
                     onClick={() => setStatusFilter("all")}
                   >
-                    Alle
+                    All
                   </button>
                   <button
                     type="button"
                     className={`filter-chip admin-chip-button ${statusFilter === "active" ? "admin-chip-button-active" : ""}`}
                     onClick={() => setStatusFilter("active")}
                   >
-                    Aktiv
+                    Active
                   </button>
                   <button
                     type="button"
                     className={`filter-chip admin-chip-button ${statusFilter === "inactive" ? "admin-chip-button-active" : ""}`}
                     onClick={() => setStatusFilter("inactive")}
                   >
-                    Gesperrt
+                    Blocked
                   </button>
                 </div>
               </div>
 
               <div className="admin-chip-count">
-                <span>Treffer</span>
+                <span>Results</span>
                 <strong>{filteredUsers.length}</strong>
               </div>
             </div>
@@ -589,27 +589,27 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <div className="admin-user-headline">
                         <strong>{user.name}</strong>
                         <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
-                          {user.active && !user.is_deleted ? "aktiv" : "gesperrt"}
+                          {user.active && !user.is_deleted ? "active" : "blocked"}
                         </span>
                         <span>{roleLabel[user.role]}</span>
                       </div>
                     </div>
                     <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button admin-action-button-edit" title="Nutzer bearbeiten" onClick={() => openEditUser(user)}>
-                        Bearbeiten
+                      <button type="button" className="admin-action-button admin-action-button-edit" title="Edit user" onClick={() => openEditUser(user)}>
+                        Edit
                       </button>
                       <button
                         type="button"
                         className={`admin-action-button ${user.active && !user.is_deleted ? "admin-danger-button" : "admin-action-button-edit"}`}
-                        title={user.active && !user.is_deleted ? "Nutzer sperren" : "Nutzer entsperren"}
+                        title={user.active && !user.is_deleted ? "Lock user" : "Unlock user"}
                         disabled={busy === `user-toggle-${user.id}`}
                         onClick={() =>
                           user.active && !user.is_deleted
-                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "Benutzer konnte nicht gesperrt werden")
+                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "The user could not be locked.")
                             : restoreUser(user.id, `user-toggle-${user.id}`)
                         }
                       >
-                        {user.active && !user.is_deleted ? "Sperren" : "Entsperren"}
+                        {user.active && !user.is_deleted ? "Lock" : "Unlock"}
                       </button>
                     </div>
                   </div>
@@ -631,8 +631,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       </div>
                     </div>
                     <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button admin-action-button-edit" title="Einheit bearbeiten" onClick={() => openEditUnit(unit)}>
-                        Bearbeiten
+                      <button type="button" className="admin-action-button admin-action-button-edit" title="Edit unit" onClick={() => openEditUnit(unit)}>
+                        Edit
                       </button>
                     </div>
                   </div>
@@ -649,18 +649,18 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <div className="admin-primary-cell">
                       <div className="admin-entity-headline">
                         <strong>{organization.name}</strong>
-                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
-                        <span>Vorgesetzte: {organizationSupervisors(organization.id)}</span>
+                        <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root organization"}</span>
+                        <span>Supervisors: {organizationSupervisors(organization.id)}</span>
                       </div>
                     </div>
                     <div className="admin-record-actions">
                       <button
                         type="button"
                         className="admin-action-button admin-action-button-edit"
-                        title="Organisation bearbeiten"
+                        title="Edit organization"
                         onClick={() => openEditOrganization(organization)}
                       >
-                        Bearbeiten
+                        Edit
                       </button>
                     </div>
                   </div>
@@ -676,10 +676,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="admin-dialog-header">
               <div>
-                <span className="admin-kicker">{dialog.mode === "edit" ? "Bearbeiten" : "Neu"}</span>
+                <span className="admin-kicker">{dialog.mode === "edit" ? "Edit" : "New"}</span>
                 <h3 id="admin-dialog-title">{activeDialogTitle}</h3>
               </div>
-              <button type="button" className="admin-close-button" title="Dialog schließen" onClick={() => setDialog(null)}>
+              <button type="button" className="admin-close-button" title="Close dialog" onClick={() => setDialog(null)}>
                 X
               </button>
             </div>
@@ -695,20 +695,20 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   />
                 </label>
                 <label className="field">
-                  <span>Übergeordnete Organisation</span>
+                  <span>Parent organization</span>
                   <select
                     className="input"
                     value={organizationForm.parent_id}
                     onChange={(event) => setOrganizationForm((current) => ({ ...current, parent_id: event.target.value }))}
                   >
-                    <option value="">Keine</option>
+                    <option value="">None</option>
                     {organizations
                       .filter((organization) => organization.id !== dialog.id)
                       .map((organization) => (
                         <option key={organization.id} value={organization.id}>
-                          {organization.name}
-                        </option>
-                      ))}
+                        {organization.name}
+                      </option>
+                    ))}
                     </select>
                 </label>
                 <DialogActions
@@ -724,7 +724,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
             {dialog.type === "unit" ? (
               <form className="admin-dialog-form" onSubmit={saveUnit}>
                 <label className="field">
-                  <span>Organisation</span>
+                  <span>Organization</span>
                   <select
                     className="input"
                     value={unitForm.organization_id}
@@ -739,7 +739,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </label>
                 <div className="admin-dialog-grid">
                   <label className="field">
-                    <span>Kürzel</span>
+                    <span>Code</span>
                     <input className="input" value={unitForm.code} onChange={(event) => setUnitForm((current) => ({ ...current, code: event.target.value }))} />
                   </label>
                   <label className="field">
@@ -765,7 +765,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <input className="input" value={userForm.name} onChange={(event) => setUserForm((current) => ({ ...current, name: event.target.value }))} />
                   </label>
                   <label className="field">
-                    <span>E-Mail</span>
+                    <span>Email</span>
                     <input
                       className="input"
                       type="email"
@@ -776,7 +776,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 <div className="admin-dialog-grid">
                   <label className="field">
-                    <span>Organisation</span>
+                    <span>Organization</span>
                     <select
                       className="input"
                       value={userForm.organization_id}
@@ -806,9 +806,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     </select>
                   </label>
                   <label className="field">
-                    <span>Einheit</span>
+                    <span>Unit</span>
                     <select className="input" value={userForm.unit_id} onChange={(event) => setUserForm((current) => ({ ...current, unit_id: event.target.value }))}>
-                      <option value="">Ohne Einheit</option>
+                      <option value="">No unit</option>
                       {units
                         .filter((unit) => unit.organization_id === userForm.organization_id)
                         .map((unit) => (
@@ -821,7 +821,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 <div className="admin-dialog-grid">
                   <label className="field">
-                    <span>Rolle</span>
+                    <span>Role</span>
                     <select
                       className="input"
                       value={userForm.role}
@@ -844,12 +844,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       }
                     >
                       <option value="pilot">Pilot</option>
-                      <option value="supervisor">Vorgesetzter</option>
+                      <option value="supervisor">Supervisor</option>
                       {viewerRole === "admin" ? <option value="admin">Admin</option> : null}
                     </select>
                   </label>
                   <label className="field">
-                    <span>{dialog.mode === "edit" ? "Neues Passwort" : "Startpasswort"}</span>
+                    <span>{dialog.mode === "edit" ? "New password" : "Initial password"}</span>
                     <input
                       className="input"
                       type="password"
@@ -860,7 +860,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </div>
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <label className="field">
-                    <span>Zugewiesene Organisationen</span>
+                    <span>Assigned organizations</span>
                     <div className="admin-org-checkbox-list">
                       {organizations.map((organization) => {
                         const checked = activeSupervisorOrganizationIds.includes(organization.id);
@@ -899,7 +899,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 ) : null}
                 <div className="admin-state-group">
                   <span className="admin-state-label">Status</span>
-                  <div className="admin-state-toggle" role="radiogroup" aria-label="Nutzerstatus">
+                  <div className="admin-state-toggle" role="radiogroup" aria-label="User status">
                     <label className={`admin-state-option ${userForm.active && !userForm.is_deleted ? "admin-state-option-active" : ""}`}>
                       <input
                         type="radio"
@@ -907,7 +907,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         checked={userForm.active && !userForm.is_deleted}
                         onChange={() => setUserForm((current) => ({ ...current, active: true, is_deleted: false }))}
                       />
-                      Aktiv
+                      Active
                     </label>
                     <label className={`admin-state-option ${!userForm.active || userForm.is_deleted ? "admin-state-option-active" : ""}`}>
                       <input
@@ -916,7 +916,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         checked={!userForm.active || userForm.is_deleted}
                         onChange={() => setUserForm((current) => ({ ...current, active: false, is_deleted: true }))}
                       />
-                      Gesperrt
+                      Blocked
                     </label>
                   </div>
                 </div>
@@ -944,26 +944,26 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           >
             <div className="admin-dialog-header admin-confirm-header">
               <div>
-                <span className="admin-kicker">Löschen bestätigen</span>
+                <span className="admin-kicker">Confirm deletion</span>
                 <h3 id="delete-dialog-title">{deleteTarget.label}</h3>
               </div>
-              <button type="button" className="admin-close-button" title="Dialog schließen" onClick={() => setDeleteTarget(null)}>
+              <button type="button" className="admin-close-button" title="Close dialog" onClick={() => setDeleteTarget(null)}>
                 X
               </button>
             </div>
             <div className="admin-confirm-copy">
-              <div className="admin-confirm-warning">Achtung: {deleteTargetTypeLabel} endgültig löschen</div>
+              <div className="admin-confirm-warning">Warning: {deleteTargetTypeLabel} permanently delete</div>
               <p>
-                Der Datensatz wird aus der Verwaltung entfernt und in der Oberfläche nicht mehr angezeigt. Der Vorgang sollte nur
-                ausgeführt werden, wenn du ihn wirklich beabsichtigst.
+                The record will be removed from administration and will no longer be shown in the UI. Only proceed if you really
+                intend to do this.
               </p>
             </div>
             <div className="admin-dialog-actions">
               <button type="button" className="button button-secondary" onClick={() => setDeleteTarget(null)}>
-                Abbrechen
+                Cancel
               </button>
               <button type="button" className="button button-danger" disabled={busy === "organization-delete" || busy === "unit-delete" || busy === "user-delete"} onClick={() => void deleteDialogEntity()}>
-                Endgültig löschen
+                Delete permanently
               </button>
             </div>
           </section>
@@ -989,15 +989,15 @@ function DialogActions({
   return (
     <div className="admin-dialog-actions">
       <button type="button" className="button button-secondary" onClick={onCancel}>
-        Abbrechen
+        Cancel
       </button>
       {canDelete && onDelete ? (
         <button type="button" className="button button-danger" disabled={deleteBusy} onClick={() => void onDelete()}>
-          Löschen
+          Delete
         </button>
       ) : null}
       <button type="submit" className="button button-primary" disabled={busy}>
-        Speichern
+        Save
       </button>
     </div>
   );

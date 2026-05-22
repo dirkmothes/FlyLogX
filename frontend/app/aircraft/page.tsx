@@ -31,29 +31,29 @@ export default async function AircraftPage() {
 
   return (
     <AppShell
-      title="Zentrale Luftfahrzeugverwaltung"
-      subtitle="Stammdaten, Einsatzstatus, Wartung und Freigaben für Drohnen und Luftfahrzeuge."
-      breadcrumbs={["FlyLogX", "Module", "Luftfahrzeuge"]}
+      title="Central aircraft management"
+      subtitle="Master data, mission status, maintenance, and releases for drones and aircraft."
+      breadcrumbs={["FlyLogX", "Module", "Aircraft"]}
       user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Wartungslage</h2>
-              <p>Zustand der aktiven Systeme</p>
+              <h2>Maintenance status</h2>
+              <p>Condition of active systems</p>
             </div>
           </div>
           <div className="panel-body section-stack">
             <div className="mini-card">
-              <h3>Einsatzbereit</h3>
-              <p>{aircraft.filter((item) => item.status === "active").length} Systeme freigegeben</p>
+              <h3>Ready for use</h3>
+              <p>{aircraft.filter((item) => item.status === "active").length} systems released</p>
             </div>
             <div className="mini-card">
-              <h3>In Wartung</h3>
-              <p>{aircraft.filter((item) => item.status === "maintenance").length} Systeme blockiert</p>
+              <h3>In maintenance</h3>
+              <p>{aircraft.filter((item) => item.status === "maintenance").length} systems blocked</p>
             </div>
             <div className="mini-card">
-              <h3>Nächste Wartung</h3>
+              <h3>Next maintenance</h3>
               <p>{aircraft[0]?.next_maintenance ?? "n/a"}</p>
             </div>
           </div>
@@ -64,8 +64,8 @@ export default async function AircraftPage() {
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Neues Luftfahrzeug anlegen</h2>
-              <p>Stammdatenpflege für Admins</p>
+              <h2>Create new aircraft</h2>
+              <p>Master data maintenance for admins</p>
             </div>
           </div>
           <div className="panel-body">
@@ -75,20 +75,20 @@ export default async function AircraftPage() {
       ) : null}
 
       <DataTable
-        title="Luftfahrzeug-Stammdaten"
-        subtitle="Hersteller, Modell, Status, Freigabe und Betriebsstunden"
+        title="Aircraft master data"
+        subtitle="Manufacturer, model, status, release, and operating hours"
         rows={rows}
         columns={[
-          { header: "Bezeichnung", render: (row) => row.name },
-          { header: "Kennung", render: (row) => row.identifier },
-          { header: "Hersteller", render: (row) => row.manufacturer },
-          { header: "Modell", render: (row) => row.model },
-          { header: "Betriebsstunden", render: (row) => row.hours },
-          { header: "Wartung", render: (row) => row.maintenance },
+          { header: "Name", render: (row) => row.name },
+          { header: "Identifier", render: (row) => row.identifier },
+          { header: "Manufacturer", render: (row) => row.manufacturer },
+          { header: "Model", render: (row) => row.model },
+          { header: "Operating hours", render: (row) => row.hours },
+          { header: "Maintenance", render: (row) => row.maintenance },
           { header: "Status", render: (row) => <StatusPill tone={aircraftStatusTone(row.status)}>{row.status}</StatusPill> },
           {
-            header: "Freigabe",
-            render: (row) => <StatusPill tone={row.release === "freigegeben" ? "success" : "danger"}>{row.release}</StatusPill>,
+            header: "Release",
+            render: (row) => <StatusPill tone={row.release === "Released" ? "success" : "danger"}>{row.release}</StatusPill>,
           },
         ]}
       />

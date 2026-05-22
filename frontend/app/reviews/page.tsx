@@ -21,26 +21,26 @@ export default async function ReviewsPage() {
 
   return (
     <AppShell
-      title="Prüf- und Freigabeprozess"
-      subtitle="Einträge werden nachvollziehbar geprüft, bestätigt oder abgelehnt."
-      breadcrumbs={["FlyLogX", "Module", "Prüfung"]}
+      title="Review and approval process"
+      subtitle="Entries are reviewed, confirmed, or rejected in a traceable way."
+      breadcrumbs={["FlyLogX", "Module", "Review"]}
       user={session.user}
       aside={
         <section className="panel">
           <div className="panel-header">
             <div>
-              <h2>Prüfregeln</h2>
-              <p>Workflow-Schutz</p>
+              <h2>Review rules</h2>
+              <p>Workflow protection</p>
             </div>
           </div>
           <div className="panel-body section-stack">
             <div className="mini-card">
-              <h3>Keine stille Änderung</h3>
-              <p>Geprüfte Einträge werden nicht ohne Änderungsantrag verändert.</p>
+              <h3>No silent changes</h3>
+              <p>Reviewed entries are not changed without a change request.</p>
             </div>
             <div className="mini-card">
-              <h3>Protokollierung</h3>
-              <p>Jede Freigabe erzeugt einen nachvollziehbaren Audit-Eintrag.</p>
+              <h3>Logging</h3>
+              <p>Every approval creates a traceable audit entry.</p>
             </div>
           </div>
         </section>
@@ -49,14 +49,14 @@ export default async function ReviewsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Prüfwarteschlange</h2>
-            <p>Offene Einträge für Vorgesetzte und Flugaufsichtsleiter</p>
+            <h2>Review queue</h2>
+            <p>Open entries for supervisors and flight controllers</p>
           </div>
         </div>
         <div className="panel-body">
           <div className="mini-card">
-            <h3>{flights.length} Einträge wartend</h3>
-            <p>Die Prüfung kann direkt im System durchgeführt werden.</p>
+            <h3>{flights.length} entries waiting</h3>
+            <p>Review can be performed directly in the system.</p>
           </div>
         </div>
       </section>
@@ -64,8 +64,8 @@ export default async function ReviewsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Freigabeaktion</h2>
-            <p>Kommentar und digitale Bestätigung werden nachvollziehbar gespeichert</p>
+            <h2>Approval action</h2>
+            <p>Comments and digital confirmation are stored traceably</p>
           </div>
         </div>
         <div className="panel-body">
@@ -76,15 +76,15 @@ export default async function ReviewsPage() {
       <section className="panel">
         <div className="panel-header">
           <div>
-            <h2>Änderungsanträge</h2>
-            <p>Nicht genehmigte Korrekturen und Nachforderungen</p>
+            <h2>Change requests</h2>
+            <p>Corrections and follow-up requests that were not approved</p>
           </div>
         </div>
         <div className="panel-body">
           <div className="mini-card">
-            <h3>Aktuell keine separaten Änderungsanträge</h3>
+            <h3>No separate change requests yet</h3>
             <p>
-              Das Änderungsfenster ist vorbereitet und kann an die Statuskette {<StatusPill tone={flightStatusTone("submitted")}>Eingereicht</StatusPill>} angebunden werden.
+              The change window is prepared and can be connected to the status chain {<StatusPill tone={flightStatusTone("submitted")}>Submitted</StatusPill>}.
             </p>
           </div>
         </div>
