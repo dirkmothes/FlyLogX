@@ -265,7 +265,8 @@ def meta():
 
 @app.post("/api/auth/login", response_model=TokenResponse)
 def login(payload: LoginRequest, request: Request, response: Response, db=Depends(get_session)):
-    user = db.scalar(select(UserModel).where(func.lower(UserModel.email) == payload.email.lower()))
+    identifier = payload.username.strip()
+    user = db.scalar(select(UserModel).where(func.lower(UserModel.username) == identifier.lower()))
     if not user or user.is_deleted or not user.active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = create_access_token(user.id, user.role.value)
@@ -316,8 +317,12 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
     if not changes:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No profile changes were provided")
 
-    if "name" in changes and (changes["name"] is None or not str(changes["name"]).strip()):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name is required")
+    if "username" in changes and (changes["username"] is None or not str(changes["username"]).strip()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username is required")
+    if "first_name" in changes and (changes["first_name"] is None or not str(changes["first_name"]).strip()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="First name is required")
+    if "last_name" in changes and (changes["last_name"] is None or not str(changes["last_name"]).strip()):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Last name is required")
     if "email" in changes and (changes["email"] is None or not str(changes["email"]).strip()):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email is required")
 
@@ -326,7 +331,9 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
             db,
             user.id,
             UserUpdateRequest(
-                name=changes.get("name"),
+                username=changes.get("username"),
+                first_name=changes.get("first_name"),
+                last_name=changes.get("last_name"),
                 email=changes.get("email"),
                 password=changes.get("password"),
             ),
@@ -336,8 +343,20 @@ def update_me(payload: OwnProfileUpdateRequest, user=Depends(get_current_user), 
         key = exc.args[0] if exc.args else "user_not_found"
         detail = "User not found"
         status_code = status.HTTP_404_NOT_FOUND
-        if key == "user_email_exists":
+        if key == "user_username_exists":
+            detail = "Username already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_email_exists":
             detail = "Email already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_email_required":
+            detail = "Email is required"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_username_required":
+            detail = "Username is required"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_name_required":
+            detail = "First name and last name are required"
             status_code = status.HTTP_400_BAD_REQUEST
         raise HTTPException(status_code=status_code, detail=detail)
 
@@ -495,8 +514,22 @@ def user_create(
             status_code = status.HTTP_404_NOT_FOUND
         elif key == "unit_organization_mismatch":
             detail = "Unit does not belong to the selected organization"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_username_exists":
+            detail = "Username already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_username_required":
+            detail = "Username is required"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_name_required":
+            detail = "First name and last name are required"
+            status_code = status.HTTP_400_BAD_REQUEST
         elif key == "user_email_exists":
             detail = "Email already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_email_required":
+            detail = "Email is required"
+            status_code = status.HTTP_400_BAD_REQUEST
         raise HTTPException(status_code=status_code, detail=detail)
 
 
@@ -536,8 +569,20 @@ def user_update(
         elif key == "unit_organization_mismatch":
             detail = "Unit does not belong to the selected organization"
             status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_username_exists":
+            detail = "Username already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_username_required":
+            detail = "Username is required"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_name_required":
+            detail = "First name and last name are required"
+            status_code = status.HTTP_400_BAD_REQUEST
         elif key == "user_email_exists":
             detail = "Email already exists"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_email_required":
+            detail = "Email is required"
             status_code = status.HTTP_400_BAD_REQUEST
         elif key == "cannot_delete_self":
             detail = "You cannot delete your own account"

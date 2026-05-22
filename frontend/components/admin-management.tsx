@@ -41,7 +41,9 @@ type UserForm = {
   organization_id: string;
   unit_id: string;
   role: RoleName;
-  name: string;
+  username: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
   active: boolean;
@@ -126,7 +128,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     organization_id: organizations[0]?.id ?? "",
     unit_id: units.find((unit) => unit.organization_id === organizations[0]?.id)?.id ?? "",
     role: "pilot",
-    name: "",
+    username: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     active: true,
@@ -172,6 +176,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     const matchesSearch =
       !normalizedSearch ||
       user.name.toLowerCase().includes(normalizedSearch) ||
+      user.username.toLowerCase().includes(normalizedSearch) ||
+      user.first_name.toLowerCase().includes(normalizedSearch) ||
+      user.last_name.toLowerCase().includes(normalizedSearch) ||
       user.email.toLowerCase().includes(normalizedSearch) ||
       unitName(user.unit_id).toLowerCase().includes(normalizedSearch);
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
@@ -232,7 +239,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         organization_id,
         unit_id: units.find((unit) => unit.organization_id === organization_id)?.id ?? "",
         role: "pilot",
-        name: "",
+        username: "",
+        first_name: "",
+        last_name: "",
         email: "",
         password: "",
         active: true,
@@ -264,7 +273,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       organization_id: user.organization_id,
       unit_id: user.unit_id ?? "",
       role: user.role,
-      name: user.name,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       password: "",
       active: user.active && !user.is_deleted,
@@ -343,8 +354,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   async function saveUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!userForm.organization_id || !userForm.name.trim() || !userForm.email.trim()) {
-      setMessage("Please provide an organization, name, and email for the user.");
+    if (!userForm.organization_id || !userForm.username.trim() || !userForm.first_name.trim() || !userForm.last_name.trim() || !userForm.email.trim()) {
+      setMessage("Please provide an organization, username, first name, last name, and email for the user.");
       return;
     }
     if (dialog?.mode === "create" && !userForm.password.trim()) {
@@ -359,7 +370,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         organization_id: userForm.organization_id,
         unit_id: userForm.unit_id || null,
         role: userForm.role,
-        name: userForm.name.trim(),
+        username: userForm.username.trim(),
+        first_name: userForm.first_name.trim(),
+        last_name: userForm.last_name.trim(),
         email: userForm.email.trim(),
         password: userForm.password.trim() || null,
         active: userForm.active,
@@ -467,7 +480,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setDeleteTarget({
         type: "user",
         id: dialog.id,
-        label: userForm.name.trim() || "User",
+        label: userForm.username.trim() || userForm.first_name.trim() || "User",
       });
     }
   }
@@ -544,7 +557,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 <input
                   className="input"
                   value={userSearch}
-                  placeholder="Name, email, or unit"
+                  placeholder="Username, name, email, or unit"
                   onChange={(event) => setUserSearch(event.target.value)}
                 />
               </label>
@@ -618,6 +631,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <div className="admin-primary-cell">
                       <div className="admin-user-headline">
                         <strong>{user.name}</strong>
+                        <span className="admin-user-username">@{user.username}</span>
                         <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
                           {user.active && !user.is_deleted ? "active" : "blocked"}
                         </span>
@@ -637,7 +651,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                             openDeleteTarget({
                               type: "user",
                               id: user.id,
-                              label: user.name,
+                              label: `${user.name} (@${user.username})`,
                             })
                           }
                           >
@@ -839,8 +853,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
                 <div className="admin-dialog-grid">
                   <label className="field">
-                    <span>Name</span>
-                    <input className="input" value={userForm.name} onChange={(event) => setUserForm((current) => ({ ...current, name: event.target.value }))} />
+                    <span>Username</span>
+                    <input
+                      className="input"
+                      value={userForm.username}
+                      onChange={(event) => setUserForm((current) => ({ ...current, username: event.target.value }))}
+                    />
                   </label>
                   <label className="field">
                     <span>Email</span>
@@ -849,6 +867,24 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       type="email"
                       value={userForm.email}
                       onChange={(event) => setUserForm((current) => ({ ...current, email: event.target.value }))}
+                    />
+                  </label>
+                </div>
+                <div className="admin-dialog-grid">
+                  <label className="field">
+                    <span>First name</span>
+                    <input
+                      className="input"
+                      value={userForm.first_name}
+                      onChange={(event) => setUserForm((current) => ({ ...current, first_name: event.target.value }))}
+                    />
+                  </label>
+                  <label className="field">
+                    <span>Last name</span>
+                    <input
+                      className="input"
+                      value={userForm.last_name}
+                      onChange={(event) => setUserForm((current) => ({ ...current, last_name: event.target.value }))}
                     />
                   </label>
                 </div>

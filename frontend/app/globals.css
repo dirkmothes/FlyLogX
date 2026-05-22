@@ -1958,6 +1958,12 @@ select.input option {
   flex: 0 0 auto;
 }
 
+.admin-user-username {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .admin-user-headline > span:last-child {
   color: var(--muted);
   font-size: 0.78rem;

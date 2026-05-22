@@ -71,6 +71,9 @@ class UserModel(Base):
         Enum(RoleName, name="role_name", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
         nullable=False,
     )
+    username: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    first_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -236,7 +239,10 @@ def seed_database(session) -> None:
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.pilot,
-        name="Sgt. M. Example",
+        username="pilot",
+        first_name="Max",
+        last_name="Example",
+        name="Max Example",
         email="pilot@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )
@@ -245,7 +251,10 @@ def seed_database(session) -> None:
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.supervisor,
-        name="Lt. Col. A. Leader",
+        username="supervisor",
+        first_name="Anna",
+        last_name="Leader",
+        name="Anna Leader",
         email="supervisor@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )
@@ -254,7 +263,10 @@ def seed_database(session) -> None:
         organization_id=org.id,
         unit_id=unit.id,
         role=RoleName.admin,
-        name="Staff Sgt. F. Admin",
+        username="admin",
+        first_name="Frank",
+        last_name="Admin",
+        name="Frank Admin",
         email="admin@flylogx.local",
         password_hash=hash_password("flylogx-demo"),
     )

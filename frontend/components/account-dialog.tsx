@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import type { ApiUser } from "@/lib/api";
 
 type Props = {
-  user: Pick<ApiUser, "name" | "email" | "role" | "organization_id" | "unit_id">;
+  user: Pick<ApiUser, "username" | "first_name" | "last_name" | "name" | "email" | "role" | "organization_id" | "unit_id">;
 };
 
 type AccountForm = {
-  name: string;
+  username: string;
+  first_name: string;
+  last_name: string;
   email: string;
   password: string;
 };
@@ -36,7 +38,9 @@ export function AccountDialog({ user }: Props) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState<AccountForm>({
-    name: user.name,
+    username: user.username,
+    first_name: user.first_name,
+    last_name: user.last_name,
     email: user.email,
     password: "",
   });
@@ -47,7 +51,9 @@ export function AccountDialog({ user }: Props) {
     }
 
     setForm({
-      name: user.name,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       password: "",
     });
@@ -71,8 +77,12 @@ export function AccountDialog({ user }: Props) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.name.trim()) {
-      setMessage("Please enter a name.");
+    if (!form.username.trim()) {
+      setMessage("Please enter a username.");
+      return;
+    }
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      setMessage("Please enter a first and last name.");
       return;
     }
     if (!form.email.trim()) {
@@ -81,7 +91,9 @@ export function AccountDialog({ user }: Props) {
     }
 
     const payload: Record<string, unknown> = {
-      name: form.name.trim(),
+      username: form.username.trim(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
       email: form.email.trim(),
     };
 
@@ -159,6 +171,7 @@ export function AccountDialog({ user }: Props) {
             <form className="admin-dialog-form" onSubmit={handleSubmit}>
               <div className="mini-card">
                 <h3>{user.name}</h3>
+                <p>@{user.username}</p>
                 <p>
                   Role: <strong>{user.role}</strong>
                 </p>
@@ -166,11 +179,11 @@ export function AccountDialog({ user }: Props) {
 
               <div className="admin-dialog-grid">
                 <label className="field">
-                  <span>Name</span>
+                  <span>Username</span>
                   <input
                     className="input"
-                    value={form.name}
-                    onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                    value={form.username}
+                    onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
                   />
                 </label>
                 <label className="field">
@@ -180,6 +193,25 @@ export function AccountDialog({ user }: Props) {
                     type="email"
                     value={form.email}
                     onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                  />
+                </label>
+              </div>
+
+              <div className="admin-dialog-grid">
+                <label className="field">
+                  <span>First name</span>
+                  <input
+                    className="input"
+                    value={form.first_name}
+                    onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span>Last name</span>
+                  <input
+                    className="input"
+                    value={form.last_name}
+                    onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))}
                   />
                 </label>
               </div>
@@ -196,7 +228,7 @@ export function AccountDialog({ user }: Props) {
                 </label>
                 <div className="account-note-box">
                   <span>Note</span>
-                  <p>Leave the password field empty if you only want to change the name or email.</p>
+                  <p>Leave the password field empty if you only want to change your profile data.</p>
                 </div>
               </div>
 

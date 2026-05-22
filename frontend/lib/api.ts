@@ -9,6 +9,9 @@ export type ApiUser = {
   organization_id: string;
   unit_id: string | null;
   role: RoleName;
+  username: string;
+  first_name: string;
+  last_name: string;
   name: string;
   email: string;
   active: boolean;

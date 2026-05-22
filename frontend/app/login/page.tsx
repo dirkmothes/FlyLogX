@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("pilot@flylogx.local");
+  const [username, setUsername] = useState("pilot");
   const [password, setPassword] = useState("flylogx-demo");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function LoginPage() {
           Accept: "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
@@ -77,8 +77,8 @@ export default function LoginPage() {
 
           <form className="section-stack" onSubmit={handleSubmit}>
             <label className="field">
-              <span>Email</span>
-              <input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <span>Username</span>
+              <input className="input" type="text" value={username} onChange={(event) => setUsername(event.target.value)} />
             </label>
             <label className="field">
               <span>Password</span>
@@ -100,7 +100,8 @@ export default function LoginPage() {
           <div style={{ marginTop: 16, color: "var(--muted)", lineHeight: 1.6 }}>
             Demo accounts:
             <br />
-            Pilot, Supervisor, or Admin with the password <code>flylogx-demo</code>.
+            <code>pilot</code>, <code>supervisor</code>, or <code>admin</code> with the password{" "}
+            <code>flylogx-demo</code>.
           </div>
         </div>
       </section>

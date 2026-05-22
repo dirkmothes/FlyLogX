@@ -105,6 +105,15 @@ def _require_unit(db: Session, unit_id: str) -> UnitModel:
     return unit
 
 
+def _normalize_user_name(first_name: str | None, last_name: str | None) -> tuple[str, str, str]:
+    normalized_first_name = (first_name or "").strip()
+    normalized_last_name = (last_name or "").strip()
+    if not normalized_first_name or not normalized_last_name:
+        raise KeyError("user_name_required")
+    display_name = f"{normalized_first_name} {normalized_last_name}".strip()
+    return normalized_first_name, normalized_last_name, display_name
+
+
 def organization_has_dependencies(db: Session, organization_id: str) -> bool:
     scope_ids = organization_scope_ids(db, organization_id)
     if scope_ids != {organization_id}:
@@ -145,10 +154,14 @@ def _require_user(db: Session, user_id: str, *, include_deleted: bool = False) -
 
 
 def _is_test_user(user: UserModel) -> bool:
+    username = (getattr(user, "username", "") or "").strip().lower()
     name = (user.name or "").strip().lower()
     email = (user.email or "").strip().lower()
     return (
-        email.startswith("crud-")
+        username.startswith("crud-")
+        or username.startswith("test-")
+        or "crud" in username
+        or email.startswith("crud-")
         or email.startswith("test-")
         or "crud" in name
         or "updated name" in name
@@ -442,8 +455,20 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
         if unit.organization_id != payload.organization_id:
             raise KeyError("unit_organization_mismatch")
 
-    existing = db.scalar(select(UserModel).where(func.lower(UserModel.email) == payload.email.lower()))
-    if existing is not None and not existing.is_deleted:
+    normalized_username = payload.username.strip()
+    normalized_email = payload.email.strip()
+    if not normalized_username:
+        raise KeyError("user_username_required")
+    if not normalized_email:
+        raise KeyError("user_email_required")
+    normalized_first_name, normalized_last_name, display_name = _normalize_user_name(payload.first_name, payload.last_name)
+
+    existing_username = db.scalar(select(UserModel).where(func.lower(UserModel.username) == normalized_username.lower()))
+    if existing_username is not None and not existing_username.is_deleted:
+        raise KeyError("user_username_exists")
+
+    existing_email = db.scalar(select(UserModel).where(func.lower(UserModel.email) == normalized_email.lower()))
+    if existing_email is not None and not existing_email.is_deleted:
         raise KeyError("user_email_exists")
 
     from .core.security import hash_password
@@ -453,8 +478,11 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
         organization_id=payload.organization_id,
         unit_id=payload.unit_id,
         role=payload.role,
-        name=payload.name,
-        email=payload.email,
+        username=normalized_username,
+        first_name=normalized_first_name,
+        last_name=normalized_last_name,
+        name=display_name,
+        email=normalized_email,
         password_hash=hash_password(payload.password),
         active=payload.active,
     )
@@ -505,13 +533,35 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
         user.unit_id = changes["unit_id"]
     if "role" in changes and changes["role"] is not None:
         user.role = changes["role"]
-    if "name" in changes and changes["name"] is not None:
-        user.name = changes["name"]
+    if "username" in changes and changes["username"] is not None:
+        normalized_username = changes["username"].strip()
+        if not normalized_username:
+            raise KeyError("user_username_required")
+        existing = db.scalar(select(UserModel).where(func.lower(UserModel.username) == normalized_username.lower(), UserModel.id != user.id))
+        if existing is not None and not existing.is_deleted:
+            raise KeyError("user_username_exists")
+        user.username = normalized_username
+    if "first_name" in changes and changes["first_name"] is not None:
+        normalized_first_name = changes["first_name"].strip()
+        if not normalized_first_name:
+            raise KeyError("user_name_required")
+        user.first_name = normalized_first_name
+    if "last_name" in changes and changes["last_name"] is not None:
+        normalized_last_name = changes["last_name"].strip()
+        if not normalized_last_name:
+            raise KeyError("user_name_required")
+        user.last_name = normalized_last_name
+    if "first_name" in changes or "last_name" in changes:
+        _, _, display_name = _normalize_user_name(user.first_name, user.last_name)
+        user.name = display_name
     if "email" in changes and changes["email"] is not None:
-        existing = db.scalar(select(UserModel).where(func.lower(UserModel.email) == changes["email"].lower(), UserModel.id != user.id))
+        normalized_email = changes["email"].strip()
+        if not normalized_email:
+            raise KeyError("user_email_required")
+        existing = db.scalar(select(UserModel).where(func.lower(UserModel.email) == normalized_email.lower(), UserModel.id != user.id))
         if existing is not None and not existing.is_deleted:
             raise KeyError("user_email_exists")
-        user.email = changes["email"]
+        user.email = normalized_email
     if "password" in changes and changes["password"]:
         from .core.security import hash_password
 

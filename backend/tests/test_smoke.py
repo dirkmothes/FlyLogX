@@ -19,7 +19,7 @@ def test_health(client):
 def test_login_demo_user(client):
     response = client.post(
         "/api/auth/login",
-        json={"email": "pilot@flylogx.local", "password": "flylogx-demo"},
+        json={"username": "pilot", "password": "flylogx-demo"},
     )
     assert response.status_code == 200
     body = response.json()

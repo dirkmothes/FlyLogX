@@ -16,7 +16,7 @@ type Props = {
   breadcrumbs?: string[];
   children: ReactNode;
   aside?: ReactNode;
-  user?: Pick<ApiUser, "name" | "role" | "email" | "organization_id" | "unit_id">;
+  user?: Pick<ApiUser, "username" | "first_name" | "last_name" | "name" | "role" | "email" | "organization_id" | "unit_id">;
 };
 
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
@@ -68,6 +68,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
           {user ? (
             <div className="sidebar-user">
               <strong>{user.name}</strong>
+              <span>@{user.username}</span>
               <span>{user.role}</span>
             </div>
           ) : null}

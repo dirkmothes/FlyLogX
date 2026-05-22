@@ -89,6 +89,9 @@ class User(BaseModel):
     organization_id: str
     unit_id: str | None = None
     role: RoleName
+    username: str
+    first_name: str
+    last_name: str
     name: str
     email: str
     active: bool = True
@@ -100,7 +103,9 @@ class UserCreateRequest(BaseModel):
     organization_id: str
     unit_id: str | None = None
     role: RoleName = RoleName.pilot
-    name: str
+    username: str
+    first_name: str
+    last_name: str
     email: str
     password: str
     active: bool = True
@@ -111,7 +116,9 @@ class UserUpdateRequest(BaseModel):
     organization_id: str | None = None
     unit_id: str | None = None
     role: RoleName | None = None
-    name: str | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     email: str | None = None
     password: str | None = None
     active: bool | None = None
@@ -120,7 +127,9 @@ class UserUpdateRequest(BaseModel):
 
 
 class OwnProfileUpdateRequest(BaseModel):
-    name: str | None = None
+    username: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     email: str | None = None
     password: str | None = None
 
@@ -257,7 +266,7 @@ class AuditEvent(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 
