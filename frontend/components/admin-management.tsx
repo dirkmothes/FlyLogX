@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import { API_BASE_URL, type ApiOrganization, type ApiUnit, type ApiUser, type RoleName } from "@/lib/api";
 
@@ -105,6 +106,7 @@ function PlusIcon() {
 }
 
 export function AdminManagement({ viewerRole, organizations, units, users }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
@@ -301,7 +303,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       } else {
         await requestJson("/api/organizations", "POST", body);
       }
-      window.location.reload();
+      setDialog(null);
+      setBusy(null);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save the organization.");
       setBusy(null);
@@ -328,7 +332,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       } else {
         await requestJson("/api/units", "POST", body);
       }
-      window.location.reload();
+      setDialog(null);
+      setBusy(null);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save the unit.");
       setBusy(null);
@@ -366,7 +372,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       } else {
         await requestJson("/api/users", "POST", body);
       }
-      window.location.reload();
+      setDialog(null);
+      setBusy(null);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save the user.");
       setBusy(null);
@@ -378,7 +386,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setMessage(null);
     try {
       await requestJson(path, "DELETE", {});
-      window.location.reload();
+      setBusy(null);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : fallback);
       setBusy(null);
@@ -393,7 +402,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         active: true,
         is_deleted: false,
       });
-      window.location.reload();
+      setBusy(null);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not unlock the user.");
       setBusy(null);
