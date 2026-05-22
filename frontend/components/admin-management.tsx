@@ -409,13 +409,13 @@ export function AdminManagement({ organizations, units, users }: Props) {
                 <article className="admin-record-card admin-user-record-card" key={user.id}>
                   <div className="admin-record-top">
                     <div className="admin-primary-cell">
-                      <strong>{user.name}</strong>
-                      <span className="admin-user-status-line">
+                      <div className="admin-user-headline">
+                        <strong>{user.name}</strong>
                         <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
                           {user.active && !user.is_deleted ? "aktiv" : "gesperrt"}
                         </span>
                         <span>{roleLabel[user.role]}</span>
-                      </span>
+                      </div>
                     </div>
                     <div className="admin-record-actions">
                       <button type="button" className="admin-action-button" title="Nutzer bearbeiten" onClick={() => openEditUser(user)}>

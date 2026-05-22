@@ -78,7 +78,6 @@
 }
 
 :root[data-theme="dark"] .panel-header,
-:root[data-theme="dark"] .brand-block,
 :root[data-theme="dark"] .sidebar-user,
 :root[data-theme="dark"] .admin-dialog-header,
 :root[data-theme="dark"] .admin-user-toolbar,
@@ -312,6 +311,7 @@ p {
   gap: 14px;
   padding: 4px 4px 16px;
   border-bottom: 1px solid var(--line);
+  background: transparent;
 }
 
 .brand-mark {
@@ -1559,7 +1559,7 @@ select.input option {
 }
 
 .admin-user-record-card .admin-record-top {
-  grid-template-columns: minmax(0, 1fr) minmax(184px, auto);
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
 }
 
@@ -1570,19 +1570,21 @@ select.input option {
   justify-content: flex-end;
   flex-wrap: nowrap;
   white-space: nowrap;
+  align-items: center;
 }
 
 .admin-action-button {
   min-width: 0;
-  min-height: 30px;
-  padding: 6px 10px;
+  min-height: 28px;
+  padding: 5px 9px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -1676,6 +1678,31 @@ select.input option {
   display: grid;
   gap: 5px;
   min-width: 0;
+}
+
+.admin-user-headline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.admin-user-headline strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-headline .admin-status-inline,
+.admin-user-headline > span {
+  flex: 0 0 auto;
+}
+
+.admin-user-headline > span:last-child {
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .admin-user-status-line {
@@ -1948,6 +1975,16 @@ select.input option {
 
   .admin-record-actions {
     flex-wrap: wrap;
+    white-space: normal;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .admin-user-headline {
+    flex-wrap: wrap;
+  }
+
+  .admin-user-headline strong {
     white-space: normal;
   }
 }
