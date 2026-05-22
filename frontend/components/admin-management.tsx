@@ -640,23 +640,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                               label: user.name,
                             })
                           }
-                        >
-                          Delete
-                        </button>
+                          >
+                            Delete
+                          </button>
                       ) : null}
-                      <button
-                        type="button"
-                        className={`admin-action-button ${user.active && !user.is_deleted ? "admin-danger-button" : "admin-action-button-edit"}`}
-                        title={user.active && !user.is_deleted ? "Lock user" : "Unlock user"}
-                        disabled={busy === `user-toggle-${user.id}`}
-                        onClick={() =>
-                          user.active && !user.is_deleted
-                            ? deactivate(`/api/users/${user.id}`, `user-toggle-${user.id}`, "Could not lock the user.")
-                            : restoreUser(user.id, `user-toggle-${user.id}`)
-                        }
-                      >
-                        {user.active && !user.is_deleted ? "Lock" : "Unlock"}
-                      </button>
                     </div>
                   </div>
                 </article>
