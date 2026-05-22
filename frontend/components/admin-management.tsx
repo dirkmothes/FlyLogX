@@ -22,7 +22,6 @@ type DialogState =
 type OrganizationForm = {
   name: string;
   parent_id: string;
-  supervisor_id: string;
 };
 
 type UnitForm = {
@@ -40,6 +39,7 @@ type UserForm = {
   password: string;
   active: boolean;
   is_deleted: boolean;
+  supervised_organization_ids: string[];
 };
 
 const roleLabel: Record<RoleName, string> = {
@@ -96,7 +96,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [roleFilter, setRoleFilter] = useState<"all" | RoleName>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
-  const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({ name: "", parent_id: "", supervisor_id: "" });
+  const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({ name: "", parent_id: "" });
   const [unitForm, setUnitForm] = useState<UnitForm>({
     organization_id: organizations[0]?.id ?? "",
     name: "",
@@ -111,6 +111,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     password: "",
     active: true,
     is_deleted: false,
+    supervised_organization_ids: [],
   });
 
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
@@ -137,6 +138,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         : activeCreateType === "organization"
           ? "Organisation anlegen"
           : "";
+  const activeSupervisorOrganizationIds =
+    userForm.role === "supervisor"
+      ? userForm.supervised_organization_ids.length > 0
+        ? userForm.supervised_organization_ids
+        : [userForm.organization_id]
+      : [];
 
   const filteredUsers = users.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
@@ -163,9 +170,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     return unit ? `${unit.code} - ${unit.name}` : shortId(id);
   }
 
-  function supervisorName(id: string | null | undefined) {
-    if (!id) return "Kein Supervisor";
-    return users.find((user) => user.id === id)?.name ?? shortId(id);
+  function organizationSupervisors(organizationId: string) {
+    const names = users
+      .filter((user) => user.role === "supervisor" && user.supervised_organization_ids.includes(organizationId))
+      .map((user) => user.name);
+    return names.length > 0 ? names.join(", ") : "Kein Supervisor";
   }
 
   function openCreate(type: "organization" | "unit" | "user") {
@@ -177,7 +186,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     }
     setMessage(null);
     if (type === "organization") {
-      setOrganizationForm({ name: "", parent_id: "", supervisor_id: "" });
+      setOrganizationForm({ name: "", parent_id: "" });
     }
     if (type === "unit") {
       setUnitForm({ organization_id: organizations[0]?.id ?? "", name: "", code: "" });
@@ -193,6 +202,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         password: "",
         active: true,
         is_deleted: false,
+        supervised_organization_ids: [],
       });
     }
     setDialog({ type, mode: "create" });
@@ -203,7 +213,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setOrganizationForm({
       name: organization.name,
       parent_id: organization.parent_id ?? "",
-      supervisor_id: organization.supervisor_id ?? "",
     });
     setDialog({ type: "organization", mode: "edit", id: organization.id });
   }
@@ -225,6 +234,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       password: "",
       active: user.active && !user.is_deleted,
       is_deleted: user.is_deleted || !user.active,
+      supervised_organization_ids:
+        user.role === "supervisor" && user.supervised_organization_ids.length === 0
+          ? [user.organization_id]
+          : user.supervised_organization_ids ?? [],
     });
     setDialog({ type: "user", mode: "edit", id: user.id });
   }
@@ -242,14 +255,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       const body: {
         name: string;
         parent_id: string | null;
-        supervisor_id?: string | null;
       } = {
         name: organizationForm.name.trim(),
         parent_id: organizationForm.parent_id || null,
       };
-      if (viewerRole === "admin") {
-        body.supervisor_id = organizationForm.supervisor_id || null;
-      }
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/organizations/${dialog.id}`, "PATCH", body);
       } else {
@@ -312,6 +321,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         password: userForm.password.trim() || null,
         active: userForm.active,
         is_deleted: userForm.is_deleted,
+        supervised_organization_ids:
+          viewerRole === "admin" && userForm.role === "supervisor" ? activeSupervisorOrganizationIds : [],
       };
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/users/${dialog.id}`, "PATCH", body);
@@ -551,7 +562,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <div className="admin-entity-headline">
                         <strong>{organization.name}</strong>
                         <span>{organization.parent_id ? organizationName(organization.parent_id) : "Root-Organisation"}</span>
-                        <span>Vorgesetzter: {supervisorName(organization.supervisor_id)}</span>
+                        <span>Vorgesetzte: {organizationSupervisors(organization.id)}</span>
                       </div>
                     </div>
                     <div className="admin-record-actions">
@@ -612,25 +623,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       ))}
                     </select>
                 </label>
-                {viewerRole === "admin" ? (
-                  <label className="field">
-                    <span>Zuständiger Vorgesetzter</span>
-                    <select
-                      className="input"
-                      value={organizationForm.supervisor_id}
-                      onChange={(event) => setOrganizationForm((current) => ({ ...current, supervisor_id: event.target.value }))}
-                    >
-                      <option value="">Kein Supervisor</option>
-                      {users
-                        .filter((user) => user.role === "supervisor")
-                        .map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                ) : null}
                 <DialogActions busy={busy === "organization-save"} onCancel={() => setDialog(null)} />
               </form>
             ) : null}
@@ -718,7 +710,25 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 <div className="admin-dialog-grid">
                   <label className="field">
                     <span>Rolle</span>
-                    <select className="input" value={userForm.role} onChange={(event) => setUserForm((current) => ({ ...current, role: event.target.value as RoleName }))}>
+                    <select
+                      className="input"
+                      value={userForm.role}
+                      onChange={(event) =>
+                        setUserForm((current) => {
+                          const role = event.target.value as RoleName;
+                          return {
+                            ...current,
+                            role,
+                            supervised_organization_ids:
+                              role === "supervisor"
+                                ? current.supervised_organization_ids.length > 0
+                                  ? current.supervised_organization_ids
+                                  : [current.organization_id]
+                                : [],
+                          };
+                        })
+                      }
+                    >
                       <option value="pilot">Pilot</option>
                       <option value="supervisor">Vorgesetzter</option>
                       {viewerRole === "admin" ? <option value="admin">Admin</option> : null}
@@ -734,6 +744,32 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     />
                   </label>
                 </div>
+                {viewerRole === "admin" && userForm.role === "supervisor" ? (
+                  <label className="field">
+                    <span>Zugewiesene Organisationen</span>
+                    <select
+                      className="input"
+                      multiple
+                      size={Math.min(Math.max(3, organizations.length), 8)}
+                      value={activeSupervisorOrganizationIds}
+                      onChange={(event) =>
+                        setUserForm((current) => ({
+                          ...current,
+                          supervised_organization_ids: (() => {
+                            const selected = Array.from(event.currentTarget.selectedOptions, (option) => option.value);
+                            return selected.length > 0 ? selected : [current.organization_id];
+                          })(),
+                        }))
+                      }
+                    >
+                      {organizations.map((organization) => (
+                        <option key={organization.id} value={organization.id}>
+                          {organization.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
                 <div className="admin-state-group">
                   <span className="admin-state-label">Status</span>
                   <div className="admin-state-toggle" role="radiogroup" aria-label="Nutzerstatus">
