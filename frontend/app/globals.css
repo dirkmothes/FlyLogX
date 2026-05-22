@@ -1160,6 +1160,24 @@ select.input option {
   border-color: var(--line);
 }
 
+.button-danger {
+  background: #b34444;
+  color: #fff8f8;
+  border-color: rgba(162, 58, 58, 0.28);
+  box-shadow: 0 10px 24px rgba(162, 58, 58, 0.12);
+}
+
+.button-danger:hover,
+.button-danger:focus-visible {
+  background: #a63d3d;
+  border-color: rgba(162, 58, 58, 0.42);
+  box-shadow: 0 16px 34px rgba(162, 58, 58, 0.16);
+}
+
+.button-danger-prominent {
+  min-width: 170px;
+}
+
 .button-primary:hover,
 .button-primary:focus-visible,
 .topbar-button-secondary:hover,
@@ -1186,6 +1204,20 @@ select.input option {
 :root[data-theme="dark"] .button-primary:focus-visible {
   border-color: rgba(157, 181, 209, 0.34);
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="dark"] .button-danger {
+  background: #8f3636;
+  color: #fff8f8;
+  border-color: rgba(228, 109, 109, 0.24);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+:root[data-theme="dark"] .button-danger:hover,
+:root[data-theme="dark"] .button-danger:focus-visible {
+  background: #a44242;
+  border-color: rgba(228, 109, 109, 0.38);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
 }
 
 .button:disabled {

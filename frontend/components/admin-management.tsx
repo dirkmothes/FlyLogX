@@ -1036,7 +1036,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
               <button type="button" className="button button-secondary" onClick={() => setDeleteTarget(null)}>
                 Cancel
               </button>
-              <button type="button" className="button button-danger" disabled={busy === "organization-delete" || busy === "unit-delete" || busy === "user-delete"} onClick={() => void deleteDialogEntity()}>
+              <button
+                type="button"
+                className="button button-danger button-danger-prominent"
+                disabled={busy === "organization-delete" || busy === "unit-delete" || busy === "user-delete"}
+                onClick={() => void deleteDialogEntity()}
+              >
                 Delete permanently
               </button>
             </div>
