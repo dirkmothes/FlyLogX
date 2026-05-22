@@ -315,92 +315,96 @@ export function AdminManagement({ organizations, units, users }: Props) {
       </section>
 
       <section className="admin-directory">
-        <div className="admin-directory-sidebar" role="tablist" aria-label="Verwaltungsbereiche">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              className={`admin-directory-tab ${activeTab === tab.id ? "admin-directory-tab-active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span>{tab.label}</span>
-              <strong>{tab.count}</strong>
-            </button>
-          ))}
+        <div className="admin-directory-sidebar-stack">
+          <div className="admin-directory-sidebar" role="tablist" aria-label="Verwaltungsbereiche">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                className={`admin-directory-tab ${activeTab === tab.id ? "admin-directory-tab-active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{tab.label}</span>
+                <strong>{tab.count}</strong>
+              </button>
+            ))}
+          </div>
+
+          {activeTab === "users" ? (
+            <div className="admin-user-toolbar">
+              <label className="admin-search-field">
+                <span>Suche</span>
+                <input
+                  className="input"
+                  value={userSearch}
+                  placeholder="Name, E-Mail oder Einheit"
+                  onChange={(event) => setUserSearch(event.target.value)}
+                />
+              </label>
+
+              <div className="admin-chip-group">
+                <span className="admin-chip-label">Rolle</span>
+                <div className="admin-chip-row">
+                  <button
+                    type="button"
+                    className={`filter-chip admin-chip-button ${roleFilter === "all" ? "admin-chip-button-active" : ""}`}
+                    onClick={() => setRoleFilter("all")}
+                  >
+                    Alle Rollen
+                  </button>
+                  {(["pilot", "supervisor", "admin"] as RoleName[]).map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      className={`filter-chip admin-chip-button ${roleFilter === role ? "admin-chip-button-active" : ""}`}
+                      onClick={() => setRoleFilter(role)}
+                    >
+                      {roleLabel[role]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-chip-group">
+                <span className="admin-chip-label">Status</span>
+                <div className="admin-chip-row">
+                  <button
+                    type="button"
+                    className={`filter-chip admin-chip-button ${statusFilter === "all" ? "admin-chip-button-active" : ""}`}
+                    onClick={() => setStatusFilter("all")}
+                  >
+                    Alle
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip admin-chip-button ${statusFilter === "active" ? "admin-chip-button-active" : ""}`}
+                    onClick={() => setStatusFilter("active")}
+                  >
+                    Aktiv
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip admin-chip-button ${statusFilter === "inactive" ? "admin-chip-button-active" : ""}`}
+                    onClick={() => setStatusFilter("inactive")}
+                  >
+                    Gesperrt
+                  </button>
+                </div>
+              </div>
+
+              <div className="admin-chip-count">
+                <span>Treffer</span>
+                <strong>{filteredUsers.length}</strong>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="admin-directory-main">
           {activeTab === "users" ? (
             <div className="admin-card-list">
-              <div className="admin-user-toolbar">
-                <label className="admin-search-field">
-                  <span>Suche</span>
-                  <input
-                    className="input"
-                    value={userSearch}
-                    placeholder="Name, E-Mail oder Einheit"
-                    onChange={(event) => setUserSearch(event.target.value)}
-                  />
-                </label>
-
-                <div className="admin-chip-group">
-                  <span className="admin-chip-label">Rolle</span>
-                  <div className="admin-chip-row">
-                    <button
-                      type="button"
-                      className={`filter-chip admin-chip-button ${roleFilter === "all" ? "admin-chip-button-active" : ""}`}
-                      onClick={() => setRoleFilter("all")}
-                    >
-                      Alle Rollen
-                    </button>
-                    {(["pilot", "supervisor", "admin"] as RoleName[]).map((role) => (
-                      <button
-                        key={role}
-                        type="button"
-                        className={`filter-chip admin-chip-button ${roleFilter === role ? "admin-chip-button-active" : ""}`}
-                        onClick={() => setRoleFilter(role)}
-                      >
-                        {roleLabel[role]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="admin-chip-group">
-                  <span className="admin-chip-label">Status</span>
-                  <div className="admin-chip-row">
-                    <button
-                      type="button"
-                      className={`filter-chip admin-chip-button ${statusFilter === "all" ? "admin-chip-button-active" : ""}`}
-                      onClick={() => setStatusFilter("all")}
-                    >
-                      Alle
-                    </button>
-                    <button
-                      type="button"
-                      className={`filter-chip admin-chip-button ${statusFilter === "active" ? "admin-chip-button-active" : ""}`}
-                      onClick={() => setStatusFilter("active")}
-                    >
-                      Aktiv
-                    </button>
-                    <button
-                      type="button"
-                      className={`filter-chip admin-chip-button ${statusFilter === "inactive" ? "admin-chip-button-active" : ""}`}
-                      onClick={() => setStatusFilter("inactive")}
-                    >
-                      Gesperrt
-                    </button>
-                  </div>
-                </div>
-
-                <div className="admin-chip-count">
-                  <span>Treffer</span>
-                  <strong>{filteredUsers.length}</strong>
-                </div>
-              </div>
-
               {filteredUsers.map((user) => (
                 <article className="admin-record-card admin-user-record-card" key={user.id}>
                   <div className="admin-record-top">

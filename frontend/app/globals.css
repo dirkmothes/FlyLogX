@@ -1373,6 +1373,12 @@ select.input option {
   align-items: start;
 }
 
+.admin-directory-sidebar-stack {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
 .admin-directory-sidebar {
   display: grid;
   gap: 8px;
@@ -1454,8 +1460,7 @@ select.input option {
 
 .admin-user-toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 10px 14px;
+  gap: 12px;
   align-items: start;
   min-width: 0;
   padding: 14px;
@@ -1507,16 +1512,16 @@ select.input option {
 }
 
 .admin-chip-count {
-  display: grid;
-  gap: 5px;
-  min-width: 80px;
-  align-content: start;
-  justify-items: start;
-  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+  padding-top: 4px;
 }
 
 .admin-chip-count strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .admin-record-card {
@@ -2006,6 +2011,7 @@ select.input option {
   .admin-form-grid,
   .admin-dialog-grid,
   .admin-directory-sidebar,
+  .admin-directory-sidebar-stack,
   .admin-command-actions,
   .admin-user-row,
   .admin-unit-row,
