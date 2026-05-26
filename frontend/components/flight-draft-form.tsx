@@ -21,6 +21,24 @@ const categories: Array<{ value: FlightCategory; label: string }> = [
   { value: "A Flights", label: "A Flights" },
 ];
 
+function pad(value: number) {
+  return value.toString().padStart(2, "0");
+}
+
+function getCurrentLocalTime() {
+  const now = new Date();
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+function addMinutesToTime(timeValue: string, minutes: number) {
+  const [hours, minutesPart] = timeValue.split(":").map(Number);
+  const totalMinutes = hours * 60 + minutesPart + minutes;
+  const normalized = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const nextHours = Math.floor(normalized / 60);
+  const nextMinutes = normalized % 60;
+  return `${pad(nextHours)}:${pad(nextMinutes)}`;
+}
+
 export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onSuccess }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
@@ -30,8 +48,6 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
     category: "U Flights" as FlightCategory,
     flight_type: "Reconnaissance Flight",
     date: new Date().toISOString().slice(0, 10),
-    start_time: "08:00",
-    landing_time: "08:45",
     duration_minutes: 45,
     location: "Training Area North",
   });
@@ -48,6 +64,8 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
     setMessage(null);
 
     try {
+      const startTime = getCurrentLocalTime();
+      const landingTime = addMinutesToTime(startTime, form.duration_minutes);
       const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/flights`, {
         method: "POST",
         headers: {
@@ -63,8 +81,8 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           category: form.category,
           flight_type: form.flight_type,
           date: form.date,
-          start_time: `${form.start_time}:00`,
-          landing_time: `${form.landing_time}:00`,
+          start_time: `${startTime}:00`,
+          landing_time: `${landingTime}:00`,
           flight_count: 1,
           duration_minutes: form.duration_minutes,
           day_flight: true,
@@ -106,7 +124,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           </select>
         </label>
         <label className="field">
-          <span>Flight type</span>
+          <span>FLIGHT TYP / TASK</span>
           <input
             className="input"
             value={form.flight_type}
@@ -135,24 +153,6 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
               </option>
             ))}
           </select>
-        </label>
-        <label className="field">
-          <span>Start</span>
-          <input
-            className="input"
-            type="time"
-            value={form.start_time}
-            onChange={(event) => setForm((current) => ({ ...current, start_time: event.target.value }))}
-          />
-        </label>
-        <label className="field">
-          <span>Landing</span>
-          <input
-            className="input"
-            type="time"
-            value={form.landing_time}
-            onChange={(event) => setForm((current) => ({ ...current, landing_time: event.target.value }))}
-          />
         </label>
         <label className="field">
           <span>Flight duration (min)</span>
