@@ -106,6 +106,13 @@ def _require_unit(db: Session, unit_id: str) -> UnitModel:
     return unit
 
 
+def _require_aircraft(db: Session, aircraft_id: str) -> AircraftModel:
+    aircraft = db.get(AircraftModel, aircraft_id)
+    if aircraft is None or aircraft.is_deleted:
+        raise KeyError("aircraft_not_found")
+    return aircraft
+
+
 def _normalize_user_name(first_name: str | None, last_name: str | None) -> tuple[str, str, str]:
     normalized_first_name = (first_name or "").strip()
     normalized_last_name = (last_name or "").strip()
@@ -140,6 +147,23 @@ def _unique_unit_code(db: Session, name: str, code: str | None = None, *, exclud
         suffix += 1
 
 
+def _ensure_unique_aircraft_identifiers(db: Session, aircraft: AircraftModel, identifier: str, internal_identifier: str) -> None:
+    existing_identifier = db.scalar(
+        select(AircraftModel.id).where(func.lower(AircraftModel.identifier) == identifier.lower(), AircraftModel.id != aircraft.id)
+    )
+    if existing_identifier is not None:
+        raise KeyError("aircraft_identifier_exists")
+
+    existing_internal_identifier = db.scalar(
+        select(AircraftModel.id).where(
+            func.lower(AircraftModel.internal_identifier) == internal_identifier.lower(),
+            AircraftModel.id != aircraft.id,
+        )
+    )
+    if existing_internal_identifier is not None:
+        raise KeyError("aircraft_internal_identifier_exists")
+
+
 def organization_has_dependencies(db: Session, organization_id: str) -> bool:
     scope_ids = organization_scope_ids(db, organization_id)
     if scope_ids != {organization_id}:
@@ -170,6 +194,10 @@ def unit_has_dependencies(db: Session, unit_id: str) -> bool:
         return True
 
     return db.scalar(select(FlightModel.id).where(FlightModel.unit_id == unit_id, FlightModel.is_deleted.is_(False))) is not None
+
+
+def aircraft_has_dependencies(db: Session, aircraft_id: str) -> bool:
+    return db.scalar(select(FlightModel.id).where(FlightModel.aircraft_id == aircraft_id, FlightModel.is_deleted.is_(False))) is not None
 
 
 def _require_user(db: Session, user_id: str, *, include_deleted: bool = False) -> UserModel:
@@ -641,12 +669,35 @@ def delete_user(db: Session, user_id: str, actor_id: str) -> User:
 
 
 def create_aircraft(db: Session, payload: AircraftCreateRequest, actor_id: str) -> Aircraft:
+    _require_organization(db, payload.organization_id)
+    if payload.owner_unit_id is not None:
+        unit = _require_unit(db, payload.owner_unit_id)
+        if unit.organization_id != payload.organization_id:
+            raise KeyError("unit_organization_mismatch")
+
+    identifier = payload.identifier.strip()
+    internal_identifier = payload.internal_identifier.strip()
+    if not identifier:
+        raise KeyError("aircraft_identifier_required")
+    if not internal_identifier:
+        raise KeyError("aircraft_internal_identifier_required")
+    existing_identifier = db.scalar(
+        select(AircraftModel.id).where(func.lower(AircraftModel.identifier) == identifier.lower())
+    )
+    if existing_identifier is not None:
+        raise KeyError("aircraft_identifier_exists")
+    existing_internal_identifier = db.scalar(
+        select(AircraftModel.id).where(func.lower(AircraftModel.internal_identifier) == internal_identifier.lower())
+    )
+    if existing_internal_identifier is not None:
+        raise KeyError("aircraft_internal_identifier_exists")
+
     aircraft = AircraftModel(
         id=f"aircraft-{uuid4().hex[:12]}",
         organization_id=payload.organization_id,
         owner_unit_id=payload.owner_unit_id,
         name=payload.name,
-        identifier=payload.identifier,
+        identifier=identifier,
         manufacturer=payload.manufacturer,
         model=payload.model,
         serial_number=payload.serial_number,
@@ -678,6 +729,90 @@ def create_aircraft(db: Session, payload: AircraftCreateRequest, actor_id: str) 
         actor_id=actor_id,
         actor_name=db.get(UserModel, actor_id).name,
         after_state=Aircraft.model_validate(aircraft).model_dump(mode="json"),
+    )
+    db.commit()
+    db.refresh(aircraft)
+    return Aircraft.model_validate(aircraft)
+
+
+def update_aircraft(db: Session, aircraft_id: str, payload: AircraftCreateRequest, actor_id: str) -> Aircraft:
+    aircraft = _require_aircraft(db, aircraft_id)
+    before = Aircraft.model_validate(aircraft).model_dump(mode="json")
+
+    _require_organization(db, payload.organization_id)
+    if payload.owner_unit_id is not None:
+        unit = _require_unit(db, payload.owner_unit_id)
+        if unit.organization_id != payload.organization_id:
+            raise KeyError("unit_organization_mismatch")
+
+    identifier = payload.identifier.strip()
+    internal_identifier = payload.internal_identifier.strip()
+    if not identifier:
+        raise KeyError("aircraft_identifier_required")
+    if not internal_identifier:
+        raise KeyError("aircraft_internal_identifier_required")
+    _ensure_unique_aircraft_identifiers(db, aircraft, identifier, internal_identifier)
+
+    aircraft.organization_id = payload.organization_id
+    aircraft.owner_unit_id = payload.owner_unit_id
+    aircraft.name = payload.name
+    aircraft.identifier = identifier
+    aircraft.manufacturer = payload.manufacturer
+    aircraft.model = payload.model
+    aircraft.serial_number = payload.serial_number
+    aircraft.category = payload.category
+    aircraft.aircraft_type = payload.aircraft_type
+    aircraft.uas_class = payload.uas_class
+    aircraft.weight_kg = payload.weight_kg
+    aircraft.use_case = payload.use_case
+    aircraft.registration_number = payload.registration_number
+    aircraft.internal_identifier = internal_identifier
+    aircraft.battery_type = payload.battery_type
+    aircraft.battery_count = payload.battery_count
+    aircraft.energy_source = payload.energy_source
+    aircraft.payload = payload.payload
+    aircraft.max_duration_minutes = payload.max_duration_minutes
+    aircraft.operating_hours = payload.operating_hours
+    aircraft.availability = payload.availability
+    aircraft.status = payload.status
+    aircraft.notes = payload.notes
+
+    db.flush()
+    after = Aircraft.model_validate(aircraft).model_dump(mode="json")
+    append_audit(
+        db,
+        organization_id=aircraft.organization_id,
+        entity_type="aircraft",
+        entity_id=aircraft.id,
+        action="updated",
+        actor_id=actor_id,
+        actor_name=_actor_name(db, actor_id),
+        before_state=before,
+        after_state=after,
+    )
+    db.commit()
+    db.refresh(aircraft)
+    return Aircraft.model_validate(aircraft)
+
+
+def delete_aircraft(db: Session, aircraft_id: str, actor_id: str) -> Aircraft:
+    aircraft = _require_aircraft(db, aircraft_id)
+    if aircraft_has_dependencies(db, aircraft_id):
+        raise KeyError("aircraft_has_dependencies")
+    before = Aircraft.model_validate(aircraft).model_dump(mode="json")
+    aircraft.is_deleted = True
+    db.flush()
+    after = Aircraft.model_validate(aircraft).model_dump(mode="json")
+    append_audit(
+        db,
+        organization_id=aircraft.organization_id,
+        entity_type="aircraft",
+        entity_id=aircraft.id,
+        action="deleted",
+        actor_id=actor_id,
+        actor_name=_actor_name(db, actor_id),
+        before_state=before,
+        after_state=after,
     )
     db.commit()
     db.refresh(aircraft)

@@ -1,14 +1,26 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-import { API_BASE_URL, type ApiUnit, type AircraftStatus } from "@/lib/api";
+import type { ApiAircraft, ApiUnit, AircraftStatus } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api";
 
 type Props = {
   organizationId: string;
   units: ApiUnit[];
+  mode?: "create" | "edit";
+  aircraft?: ApiAircraft | null;
   onSuccess?: () => void;
+};
+
+type FormState = {
+  owner_unit_id: string;
+  name: string;
+  identifier: string;
+  manufacturer: string;
+  model: string;
+  status: AircraftStatus;
 };
 
 const statuses: AircraftStatus[] = ["active", "maintenance", "retired"];
@@ -21,18 +33,30 @@ function normalizeIdentifier(value: string) {
     .toUpperCase();
 }
 
-export function AircraftCreateForm({ organizationId, units, onSuccess }: Props) {
+function buildFormState(aircraft?: ApiAircraft | null): FormState {
+  return {
+    owner_unit_id: aircraft?.owner_unit_id ?? "",
+    name: aircraft?.name ?? "",
+    identifier: aircraft?.identifier ?? "",
+    manufacturer: aircraft?.manufacturer ?? "",
+    model: aircraft?.model ?? "",
+    status: aircraft?.status ?? "active",
+  };
+}
+
+export function AircraftCreateForm({ organizationId, units, mode = "create", aircraft = null, onSuccess }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    owner_unit_id: "",
-    name: "",
-    identifier: "",
-    manufacturer: "",
-    model: "",
-    status: "active" as AircraftStatus,
-  });
+  const [form, setForm] = useState<FormState>(() => buildFormState(aircraft));
+
+  useEffect(() => {
+    setForm(buildFormState(aircraft));
+    setMessage(null);
+  }, [aircraft]);
+
+  const isEdit = mode === "edit";
+  const submitLabel = isEdit ? "Save aircraft" : "Create aircraft";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -58,49 +82,52 @@ export function AircraftCreateForm({ organizationId, units, onSuccess }: Props) 
     try {
       const identifier = form.identifier.trim();
       const normalizedIdentifier = normalizeIdentifier(identifier);
-      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/aircraft`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_BASE_URL.replace(/\/$/, "")}${isEdit && aircraft ? `/api/aircraft/${aircraft.id}` : "/api/aircraft"}`,
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            organization_id: organizationId,
+            owner_unit_id: form.owner_unit_id || null,
+            name: form.name.trim(),
+            identifier,
+            manufacturer: form.manufacturer.trim(),
+            model: form.model.trim(),
+            serial_number: aircraft?.serial_number ?? `${normalizedIdentifier || "AIRCRAFT"}-SN`,
+            category: aircraft?.category ?? "UAS",
+            aircraft_type: aircraft?.aircraft_type ?? "Multirotor",
+            uas_class: aircraft?.uas_class ?? "C2",
+            weight_kg: aircraft?.weight_kg ?? 1,
+            use_case: aircraft?.use_case ?? "General use",
+            registration_number: aircraft?.registration_number ?? null,
+            internal_identifier: aircraft?.internal_identifier ?? `${normalizedIdentifier || "AIRCRAFT"}-INT`,
+            battery_type: aircraft?.battery_type ?? null,
+            battery_count: aircraft?.battery_count ?? 0,
+            energy_source: aircraft?.energy_source ?? "Battery",
+            payload: aircraft?.payload ?? null,
+            max_duration_minutes: aircraft?.max_duration_minutes ?? null,
+            operating_hours: aircraft?.operating_hours ?? 0,
+            availability: aircraft?.availability ?? "available",
+            status: form.status,
+            notes: aircraft?.notes ?? null,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          organization_id: organizationId,
-          owner_unit_id: form.owner_unit_id || null,
-          name: form.name.trim(),
-          identifier,
-          manufacturer: form.manufacturer.trim(),
-          model: form.model.trim(),
-          serial_number: `${normalizedIdentifier || "AIRCRAFT"}-SN`,
-          category: "UAS",
-          aircraft_type: "Multirotor",
-          uas_class: "C2",
-          weight_kg: 1,
-          use_case: "General use",
-          registration_number: null,
-          internal_identifier: `${normalizedIdentifier || "AIRCRAFT"}-INT`,
-          battery_type: null,
-          battery_count: 0,
-          energy_source: "Battery",
-          payload: null,
-          max_duration_minutes: null,
-          operating_hours: 0,
-          availability: "available",
-          status: form.status,
-          notes: null,
-        }),
-      });
+      );
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Could not create the aircraft.");
+        throw new Error(payload?.detail || `Could not ${isEdit ? "update" : "create"} the aircraft.`);
       }
 
-      setMessage("Aircraft created.");
+      setMessage(isEdit ? "Aircraft updated." : "Aircraft created.");
       onSuccess?.();
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not create the aircraft.");
+      setMessage(error instanceof Error ? error.message : `Could not ${isEdit ? "update" : "create"} the aircraft.`);
     } finally {
       setLoading(false);
     }
@@ -158,7 +185,7 @@ export function AircraftCreateForm({ organizationId, units, onSuccess }: Props) 
       {message ? <div className="form-note">{message}</div> : null}
       <div className="form-actions">
         <button className="button button-primary" type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Create aircraft"}
+          {loading ? "Saving..." : submitLabel}
         </button>
       </div>
     </form>

@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-import type { ApiUnit } from "@/lib/api";
+import type { ApiAircraft, ApiUnit } from "@/lib/api";
 import { AircraftCreateForm } from "@/components/aircraft-create-form";
 
 type Props = {
   organizationId: string;
   units: ApiUnit[];
+  mode?: "create" | "edit";
+  aircraft?: ApiAircraft | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 };
 
 function PlusIcon() {
@@ -25,11 +30,22 @@ function PlusIcon() {
   );
 }
 
-export function AircraftCreateDialog({ organizationId, units }: Props) {
-  const [open, setOpen] = useState(false);
+export function AircraftCreateDialog({
+  organizationId,
+  units,
+  mode = "create",
+  aircraft = null,
+  open,
+  onOpenChange,
+  hideTrigger = false,
+}: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       return;
     }
 
@@ -41,30 +57,36 @@ export function AircraftCreateDialog({ organizationId, units }: Props) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [isOpen]);
+
+  if (mode === "edit" && !aircraft) {
+    return null;
+  }
 
   return (
     <>
-      <section className="admin-command">
-        <div>
-          <span className="admin-kicker">Aircraft registry</span>
-          <h2>Create new aircraft</h2>
-        </div>
-        <div className="admin-command-actions">
-          <button
-            type="button"
-            className="admin-command-button"
-            onClick={() => setOpen(true)}
-            aria-label="Create new aircraft"
-            title="Create new aircraft"
-          >
-            <PlusIcon />
-            <span className="sr-only">Create new aircraft</span>
-          </button>
-        </div>
-      </section>
+      {hideTrigger || mode === "edit" ? null : (
+        <section className="admin-command">
+          <div>
+            <span className="admin-kicker">Aircraft registry</span>
+            <h2>Create new aircraft</h2>
+          </div>
+          <div className="admin-command-actions">
+            <button
+              type="button"
+              className="admin-command-button"
+              onClick={() => setOpen(true)}
+              aria-label="Create new aircraft"
+              title="Create new aircraft"
+            >
+              <PlusIcon />
+              <span className="sr-only">Create new aircraft</span>
+            </button>
+          </div>
+        </section>
+      )}
 
-      {open ? (
+      {isOpen ? (
         <div
           className="admin-dialog-backdrop"
           role="presentation"
@@ -77,8 +99,8 @@ export function AircraftCreateDialog({ organizationId, units }: Props) {
           <section className="admin-dialog aircraft-create-dialog" role="dialog" aria-modal="true" aria-labelledby="aircraft-create-dialog-title">
             <div className="admin-dialog-header">
               <div>
-                <span className="admin-mini-badge">New aircraft</span>
-                <h3 id="aircraft-create-dialog-title">Create new aircraft</h3>
+                <span className="admin-mini-badge">{mode === "edit" ? "Edit aircraft" : "New aircraft"}</span>
+                <h3 id="aircraft-create-dialog-title">{mode === "edit" ? "Edit aircraft" : "Create new aircraft"}</h3>
               </div>
               <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
                 ×
@@ -86,7 +108,13 @@ export function AircraftCreateDialog({ organizationId, units }: Props) {
             </div>
 
             <div className="admin-dialog-form">
-              <AircraftCreateForm organizationId={organizationId} units={units} onSuccess={() => setOpen(false)} />
+              <AircraftCreateForm
+                organizationId={organizationId}
+                units={units}
+                mode={mode}
+                aircraft={aircraft}
+                onSuccess={() => setOpen(false)}
+              />
             </div>
           </section>
         </div>

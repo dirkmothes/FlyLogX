@@ -63,6 +63,7 @@ from .services import (
     list_units,
     list_users,
     delete_organization,
+    delete_aircraft,
     delete_unit,
     delete_user,
     unit_in_scope,
@@ -70,6 +71,7 @@ from .services import (
     review_flight,
     submit_flight,
     update_organization,
+    update_aircraft,
     update_unit,
     update_user,
 )
@@ -654,8 +656,41 @@ def create_aircraft_endpoint(payload: AircraftCreateRequest, user=Depends(requir
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     try:
         return create_aircraft(db, payload, actor_id=user.id)
-    except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+    except KeyError as exc:
+        detail = exc.args[0] if exc.args else ""
+        if detail == "organization_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+        if detail in {"aircraft_identifier_exists", "aircraft_internal_identifier_exists", "unit_organization_mismatch"}:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aircraft could not be created")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aircraft could not be created")
+
+
+@app.put("/api/aircraft/{aircraft_id}")
+def update_aircraft_endpoint(aircraft_id: str, payload: AircraftCreateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+    try:
+        return update_aircraft(db, aircraft_id, payload, actor_id=user.id)
+    except KeyError as exc:
+        detail = exc.args[0] if exc.args else ""
+        if detail == "aircraft_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+        if detail in {"aircraft_identifier_exists", "aircraft_internal_identifier_exists", "unit_organization_mismatch"}:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aircraft could not be updated")
+        if detail == "organization_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aircraft could not be updated")
+
+
+@app.delete("/api/aircraft/{aircraft_id}")
+def delete_aircraft_endpoint(aircraft_id: str, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+    try:
+        return delete_aircraft(db, aircraft_id, actor_id=user.id)
+    except KeyError as exc:
+        detail = exc.args[0] if exc.args else ""
+        if detail == "aircraft_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+        if detail == "aircraft_has_dependencies":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Aircraft is still referenced by flight records")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aircraft could not be deleted")
 
 
 @app.get("/api/flights")

@@ -1,10 +1,7 @@
 import { AppShell } from "@/components/app-shell";
-import { AircraftCreateDialog } from "@/components/aircraft-create-dialog";
-import { DataTable } from "@/components/data-table";
-import { StatusPill } from "@/components/status-pill";
+import { AircraftManagement } from "@/components/aircraft-management";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiUnit } from "@/lib/api";
 import { loadSession } from "@/lib/session";
-import { aircraftStatusTone, mapAircraftRows } from "@/lib/view-model";
 
 export const dynamic = "force-dynamic";
 
@@ -27,29 +24,17 @@ export default async function AircraftPage() {
     }),
   ]);
 
-  const rows = mapAircraftRows(aircraft);
-
   return (
     <AppShell
       title="Central aircraft management"
       breadcrumbs={["FlyLogX", "Module", "Aircraft"]}
       user={session.user}
     >
-      {session.user.role === "admin" ? (
-        <AircraftCreateDialog organizationId={session.user.organization_id} units={units} />
-      ) : null}
-
-      <DataTable
-        title="Aircraft master data"
-        rows={rows}
-        columns={[
-          { header: "Name", render: (row) => row.name },
-          { header: "Identifier", render: (row) => row.identifier },
-          { header: "Manufacturer", render: (row) => row.manufacturer },
-          { header: "Model", render: (row) => row.model },
-          { header: "Operating hours", render: (row) => row.hours },
-          { header: "Status", render: (row) => <StatusPill tone={aircraftStatusTone(row.status)}>{row.status}</StatusPill> },
-        ]}
+      <AircraftManagement
+        viewerRole={session.user.role}
+        organizationId={session.user.organization_id}
+        units={units}
+        aircraft={aircraft}
       />
     </AppShell>
   );
