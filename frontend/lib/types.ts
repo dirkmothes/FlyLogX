@@ -9,7 +9,6 @@ export type AircraftStatus = "Active" | "Maintenance" | "Retired";
 export type FlightRow = {
   id: string;
   date: string;
-  time: string;
   pilot: string;
   unit: string;
   aircraft: string;

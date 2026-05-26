@@ -75,10 +75,10 @@ export default async function FlightsPage() {
         rows={rows}
         columns={[
           { header: "Date", render: (row) => row.date },
-          { header: "Time", render: (row) => row.time },
           { header: "Pilot", render: (row) => row.pilot },
           { header: "Aircraft", render: (row) => row.aircraft },
           { header: "Category", render: (row) => row.category },
+          { header: "Duration", render: (row) => row.duration },
           { header: "Mission type", render: (row) => row.type },
           { header: "Day", render: (row) => row.day },
           { header: "Night", render: (row) => row.night },

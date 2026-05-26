@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text, Time, create_engine, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text, create_engine, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -140,8 +140,6 @@ class FlightModel(Base):
         nullable=False,
     )
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    start_time: Mapped[time] = mapped_column(Time, nullable=False)
-    landing_time: Mapped[time] = mapped_column(Time, nullable=False)
     flight_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
     day_flight: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -341,8 +339,6 @@ def seed_database(session) -> None:
         flight_type="Reconnaissance Flight",
         status=FlightStatus.approved,
         date=date(2026, 5, 18),
-        start_time=datetime(2026, 5, 18, 8, 15).time(),
-        landing_time=datetime(2026, 5, 18, 8, 57).time(),
         flight_count=1,
         duration_minutes=42,
         day_flight=True,
@@ -381,8 +377,6 @@ def seed_database(session) -> None:
         flight_type="Training Flight",
         status=FlightStatus.submitted,
         date=date(2026, 5, 20),
-        start_time=datetime(2026, 5, 20, 18, 10).time(),
-        landing_time=datetime(2026, 5, 20, 18, 36).time(),
         flight_count=1,
         duration_minutes=26,
         day_flight=False,
@@ -417,8 +411,6 @@ def seed_database(session) -> None:
         flight_type="Technical Test Flight",
         status=FlightStatus.draft,
         date=date(2026, 5, 21),
-        start_time=datetime(2026, 5, 21, 9, 30).time(),
-        landing_time=datetime(2026, 5, 21, 9, 45).time(),
         flight_count=1,
         duration_minutes=15,
         day_flight=True,

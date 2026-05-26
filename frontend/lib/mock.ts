@@ -20,7 +20,6 @@ export const flightRows: FlightRow[] = [
   {
     id: "FLX-2026-0041",
     date: "2026-05-18",
-    time: "08:15 - 08:57",
     pilot: "Sgt. M. Example",
     unit: "DS-NORTH",
     aircraft: "FLX-A1",
@@ -36,7 +35,6 @@ export const flightRows: FlightRow[] = [
   {
     id: "FLX-2026-0042",
     date: "2026-05-20",
-    time: "18:10 - 18:36",
     pilot: "Sgt. M. Example",
     unit: "DS-NORTH",
     aircraft: "FLX-T7",
@@ -51,7 +49,6 @@ export const flightRows: FlightRow[] = [
   {
     id: "FLX-2026-0043",
     date: "2026-05-21",
-    time: "09:30 - 09:45",
     pilot: "Sgt. M. Example",
     unit: "DS-NORTH",
     aircraft: "FLX-A1",

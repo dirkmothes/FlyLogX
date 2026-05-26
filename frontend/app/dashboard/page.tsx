@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   return (
     <AppShell
       title="Dashboard"
-      subtitle="Operational overview of flight times, review status, and logbook progress."
+      subtitle="Operational overview of flight duration, review status, and logbook progress."
       breadcrumbs={["FlyLogX", "Dashboard"]}
       user={session.user}
       aside={

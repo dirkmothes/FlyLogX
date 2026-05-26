@@ -56,7 +56,7 @@ export function ReviewQueue({ flights }: Props) {
             <span>{flight.status}</span>
           </div>
           <span>
-            {flight.date} · {flight.pilot_name || flight.pilot_id} · {flight.aircraft_name || flight.aircraft_identifier} · {flight.location}
+            {flight.date} · {flight.duration_minutes} min · {flight.pilot_name || flight.pilot_id} · {flight.aircraft_name || flight.aircraft_identifier} · {flight.location}
           </span>
           <label className="field">
             <span>Comment</span>

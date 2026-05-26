@@ -82,8 +82,6 @@ export type ApiFlight = {
   flight_type: string;
   status: FlightStatus;
   date: string;
-  start_time: string;
-  landing_time: string;
   flight_count: number;
   duration_minutes: number;
   day_flight: boolean;

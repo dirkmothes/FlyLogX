@@ -704,7 +704,7 @@ def list_flights(
         stmt = stmt.where(FlightModel.aircraft_id == aircraft_id)
     if status:
         stmt = stmt.where(FlightModel.status == status)
-    stmt = stmt.order_by(FlightModel.date.desc(), FlightModel.start_time.desc())
+    stmt = stmt.order_by(FlightModel.date.desc(), FlightModel.created_at.desc())
     return [_flight_to_domain(db, row) for row in db.scalars(stmt).all()]
 
 
@@ -731,8 +731,6 @@ def create_flight(db: Session, payload: FlightCreateRequest, actor_id: str) -> F
         flight_type=payload.flight_type,
         status=FlightStatus.draft,
         date=payload.date,
-        start_time=payload.start_time,
-        landing_time=payload.landing_time,
         flight_count=payload.flight_count,
         duration_minutes=payload.duration_minutes,
         day_flight=payload.day_flight,
@@ -913,7 +911,7 @@ def build_dashboard_summary(flights: list[FlightEntry], title: str) -> Dashboard
         by_aircraft[flight.aircraft_identifier] += duration_hours
         by_month[flight.date.strftime("%Y-%m")] += duration_hours
 
-    recent = sorted(flights, key=lambda item: (item.date, item.start_time), reverse=True)[:5]
+    recent = sorted(flights, key=lambda item: (item.date, item.created_at), reverse=True)[:5]
     return DashboardSummary(
         title=title,
         total_hours=total_hours,

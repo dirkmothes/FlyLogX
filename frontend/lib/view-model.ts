@@ -4,7 +4,6 @@ import { formatDate, formatDateTime, formatDuration } from "@/lib/api";
 export type FlightRow = {
   id: string;
   date: string;
-  time: string;
   pilot: string;
   unit: string;
   aircraft: string;
@@ -118,7 +117,6 @@ export function mapFlightRows(flights: ApiFlight[]): FlightRow[] {
   return flights.map((flight) => ({
     id: flight.flight_number || flight.id,
     date: formatDate(flight.date),
-    time: `${flight.start_time.slice(0, 5)} - ${flight.landing_time.slice(0, 5)}`,
     pilot: flight.pilot_name || flight.pilot_id,
     unit: flight.unit_code || flight.unit_name || flight.unit_id,
     aircraft: flight.aircraft_name ? `${flight.aircraft_identifier} · ${flight.aircraft_name}` : flight.aircraft_identifier,

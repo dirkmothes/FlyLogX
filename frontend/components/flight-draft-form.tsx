@@ -21,24 +21,6 @@ const categories: Array<{ value: FlightCategory; label: string }> = [
   { value: "A Flights", label: "A Flights" },
 ];
 
-function pad(value: number) {
-  return value.toString().padStart(2, "0");
-}
-
-function getCurrentLocalTime() {
-  const now = new Date();
-  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-}
-
-function addMinutesToTime(timeValue: string, minutes: number) {
-  const [hours, minutesPart] = timeValue.split(":").map(Number);
-  const totalMinutes = hours * 60 + minutesPart + minutes;
-  const normalized = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
-  const nextHours = Math.floor(normalized / 60);
-  const nextMinutes = normalized % 60;
-  return `${pad(nextHours)}:${pad(nextMinutes)}`;
-}
-
 export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onSuccess }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
@@ -64,8 +46,6 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
     setMessage(null);
 
     try {
-      const startTime = getCurrentLocalTime();
-      const landingTime = addMinutesToTime(startTime, form.duration_minutes);
       const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/flights`, {
         method: "POST",
         headers: {
@@ -81,8 +61,6 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           category: form.category,
           flight_type: form.flight_type,
           date: form.date,
-          start_time: `${startTime}:00`,
-          landing_time: `${landingTime}:00`,
           flight_count: 1,
           duration_minutes: form.duration_minutes,
           day_flight: true,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time
+from datetime import date, datetime
 from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -216,8 +216,6 @@ class FlightEntry(BaseModel):
     flight_type: str
     status: FlightStatus = FlightStatus.draft
     date: date
-    start_time: time
-    landing_time: time
     flight_count: int = 1
     duration_minutes: int
     day_flight: bool = True
@@ -299,8 +297,6 @@ class FlightCreateRequest(BaseModel):
     category: FlightCategory
     flight_type: str
     date: date
-    start_time: time
-    landing_time: time
     flight_count: int = Field(default=1, ge=1)
     duration_minutes: int = Field(ge=1)
     day_flight: bool = True
