@@ -85,7 +85,6 @@ export function AircraftCreateForm({ organizationId, units, onSuccess }: Props) 
           payload: null,
           max_duration_minutes: null,
           operating_hours: 0,
-          maintenance_status: "ok",
           availability: "available",
           status: form.status,
           notes: null,

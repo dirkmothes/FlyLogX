@@ -2,7 +2,7 @@ import { AppShell } from "@/components/app-shell";
 import { DataTable } from "@/components/data-table";
 import { FlightDraftDialog } from "@/components/flight-draft-dialog";
 import { StatusPill } from "@/components/status-pill";
-import { apiFetch, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
+import { apiFetch, formatDate, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
 import { loadSession } from "@/lib/session";
 import { aircraftStatusLabel, aircraftStatusTone, flightStatusTone, mapFlightRows } from "@/lib/view-model";
 
@@ -101,7 +101,9 @@ export default async function FlightsPage() {
                 <StatusPill tone={aircraftStatusTone(item.status)}>{aircraftStatusLabel(item.status)}</StatusPill>
               </div>
               <span>
-                {item.manufacturer} · {item.model} · {item.operating_hours.toFixed(1)} h · {item.maintenance_status}
+                {item.manufacturer} · {item.model} · {item.operating_hours.toFixed(1)} h · Last maintenance{" "}
+                {item.last_maintenance ? formatDate(item.last_maintenance) : "n/a"} · Next maintenance{" "}
+                {item.next_maintenance ? formatDate(item.next_maintenance) : "n/a"}
               </span>
             </div>
           ))}
