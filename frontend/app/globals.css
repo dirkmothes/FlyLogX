@@ -2505,52 +2505,6 @@ select.input option {
   }
 }
 
-@media (max-width: 1180px) {
-  .app-shell,
-  .content-grid,
-  .login-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .app-shell {
-    padding: 12px;
-  }
-
-  .sidebar {
-    position: relative;
-    top: auto;
-    height: auto;
-  }
-
-  .right-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .admin-hero,
-  .admin-module-grid,
-  .admin-directory {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-hero-badges {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .admin-command {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .admin-command-actions,
-  .admin-directory-sidebar {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .admin-command-actions {
-    justify-content: flex-start;
-  }
-}
-
 @media (max-width: 780px) {
   .app-shell {
     padding: 8px;
