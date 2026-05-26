@@ -105,8 +105,6 @@ class AircraftModel(Base):
     payload: Mapped[str | None] = mapped_column(Text, nullable=True)
     max_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     operating_hours: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    last_maintenance: Mapped[date | None] = mapped_column(Date, nullable=True)
-    next_maintenance: Mapped[date | None] = mapped_column(Date, nullable=True)
     availability: Mapped[str] = mapped_column(String(128), default="available", nullable=False)
     status: Mapped[AircraftStatus] = mapped_column(
         Enum(AircraftStatus, name="aircraft_status", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
@@ -288,8 +286,6 @@ def seed_database(session) -> None:
         payload="EO/IR payload",
         max_duration_minutes=45,
         operating_hours=148.6,
-        last_maintenance=date(2026, 5, 10),
-        next_maintenance=date(2026, 7, 10),
         availability="available",
         status=AircraftStatus.active,
         notes="Ready for day and night operations.",
@@ -315,8 +311,6 @@ def seed_database(session) -> None:
         payload="Camera",
         max_duration_minutes=28,
         operating_hours=76.2,
-        last_maintenance=date(2026, 4, 2),
-        next_maintenance=date(2026, 5, 24),
         availability="maintenance",
         status=AircraftStatus.maintenance,
         notes="Locked for training purposes only.",

@@ -48,8 +48,6 @@ export default async function AircraftPage() {
           { header: "Manufacturer", render: (row) => row.manufacturer },
           { header: "Model", render: (row) => row.model },
           { header: "Operating hours", render: (row) => row.hours },
-          { header: "Last maintenance", render: (row) => row.lastMaintenance },
-          { header: "Next maintenance", render: (row) => row.nextMaintenance },
           { header: "Status", render: (row) => <StatusPill tone={aircraftStatusTone(row.status)}>{row.status}</StatusPill> },
         ]}
       />

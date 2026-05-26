@@ -29,8 +29,6 @@ export type AircraftRow = {
   manufacturer: string;
   model: string;
   status: AircraftStatus;
-  lastMaintenance: string;
-  nextMaintenance: string;
   hours: string;
 };
 

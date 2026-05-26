@@ -56,8 +56,6 @@ export type ApiAircraft = {
   payload: string | null;
   max_duration_minutes: number | null;
   operating_hours: number;
-  last_maintenance: string | null;
-  next_maintenance: string | null;
   availability: string;
   status: AircraftStatus;
   notes: string | null;

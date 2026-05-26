@@ -24,8 +24,6 @@ export type AircraftRow = {
   manufacturer: string;
   model: string;
   status: string;
-  lastMaintenance: string;
-  nextMaintenance: string;
   hours: string;
 };
 
@@ -135,8 +133,6 @@ export function mapAircraftRows(aircraft: ApiAircraft[]): AircraftRow[] {
     manufacturer: item.manufacturer,
     model: item.model,
     status: aircraftStatusLabel(item.status),
-    lastMaintenance: item.last_maintenance ? formatDate(item.last_maintenance) : "n/a",
-    nextMaintenance: item.next_maintenance ? formatDate(item.next_maintenance) : "n/a",
     hours: `${item.operating_hours.toFixed(1)} h`,
   }));
 }

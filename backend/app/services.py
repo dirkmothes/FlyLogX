@@ -663,8 +663,6 @@ def create_aircraft(db: Session, payload: AircraftCreateRequest, actor_id: str) 
         payload=payload.payload,
         max_duration_minutes=payload.max_duration_minutes,
         operating_hours=payload.operating_hours,
-        last_maintenance=payload.last_maintenance,
-        next_maintenance=payload.next_maintenance,
         availability=payload.availability,
         status=payload.status,
         notes=payload.notes,

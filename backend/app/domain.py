@@ -162,8 +162,6 @@ class Aircraft(BaseModel):
     payload: str | None = None
     max_duration_minutes: int | None = None
     operating_hours: float = 0.0
-    last_maintenance: date | None = None
-    next_maintenance: date | None = None
     availability: str = "available"
     status: AircraftStatus = AircraftStatus.active
     notes: str | None = None
@@ -190,8 +188,6 @@ class AircraftCreateRequest(BaseModel):
     payload: str | None = None
     max_duration_minutes: int | None = None
     operating_hours: float = 0.0
-    last_maintenance: date | None = None
-    next_maintenance: date | None = None
     availability: str = "available"
     status: AircraftStatus = AircraftStatus.active
     notes: str | None = None

@@ -70,8 +70,6 @@ export const aircraftRows: AircraftRow[] = [
     manufacturer: "FlyLogX Systems",
     model: "R-14 Recon",
     status: "Active",
-    lastMaintenance: "10. May 2026",
-    nextMaintenance: "10. Jul 2026",
     hours: "148.6 h",
   },
   {
@@ -81,8 +79,6 @@ export const aircraftRows: AircraftRow[] = [
     manufacturer: "FlyLogX Systems",
     model: "Trainer 7",
     status: "Maintenance",
-    lastMaintenance: "2. Apr 2026",
-    nextMaintenance: "24. May 2026",
     hours: "76.2 h",
   },
 ];
