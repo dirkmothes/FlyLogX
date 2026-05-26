@@ -2586,10 +2586,15 @@ select.input option {
     left: 12px;
     right: 12px;
     z-index: 40;
+    padding-left: 68px;
   }
 
   .mobile-drawer-button {
     flex: 0 0 auto;
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 50;
   }
 
   .app-logo-mobile {
