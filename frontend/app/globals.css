@@ -2566,10 +2566,15 @@ select.input option {
     border-radius: var(--radius);
     background: var(--surface);
     box-shadow: var(--shadow-soft);
+    padding-left: 68px;
   }
 
   .mobile-drawer-button {
     flex: 0 0 auto;
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 50;
   }
 
   .app-logo-mobile {
