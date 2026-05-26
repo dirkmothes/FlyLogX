@@ -149,11 +149,6 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
               )}
             </svg>
           </button>
-          <img className="app-logo app-logo-mobile" src="/fly-icon.png" alt="FlyLogX Logo" />
-          <div className="mobile-toolbar-title">
-            <p>FlyLogX</p>
-            <strong>{title}</strong>
-          </div>
         </div>
 
         <section className="page-heading">
