@@ -2513,7 +2513,7 @@ select.input option {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1440px) {
   .app-shell,
   .content-grid,
   .login-layout {
