@@ -50,10 +50,6 @@ export default async function AircraftPage() {
           { header: "Operating hours", render: (row) => row.hours },
           { header: "Maintenance", render: (row) => row.maintenance },
           { header: "Status", render: (row) => <StatusPill tone={aircraftStatusTone(row.status)}>{row.status}</StatusPill> },
-          {
-            header: "Release",
-            render: (row) => <StatusPill tone={row.release === "Released" ? "success" : "danger"}>{row.release}</StatusPill>,
-          },
         ]}
       />
     </AppShell>

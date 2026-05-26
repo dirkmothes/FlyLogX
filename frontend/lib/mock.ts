@@ -72,7 +72,6 @@ export const aircraftRows: AircraftRow[] = [
     status: "Active",
     maintenance: "checked",
     hours: "148.6 h",
-    release: "released",
   },
   {
     id: "aircraft-02",
@@ -83,7 +82,6 @@ export const aircraftRows: AircraftRow[] = [
     status: "Maintenance",
     maintenance: "due",
     hours: "76.2 h",
-    release: "locked",
   },
 ];
 

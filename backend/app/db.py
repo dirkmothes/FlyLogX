@@ -108,7 +108,6 @@ class AircraftModel(Base):
     maintenance_status: Mapped[str] = mapped_column(String(128), default="ok", nullable=False)
     last_maintenance: Mapped[date | None] = mapped_column(Date, nullable=True)
     next_maintenance: Mapped[date | None] = mapped_column(Date, nullable=True)
-    release_status: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     availability: Mapped[str] = mapped_column(String(128), default="available", nullable=False)
     status: Mapped[AircraftStatus] = mapped_column(
         Enum(AircraftStatus, name="aircraft_status", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
@@ -293,7 +292,6 @@ def seed_database(session) -> None:
         maintenance_status="checked",
         last_maintenance=date(2026, 5, 10),
         next_maintenance=date(2026, 7, 10),
-        release_status=True,
         availability="available",
         status=AircraftStatus.active,
         notes="Ready for day and night operations.",
@@ -322,7 +320,6 @@ def seed_database(session) -> None:
         maintenance_status="maintenance due",
         last_maintenance=date(2026, 4, 2),
         next_maintenance=date(2026, 5, 24),
-        release_status=False,
         availability="maintenance",
         status=AircraftStatus.maintenance,
         notes="Locked for training purposes only.",

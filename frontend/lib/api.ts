@@ -59,7 +59,6 @@ export type ApiAircraft = {
   maintenance_status: string;
   last_maintenance: string | null;
   next_maintenance: string | null;
-  release_status: boolean;
   availability: string;
   status: AircraftStatus;
   notes: string | null;

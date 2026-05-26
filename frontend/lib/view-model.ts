@@ -26,7 +26,6 @@ export type AircraftRow = {
   status: string;
   maintenance: string;
   hours: string;
-  release: string;
 };
 
 export type AuditRow = {
@@ -100,10 +99,6 @@ export function aircraftStatusLabel(status: ApiAircraft["status"]) {
   }
 }
 
-export function aircraftReleaseLabel(release: boolean) {
-  return release ? "Released" : "Locked";
-}
-
 export function mapDashboard(summary: DashboardSummary): DashboardCard[] {
   return [
     { label: "Total Flight Time", value: `${summary.total_hours.toFixed(1)} h`, delta: `+${summary.approved_entries} approvals`, tone: "blue" },
@@ -141,7 +136,6 @@ export function mapAircraftRows(aircraft: ApiAircraft[]): AircraftRow[] {
     status: aircraftStatusLabel(item.status),
     maintenance: item.maintenance_status,
     hours: `${item.operating_hours.toFixed(1)} h`,
-    release: aircraftReleaseLabel(item.release_status),
   }));
 }
 

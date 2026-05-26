@@ -4,7 +4,7 @@ import { FlightDraftDialog } from "@/components/flight-draft-dialog";
 import { StatusPill } from "@/components/status-pill";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
 import { loadSession } from "@/lib/session";
-import { aircraftStatusLabel, flightStatusTone, mapFlightRows } from "@/lib/view-model";
+import { aircraftStatusLabel, aircraftStatusTone, flightStatusTone, mapFlightRows } from "@/lib/view-model";
 
 export const dynamic = "force-dynamic";
 
@@ -98,7 +98,7 @@ export default async function FlightsPage() {
                 <strong>
                   {item.identifier} · {item.name}
                 </strong>
-                <StatusPill tone={item.release_status ? "success" : "warning"}>{aircraftStatusLabel(item.status)}</StatusPill>
+                <StatusPill tone={aircraftStatusTone(item.status)}>{aircraftStatusLabel(item.status)}</StatusPill>
               </div>
               <span>
                 {item.manufacturer} · {item.model} · {item.operating_hours.toFixed(1)} h · {item.maintenance_status}

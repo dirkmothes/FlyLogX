@@ -165,7 +165,6 @@ class Aircraft(BaseModel):
     maintenance_status: str = "ok"
     last_maintenance: date | None = None
     next_maintenance: date | None = None
-    release_status: bool = True
     availability: str = "available"
     status: AircraftStatus = AircraftStatus.active
     notes: str | None = None
@@ -195,7 +194,6 @@ class AircraftCreateRequest(BaseModel):
     maintenance_status: str = "ok"
     last_maintenance: date | None = None
     next_maintenance: date | None = None
-    release_status: bool = True
     availability: str = "available"
     status: AircraftStatus = AircraftStatus.active
     notes: str | None = None

@@ -31,7 +31,6 @@ export type AircraftRow = {
   status: AircraftStatus;
   maintenance: string;
   hours: string;
-  release: string;
 };
 
 export type AuditRow = {
