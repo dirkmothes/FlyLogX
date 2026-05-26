@@ -1682,26 +1682,27 @@ select.input option {
 
 .admin-search-icon {
   position: absolute;
-  left: 13px;
+  left: 14px;
   top: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   color: var(--muted);
   transform: translateY(-50%);
   pointer-events: none;
 }
 
 .admin-search-icon svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   fill: currentColor;
 }
 
 .admin-search-field .input {
-  padding-left: 40px;
+  padding: 15px 14px 15px 43px;
+  font-size: 0.96rem;
 }
 
 .admin-search-field span,
