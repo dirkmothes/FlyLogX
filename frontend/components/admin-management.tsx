@@ -26,6 +26,12 @@ type DeleteTarget =
   | { type: "user"; id: string; label: string }
   | null;
 
+type PasswordResetTarget = {
+  id: string;
+  label: string;
+  username: string;
+} | null;
+
 type OrganizationForm = {
   name: string;
   parent_id: string;
@@ -48,6 +54,11 @@ type UserForm = {
   active: boolean;
   is_deleted: boolean;
   supervised_organization_ids: string[];
+};
+
+type PasswordResetForm = {
+  password: string;
+  confirm_password: string;
 };
 
 const roleLabel: Record<RoleName, string> = {
@@ -111,7 +122,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+  const [passwordResetTarget, setPasswordResetTarget] = useState<PasswordResetTarget>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [passwordResetMessage, setPasswordResetMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | RoleName>("all");
@@ -134,6 +147,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     active: true,
     is_deleted: false,
     supervised_organization_ids: [],
+  });
+  const [passwordResetForm, setPasswordResetForm] = useState<PasswordResetForm>({
+    password: "",
+    confirm_password: "",
   });
 
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
@@ -247,11 +264,15 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         supervised_organization_ids: [],
       });
     }
+    setPasswordResetTarget(null);
+    setPasswordResetMessage(null);
     setDialog({ type, mode: "create" });
   }
 
   function openEditOrganization(organization: ApiOrganization) {
     setMessage(null);
+    setPasswordResetTarget(null);
+    setPasswordResetMessage(null);
     setOrganizationForm({
       name: organization.name,
       parent_id: organization.parent_id ?? "",
@@ -261,12 +282,16 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   function openEditUnit(unit: ApiUnit) {
     setMessage(null);
+    setPasswordResetTarget(null);
+    setPasswordResetMessage(null);
     setUnitForm({ organization_id: unit.organization_id, name: unit.name });
     setDialog({ type: "unit", mode: "edit", id: unit.id });
   }
 
   function openEditUser(user: ApiUser) {
     setMessage(null);
+    setPasswordResetTarget(null);
+    setPasswordResetMessage(null);
     setUserForm({
       organization_id: user.organization_id,
       unit_id: user.unit_id ?? "",
@@ -288,6 +313,19 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           : [],
     });
     setDialog({ type: "user", mode: "edit", id: user.id });
+  }
+
+  function openResetPassword(user: ApiUser) {
+    setMessage(null);
+    setDialog(null);
+    setDeleteTarget(null);
+    setPasswordResetMessage(null);
+    setPasswordResetForm({ password: "", confirm_password: "" });
+    setPasswordResetTarget({
+      id: user.id,
+      label: user.name,
+      username: user.username,
+    });
   }
 
   async function saveOrganization(event: FormEvent<HTMLFormElement>) {
@@ -363,7 +401,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setBusy("user-save");
     setMessage(null);
     try {
-      const body = {
+      const body: Record<string, unknown> = {
         organization_id: userForm.organization_id,
         unit_id: userForm.unit_id || null,
         role: userForm.role,
@@ -371,12 +409,14 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         first_name: userForm.first_name.trim(),
         last_name: userForm.last_name.trim(),
         email: userForm.email.trim(),
-        password: userForm.password.trim() || null,
         active: userForm.active,
         is_deleted: userForm.is_deleted,
         supervised_organization_ids:
           viewerRole === "admin" && userForm.role === "supervisor" ? activeSupervisorOrganizationIds : [],
       };
+      if (dialog?.mode === "create") {
+        body.password = userForm.password.trim();
+      }
       if (dialog?.mode === "edit" && dialog.id) {
         await requestJson(`/api/users/${dialog.id}`, "PATCH", body);
       } else {
@@ -420,6 +460,38 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     }
   }
 
+  async function resetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!passwordResetTarget) {
+      return;
+    }
+
+    const password = passwordResetForm.password.trim();
+    const confirmPassword = passwordResetForm.confirm_password.trim();
+
+    if (!password || !confirmPassword) {
+      setPasswordResetMessage("Please enter and confirm the new password.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordResetMessage("The passwords do not match.");
+      return;
+    }
+
+    setBusy("user-password-reset");
+    setPasswordResetMessage(null);
+    try {
+      await requestJson(`/api/users/${passwordResetTarget.id}/reset-password`, "POST", { password });
+      setBusy(null);
+      setPasswordResetTarget(null);
+      setPasswordResetForm({ password: "", confirm_password: "" });
+      router.refresh();
+    } catch (error) {
+      setPasswordResetMessage(error instanceof Error ? error.message : "Could not reset the password.");
+      setBusy(null);
+    }
+  }
+
   async function deleteDialogEntity() {
     if (!deleteTarget) {
       return;
@@ -447,6 +519,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     if (!target) {
       return;
     }
+    setPasswordResetTarget(null);
+    setPasswordResetMessage(null);
     setDeleteTarget(target);
   }
 
@@ -640,20 +714,30 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         Edit
                       </button>
                       {viewerRole === "admin" || viewerRole === "supervisor" ? (
-                        <button
-                          type="button"
-                          className="admin-action-button admin-danger-button"
-                          title="Delete user"
-                          onClick={() =>
-                            openDeleteTarget({
-                              type: "user",
-                              id: user.id,
-                              label: `${user.name} (@${user.username})`,
-                            })
-                          }
+                        <>
+                          <button
+                            type="button"
+                            className="admin-action-button admin-action-button-reset"
+                            title="Reset password"
+                            onClick={() => openResetPassword(user)}
+                          >
+                            Reset password
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-action-button admin-danger-button"
+                            title="Delete user"
+                            onClick={() =>
+                              openDeleteTarget({
+                                type: "user",
+                                id: user.id,
+                                label: `${user.name} (@${user.username})`,
+                              })
+                            }
                           >
                             Delete
                           </button>
+                        </>
                       ) : null}
                     </div>
                   </div>
@@ -954,16 +1038,29 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       {viewerRole === "admin" ? <option value="admin">Admin</option> : null}
                     </select>
                   </label>
-                  <label className="field">
-                    <span>{dialog.mode === "edit" ? "New password" : "Initial password"}</span>
-                    <input
-                      className="input"
-                      type="password"
-                      value={userForm.password}
-                      onChange={(event) => setUserForm((current) => ({ ...current, password: event.target.value }))}
-                    />
-                  </label>
                 </div>
+                {dialog.mode === "create" ? (
+                  <div className="admin-dialog-grid">
+                    <label className="field">
+                      <span>Initial password</span>
+                      <input
+                        className="input"
+                        type="password"
+                        value={userForm.password}
+                        onChange={(event) => setUserForm((current) => ({ ...current, password: event.target.value }))}
+                      />
+                    </label>
+                    <div className="account-note-box">
+                      <span>Note</span>
+                      <p>The password can later be changed with the Reset password action in the user list.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="account-note-box">
+                    <span>Password</span>
+                    <p>Use Reset password in the user list to set a new password for this user.</p>
+                  </div>
+                )}
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <div className="field">
                     <span>Supervised organizations</span>
@@ -1032,6 +1129,67 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 />
               </form>
             ) : null}
+          </section>
+        </div>
+      ) : null}
+
+      {passwordResetTarget ? (
+        <div className="admin-dialog-backdrop admin-reset-backdrop" role="presentation" onMouseDown={() => setPasswordResetTarget(null)}>
+          <section
+            className="admin-dialog admin-reset-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-dialog-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="admin-dialog-header">
+              <div>
+                <span className="admin-kicker">Reset password</span>
+                <h3 id="reset-dialog-title">{passwordResetTarget.label}</h3>
+                <p>@{passwordResetTarget.username}</p>
+              </div>
+              <button type="button" className="admin-close-button" title="Close dialog" onClick={() => setPasswordResetTarget(null)}>
+                X
+              </button>
+            </div>
+
+            <form className="admin-dialog-form" onSubmit={resetPassword}>
+              {passwordResetMessage ? <div className="form-note admin-dialog-message">{passwordResetMessage}</div> : null}
+              <div className="admin-dialog-grid">
+                <label className="field">
+                  <span>New password</span>
+                  <input
+                    className="input"
+                    type="password"
+                    value={passwordResetForm.password}
+                    onChange={(event) => setPasswordResetForm((current) => ({ ...current, password: event.target.value }))}
+                  />
+                </label>
+                <label className="field">
+                  <span>Confirm password</span>
+                  <input
+                    className="input"
+                    type="password"
+                    value={passwordResetForm.confirm_password}
+                    onChange={(event) =>
+                      setPasswordResetForm((current) => ({ ...current, confirm_password: event.target.value }))
+                    }
+                  />
+                </label>
+              </div>
+              <div className="account-note-box">
+                <span>Note</span>
+                <p>The two passwords must match before the reset can be saved.</p>
+              </div>
+              <div className="admin-dialog-actions">
+                <button type="button" className="button button-secondary" onClick={() => setPasswordResetTarget(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="button button-primary" disabled={busy === "user-password-reset"}>
+                  Reset password
+                </button>
+              </div>
+            </form>
           </section>
         </div>
       ) : null}

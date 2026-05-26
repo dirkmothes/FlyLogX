@@ -1814,6 +1814,12 @@ select.input option {
   color: var(--blue);
 }
 
+.admin-action-button-reset {
+  background: rgba(97, 118, 143, 0.1);
+  border-color: rgba(97, 118, 143, 0.18);
+  color: #39506b;
+}
+
 .admin-action-button:hover {
   transform: translateY(-1px);
   border-color: rgba(47, 110, 166, 0.35);
@@ -1834,6 +1840,17 @@ select.input option {
 .admin-danger-button:hover {
   border-color: rgba(162, 58, 58, 0.28);
   background: rgba(162, 58, 58, 0.16);
+}
+
+:root[data-theme="dark"] .admin-action-button-reset {
+  background: rgba(126, 150, 176, 0.12);
+  border-color: rgba(126, 150, 176, 0.2);
+  color: #d8e6f2;
+}
+
+:root[data-theme="dark"] .admin-action-button-reset:hover {
+  background: rgba(126, 150, 176, 0.18);
+  border-color: rgba(126, 150, 176, 0.28);
 }
 
 .admin-record-meta {

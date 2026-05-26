@@ -40,6 +40,7 @@ from .domain import (
     UnitUpdateRequest,
     TokenResponse,
     User,
+    UserPasswordResetRequest,
     UserCreateRequest,
     UserUpdateRequest,
 )
@@ -604,6 +605,33 @@ def user_delete(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
         return delete_user(db, user_id, actor_id=user.id)
+    except KeyError as exc:
+        key = exc.args[0] if exc.args else "user_not_found"
+        detail = "User not found"
+        status_code = status.HTTP_404_NOT_FOUND
+        if key == "cannot_delete_self":
+            detail = "You cannot delete your own account"
+            status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=detail)
+
+
+@app.post("/api/users/{user_id}/reset-password")
+def user_reset_password(
+    user_id: str,
+    payload: UserPasswordResetRequest,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    target_user = db.get(UserModel, user_id)
+    if target_user is None or target_user.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    _ensure_scope(user, db, user_id=user_id)
+    if user.role == RoleName.supervisor and target_user.role == RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
+    if not payload.password.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password is required")
+    try:
+        return update_user(db, user_id, UserUpdateRequest(password=payload.password), actor_id=user.id)
     except KeyError as exc:
         key = exc.args[0] if exc.args else "user_not_found"
         detail = "User not found"

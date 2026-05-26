@@ -126,6 +126,10 @@ class UserUpdateRequest(BaseModel):
     supervised_organization_ids: list[str] | None = None
 
 
+class UserPasswordResetRequest(BaseModel):
+    password: str
+
+
 class OwnProfileUpdateRequest(BaseModel):
     username: str | None = None
     first_name: str | None = None
