@@ -2519,8 +2519,14 @@ select.input option {
   }
 
   .app-shell {
+    grid-template-columns: 1fr;
     min-height: 100vh;
     padding: 92px 12px 12px;
+  }
+
+  .main-column {
+    grid-column: 1;
+    min-width: 0;
   }
 
   .sidebar {

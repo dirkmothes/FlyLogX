@@ -82,6 +82,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
                     href={item.href}
                     className={`sidebar-link ${pathname === item.href ? "sidebar-link-active" : ""}`}
                     aria-current={pathname === item.href ? "page" : undefined}
+                    onClick={() => setMobileNavOpen(false)}
                   >
                     {item.label}
                   </Link>
@@ -127,14 +128,25 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
             onClick={() => setMobileNavOpen((current) => !current)}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-              />
+              {mobileNavOpen ? (
+                <path
+                  d="M6 6l12 12M18 6 6 18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                />
+              ) : (
+                <path
+                  d="M4 7h16M4 12h16M4 17h16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                />
+              )}
             </svg>
           </button>
           <img className="app-logo app-logo-mobile" src="/fly-icon.png" alt="FlyLogX Logo" />
