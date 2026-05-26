@@ -2517,7 +2517,7 @@ select.input option {
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 900px) {
   .app-shell,
   .content-grid,
   .login-layout {
@@ -2573,17 +2573,9 @@ select.input option {
 
   .mobile-toolbar {
     align-items: center;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
     display: flex;
     gap: 12px;
     margin-bottom: 18px;
-    padding: 12px 14px;
-    position: sticky;
-    top: 12px;
-    z-index: 20;
   }
 
   .mobile-drawer-button {
