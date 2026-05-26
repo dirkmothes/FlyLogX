@@ -67,7 +67,6 @@ export default async function FlightsPage() {
         <div className="panel-header">
           <div>
             <h2>Create new draft</h2>
-            <p>Digital entry with automatic logbook totals</p>
           </div>
         </div>
         <div className="panel-body">
