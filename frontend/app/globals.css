@@ -2529,17 +2529,17 @@ select.input option {
     min-height: 100vh;
     overflow: visible;
     position: relative;
-    padding: 92px 12px 12px;
+    padding: 12px;
   }
 
   .sidebar {
     position: fixed;
-    top: 76px;
+    top: 0;
     left: 0;
     bottom: 0;
     z-index: 30;
     width: min(calc(100vw - 64px), 430px);
-    height: calc(100vh - 88px);
+    height: auto;
     overflow: auto;
     padding: 14px 20px 28px 16px;
     border-radius: 0 var(--radius) var(--radius) 0;
@@ -2581,11 +2581,9 @@ select.input option {
     gap: 12px;
     margin-bottom: 18px;
     padding: 12px 14px;
-    position: fixed;
+    position: sticky;
     top: 12px;
-    left: 12px;
-    right: 12px;
-    z-index: 40;
+    z-index: 20;
   }
 
   .mobile-drawer-button {
