@@ -632,7 +632,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 <input
                   className="input"
                   value={userSearch}
-                  placeholder=""
+                  placeholder="Search"
                   aria-label="Search users"
                   onChange={(event) => setUserSearch(event.target.value)}
                 />
