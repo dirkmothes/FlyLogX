@@ -624,11 +624,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           {activeTab === "users" ? (
             <div className="admin-user-toolbar">
               <label className="admin-search-field">
-                <span>Search</span>
                 <input
                   className="input"
                   value={userSearch}
-                  placeholder="Search"
+                  placeholder=""
+                  aria-label="Search users"
                   onChange={(event) => setUserSearch(event.target.value)}
                 />
               </label>
