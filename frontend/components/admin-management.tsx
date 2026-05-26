@@ -628,7 +628,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 <input
                   className="input"
                   value={userSearch}
-                  placeholder="Username, name, email, or unit"
+                  placeholder="Search"
                   onChange={(event) => setUserSearch(event.target.value)}
                 />
               </label>
