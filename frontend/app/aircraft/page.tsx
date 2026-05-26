@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { AircraftCreateForm } from "@/components/aircraft-create-form";
+import { AircraftCreateDialog } from "@/components/aircraft-create-dialog";
 import { DataTable } from "@/components/data-table";
 import { StatusPill } from "@/components/status-pill";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiUnit } from "@/lib/api";
@@ -36,16 +36,7 @@ export default async function AircraftPage() {
       user={session.user}
     >
       {session.user.role === "admin" ? (
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <h2>Create new aircraft</h2>
-            </div>
-          </div>
-          <div className="panel-body">
-            <AircraftCreateForm organizationId={session.user.organization_id} units={units} />
-          </div>
-        </section>
+        <AircraftCreateDialog organizationId={session.user.organization_id} units={units} />
       ) : null}
 
       <DataTable

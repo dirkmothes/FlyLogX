@@ -2182,6 +2182,10 @@ select.input option {
   width: min(860px, 100%);
 }
 
+.aircraft-create-dialog {
+  width: min(980px, 100%);
+}
+
 .admin-confirm-dialog {
   width: min(560px, 100%);
   grid-template-rows: auto auto auto;
