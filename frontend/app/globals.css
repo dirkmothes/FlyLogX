@@ -2513,7 +2513,7 @@ select.input option {
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 900px) {
   body.drawer-open {
     overflow: hidden;
   }
