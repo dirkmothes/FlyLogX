@@ -55,23 +55,25 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileNavOpen]);
 
-  useEffect(() => {
-    document.body.classList.toggle("drawer-open", mobileNavOpen);
-    return () => {
-      document.body.classList.remove("drawer-open");
-    };
-  }, [mobileNavOpen]);
-
   return (
-    <div className={`app-shell ${mobileNavOpen ? "mobile-sidebar-open" : ""}`}>
-      {mobileNavOpen ? (
-        <button
-          type="button"
-          className="sidebar-backdrop"
-          aria-label="Close navigation"
-          onClick={() => setMobileNavOpen(false)}
-        />
-      ) : null}
+    <div className={`app-shell ${mobileNavOpen ? "app-shell-nav-open" : ""}`}>
+      <button
+        type="button"
+        className="mobile-nav-toggle"
+        aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={mobileNavOpen}
+        onClick={() => setMobileNavOpen((current) => !current)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <div
+        className={`sidebar-backdrop ${mobileNavOpen ? "sidebar-backdrop-open" : ""}`}
+        aria-hidden="true"
+        onClick={() => setMobileNavOpen(false)}
+      />
 
       <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
         <div className="brand-block brand-block--logo">
@@ -127,32 +129,6 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
       </aside>
 
       <div className="main-column">
-        <div className="mobile-toolbar">
-          <button
-            type="button"
-            className="icon-button mobile-drawer-button"
-            aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={mobileNavOpen}
-            onClick={() => setMobileNavOpen((current) => !current)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-              />
-            </svg>
-          </button>
-          <img className="app-logo app-logo-mobile" src="/fly-icon.png" alt="FlyLogX Logo" />
-          <div className="mobile-toolbar-title">
-            <p>FlyLogX</p>
-            <strong>{title}</strong>
-          </div>
-        </div>
-
         <section className="page-heading">
           <div>
             <div className="breadcrumbs">
