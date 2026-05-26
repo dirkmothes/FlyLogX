@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FlyLogX">
+  <rect width="64" height="64" rx="14" fill="#f6f8fb"/>
+  <path d="M10 18h16M38 18h16M18 18h28" fill="none" stroke="#15253d" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="19" cy="18" r="5" fill="#20324f" stroke="#07111f" stroke-width="1.5"/>
+  <circle cx="45" cy="18" r="5" fill="#20324f" stroke="#07111f" stroke-width="1.5"/>
+  <path d="M17 35c0-8 6-14 15-14s15 6 15 14c0 3-2 5-5 5H22c-3 0-5-2-5-5Z" fill="#20324f"/>
+  <path d="M24 40l-4 9M40 40l4 9" fill="none" stroke="#15253d" stroke-width="4" stroke-linecap="round"/>
+  <path d="M16 51h32" fill="none" stroke="#15253d" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="32" cy="36" r="6" fill="#f6f8fb" stroke="#07111f" stroke-width="3"/>
+  <path d="M48 47l6 8M55 47l-8 8" fill="none" stroke="#2f8fd8" stroke-width="4" stroke-linecap="round"/>
+</svg>

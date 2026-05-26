@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "FlyLogX",
   description: "Digital flight logbook and review management for aircraft and drones.",
   icons: {
-    icon: "/fly-icon.png",
+    icon: "/favicon.svg",
   },
 };
 
