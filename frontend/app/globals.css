@@ -2531,17 +2531,17 @@ select.input option {
 
   .sidebar {
     position: fixed;
-    top: 76px;
-    left: 0;
-    bottom: 0;
+    top: 84px;
+    left: 12px;
+    bottom: 12px;
     z-index: 30;
-    width: min(calc(100vw - 64px), 430px);
-    height: calc(100vh - 88px);
+    width: min(calc(100vw - 24px), 430px);
+    height: auto;
     overflow: auto;
-    padding: 14px 20px 28px 16px;
-    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 16px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
-    transform: translateX(-102%);
+    transform: translateX(calc(-100% - 24px));
     transition: transform 180ms ease;
   }
 
@@ -2551,7 +2551,7 @@ select.input option {
 
   .sidebar-backdrop {
     position: fixed;
-    inset: 0;
+    inset: 76px 0 0;
     z-index: 25;
     display: block;
     border: 0;
@@ -2572,15 +2572,13 @@ select.input option {
     border-radius: var(--radius);
     background: var(--surface);
     box-shadow: var(--shadow-soft);
-    padding-left: 68px;
   }
 
   .mobile-drawer-button {
+    display: inline-flex;
     flex: 0 0 auto;
-    position: fixed;
-    top: 24px;
-    left: 24px;
-    z-index: 50;
+    position: static;
+    z-index: 1;
   }
 
   .app-logo-mobile {
