@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { navItems } from "@/lib/mock";
 import type { ApiUser } from "@/lib/api";
@@ -21,6 +21,7 @@ type Props = {
 
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
   const pathname = usePathname();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const hasAside = Boolean(aside);
   const visibleNavItems = navItems.filter((item) => {
     if (!user?.role || !("roles" in item)) {
@@ -35,9 +36,46 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
     { label: "System", items: visibleNavItems.filter((item) => item.href === "/admin") },
   ].filter((group) => group.items.length > 0);
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileNavOpen]);
+
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
+    <div className={`app-shell ${mobileNavOpen ? "app-shell-nav-open" : ""}`}>
+      <button
+        type="button"
+        className="mobile-nav-toggle"
+        aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={mobileNavOpen}
+        onClick={() => setMobileNavOpen((current) => !current)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <div
+        className={`sidebar-backdrop ${mobileNavOpen ? "sidebar-backdrop-open" : ""}`}
+        aria-hidden="true"
+        onClick={() => setMobileNavOpen(false)}
+      />
+
+      <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
         <div className="brand-block brand-block--logo">
           <img className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" />
           <div className="brand-subtitle">Flight Logbook System</div>
@@ -54,6 +92,7 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
                     href={item.href}
                     className={`sidebar-link ${pathname === item.href ? "sidebar-link-active" : ""}`}
                     aria-current={pathname === item.href ? "page" : undefined}
+                    onClick={() => setMobileNavOpen(false)}
                   >
                     {item.label}
                   </Link>
