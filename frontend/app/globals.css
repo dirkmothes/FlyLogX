@@ -2582,8 +2582,12 @@ select.input option {
   }
 
   .app-logo-mobile {
-    height: 34px;
-    width: 34px;
+    display: block;
+    flex: 0 0 auto;
+    width: clamp(112px, 32vw, 150px);
+    height: 36px;
+    object-fit: contain;
+    object-position: left center;
   }
 
   .mobile-toolbar-title {
