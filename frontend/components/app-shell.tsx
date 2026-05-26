@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { navItems } from "@/lib/mock";
 import type { ApiUser } from "@/lib/api";
@@ -21,6 +21,7 @@ type Props = {
 
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
   const pathname = usePathname();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const hasAside = Boolean(aside);
   const visibleNavItems = navItems.filter((item) => {
     if (!user?.role || !("roles" in item)) {
@@ -35,9 +36,36 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
     { label: "System", items: visibleNavItems.filter((item) => item.href === "/admin") },
   ].filter((group) => group.items.length > 0);
 
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      document.body.classList.remove("drawer-open");
+      return;
+    }
+
+    document.body.classList.add("drawer-open");
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.classList.remove("drawer-open");
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileNavOpen]);
+
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
+    <div className={`app-shell ${mobileNavOpen ? "mobile-sidebar-open" : ""}`}>
+      {mobileNavOpen ? <button type="button" className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)} /> : null}
+
+      <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
         <div className="brand-block brand-block--logo">
           <img className="brand-logo" src="/fly-icon.png" alt="FlyLogX Logo" />
           <div className="brand-subtitle">Flight Logbook System</div>
@@ -90,6 +118,32 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
       </aside>
 
       <div className="main-column">
+        <div className="mobile-toolbar">
+          <button
+            type="button"
+            className="topbar-icon-button topbar-icon-button-secondary mobile-drawer-button"
+            aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((current) => !current)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M4 7h16M4 12h16M4 17h16"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.8"
+              />
+            </svg>
+          </button>
+          <img className="app-logo app-logo-mobile" src="/fly-icon.png" alt="FlyLogX Logo" />
+          <div className="mobile-toolbar-title">
+            <p>FlyLogX</p>
+            <strong>{title}</strong>
+          </div>
+        </div>
+
         <section className="page-heading">
           <div>
             <div className="breadcrumbs">

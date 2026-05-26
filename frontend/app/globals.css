@@ -378,6 +378,14 @@ p {
   gap: 20px;
 }
 
+.sidebar-backdrop {
+  display: none;
+}
+
+.mobile-toolbar {
+  display: none;
+}
+
 .sidebar {
   position: sticky;
   top: 16px;
@@ -2506,70 +2514,90 @@ select.input option {
 }
 
 @media (max-width: 780px) {
+  body.drawer-open {
+    overflow: hidden;
+  }
+
   .app-shell {
-    padding: 8px;
+    min-height: 100vh;
+    padding: 92px 12px 12px;
   }
 
-  .login-card,
-  .login-hero {
-    padding: 18px;
+  .sidebar {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+    width: min(calc(100vw - 64px), 430px);
+    height: calc(100vh - 88px);
+    overflow: auto;
+    padding: 14px 20px 28px 16px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow);
+    transform: translateX(-102%);
+    transition: transform 180ms ease;
   }
 
-  .topbar,
-  .page-heading {
-    align-items: stretch;
-    flex-direction: column;
+  .sidebar-open {
+    transform: translateX(0);
   }
 
-  .grid-2,
-  .grid-3,
-  .grid-4,
-  .field-grid,
-  .right-rail,
-  .admin-hero-badges,
-  .admin-item-form,
-  .admin-form-grid,
-  .admin-dialog-grid,
-  .admin-directory-sidebar,
-  .admin-directory-sidebar-stack,
-  .admin-command-actions,
-  .admin-user-row,
-  .admin-unit-row,
-  .admin-org-row,
-  .admin-user-toolbar {
-    grid-template-columns: 1fr;
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    border: 0;
+    background: rgba(15, 23, 34, 0.34);
   }
 
-  .topbar {
-    flex-direction: column;
+  .mobile-toolbar {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-soft);
   }
 
-  .admin-item-head,
-  .entity-actions,
-  .admin-status-stack {
-    justify-items: start;
-    justify-content: flex-start;
+  .mobile-drawer-button {
+    flex: 0 0 auto;
   }
 
-  .admin-tabs {
-    gap: 10px;
+  .app-logo-mobile {
+    height: 34px;
+    width: 34px;
   }
 
-  .admin-tab {
-    min-width: 100%;
+  .mobile-toolbar-title {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
   }
 
-  .admin-table-head {
-    display: none;
+  .mobile-toolbar-title p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  .admin-table-row {
-    align-items: start;
-    gap: 11px;
-  }
-
-  .admin-row-actions {
-    justify-content: flex-start;
+  .mobile-toolbar-title strong {
+    overflow: hidden;
+    color: var(--text);
+    font-size: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .admin-dialog-backdrop {
