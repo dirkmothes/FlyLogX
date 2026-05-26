@@ -1055,12 +1055,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       <p>The password can later be changed with the Reset password action in the user list.</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="account-note-box">
-                    <span>Password</span>
-                    <p>Use Reset password in the user list to set a new password for this user.</p>
-                  </div>
-                )}
+                ) : null}
                 {viewerRole === "admin" && userForm.role === "supervisor" ? (
                   <div className="field">
                     <span>Supervised organizations</span>
