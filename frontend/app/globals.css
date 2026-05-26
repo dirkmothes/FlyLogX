@@ -2582,10 +2582,6 @@ select.input option {
     flex: 0 0 auto;
   }
 
-  .mobile-sidebar-open .mobile-drawer-button {
-    display: none;
-  }
-
   .app-logo-mobile {
     height: 34px;
     width: 34px;
