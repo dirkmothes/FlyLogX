@@ -81,7 +81,6 @@ export function FlightDraftDialog({ organizationId, unitId, pilotId, aircraft }:
               <div>
                 <span className="admin-mini-badge">New flight entry</span>
                 <h3 id="flight-draft-dialog-title">Create new draft</h3>
-                <p>Enter the flight record in a focused popup.</p>
               </div>
               <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
                 ×
