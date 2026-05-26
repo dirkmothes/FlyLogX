@@ -46,7 +46,6 @@ export default async function FlightsPage() {
         <div className="panel-header">
           <div>
             <h2>Status overview</h2>
-            <p>Workflow for draft, submission, review, and approval</p>
           </div>
         </div>
         <div className="panel-body grid-4">
@@ -71,7 +70,6 @@ export default async function FlightsPage() {
 
       <DataTable
         title="Digital flight records"
-        subtitle="Table view with status and mission data"
         rows={rows}
         columns={[
           { header: "Date", render: (row) => row.date },
