@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import { API_BASE_URL, type ApiAircraft, type FlightCategory } from "@/lib/api";
 
@@ -9,6 +10,7 @@ type Props = {
   unitId: string;
   pilotId: string;
   aircraft: ApiAircraft[];
+  onSuccess?: () => void;
 };
 
 const categories: Array<{ value: FlightCategory; label: string }> = [
@@ -19,7 +21,8 @@ const categories: Array<{ value: FlightCategory; label: string }> = [
   { value: "A Flights", label: "A Flights" },
 ];
 
-export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: Props) {
+export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onSuccess }: Props) {
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -76,7 +79,8 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft }: P
       }
 
       setMessage("Draft saved and shown in the logbook.");
-      window.location.reload();
+      onSuccess?.();
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not create the entry.");
     } finally {

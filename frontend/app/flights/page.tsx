@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/app-shell";
 import { DataTable } from "@/components/data-table";
-import { FlightDraftForm } from "@/components/flight-draft-form";
+import { FlightDraftDialog } from "@/components/flight-draft-dialog";
 import { StatusPill } from "@/components/status-pill";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
 import { loadSession } from "@/lib/session";
@@ -34,50 +34,13 @@ export default async function FlightsPage() {
       title="Flight logbook and records"
       breadcrumbs={["FlyLogX", "Module", "Flights"]}
       user={session.user}
-      aside={
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <h2>Filters</h2>
-              <p>Search and sorting</p>
-            </div>
-          </div>
-          <div className="panel-body section-stack">
-            <div className="filters-row">
-              <span className="filter-chip">Period</span>
-              <span className="filter-chip">Pilot</span>
-              <span className="filter-chip">Aircraft</span>
-              <span className="filter-chip">Status</span>
-              <span className="filter-chip">Flight type</span>
-              <span className="filter-chip">Unit</span>
-            </div>
-            <div className="mini-card">
-              <h3>Review rules</h3>
-              <p>Reviewed entries are locked and can only be adjusted through change requests.</p>
-            </div>
-            <div className="mini-card">
-              <h3>Export</h3>
-              <p>PDF, CSV, and Excel output are prepared for official records.</p>
-            </div>
-          </div>
-        </section>
-      }
     >
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Create new draft</h2>
-          </div>
-        </div>
-        <div className="panel-body">
-          <FlightDraftForm
-            organizationId={session.user.organization_id}
-            unitId={session.user.unit_id ?? session.user.organization_id}
-            pilotId={session.user.id}
-            aircraft={aircraft.filter((item) => item.organization_id === session.user.organization_id)}
-          />
-        </div>
-      </section>
+      <FlightDraftDialog
+        organizationId={session.user.organization_id}
+        unitId={session.user.unit_id ?? session.user.organization_id}
+        pilotId={session.user.id}
+        aircraft={aircraft.filter((item) => item.organization_id === session.user.organization_id)}
+      />
 
       <section className="panel">
         <div className="panel-header">
