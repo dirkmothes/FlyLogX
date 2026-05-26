@@ -22,7 +22,6 @@ type Props = {
 export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, user }: Props) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const hasAside = Boolean(aside);
   const visibleNavItems = navItems.filter((item) => {
     if (!user?.role || !("roles" in item)) {
       return true;
@@ -161,9 +160,11 @@ export function AppShell({ title, subtitle, breadcrumbs = [], children, aside, u
           </div>
         </section>
 
-        <main className={`content-grid ${hasAside ? "" : "content-grid--full"}`}>
-          <div className="content-flow">{children}</div>
-          {aside ? <aside className="right-rail">{aside}</aside> : null}
+        <main className="content-grid">
+          <div className="content-flow">
+            {children}
+            {aside}
+          </div>
         </main>
       </div>
     </div>

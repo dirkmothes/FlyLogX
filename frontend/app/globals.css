@@ -695,25 +695,15 @@ p {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 312px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   min-width: 0;
-}
-
-.content-grid--full {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .content-flow {
   display: grid;
   gap: 20px;
   min-width: 0;
-}
-
-.right-rail {
-  display: grid;
-  gap: 20px;
-  align-content: start;
 }
 
 .grid-2 {
@@ -2458,10 +2448,6 @@ select.input option {
 @media (max-width: 1480px) {
   .content-grid {
     grid-template-columns: 1fr;
-  }
-
-  .right-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
