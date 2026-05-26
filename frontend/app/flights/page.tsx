@@ -32,7 +32,6 @@ export default async function FlightsPage() {
   return (
     <AppShell
       title="Flight logbook and records"
-      subtitle="Tabular view inspired by a classic flight logbook."
       breadcrumbs={["FlyLogX", "Module", "Flights"]}
       user={session.user}
       aside={
