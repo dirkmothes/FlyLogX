@@ -26,12 +26,12 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    aircraft_id: aircraft[0]?.id ?? "",
-    category: "U Flights" as FlightCategory,
-    flight_type: "Reconnaissance Flight",
-    date: new Date().toISOString().slice(0, 10),
-    duration_minutes: 45,
-    location: "Training Area North",
+    aircraft_id: "",
+    category: "" as FlightCategory | "",
+    flight_type: "",
+    date: "",
+    duration_minutes: "",
+    location: "",
   });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -39,6 +39,27 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
     const aircraftItem = aircraft.find((item) => item.id === form.aircraft_id);
     if (!aircraftItem) {
       setMessage("Please select an aircraft.");
+      return;
+    }
+    if (!form.category) {
+      setMessage("Please select a category.");
+      return;
+    }
+    if (!form.flight_type.trim()) {
+      setMessage("Please enter a flight type / task.");
+      return;
+    }
+    if (!form.date) {
+      setMessage("Please select a date.");
+      return;
+    }
+    const durationMinutes = Number(form.duration_minutes);
+    if (!Number.isFinite(durationMinutes) || durationMinutes < 1) {
+      setMessage("Please enter a valid duration.");
+      return;
+    }
+    if (!form.location.trim()) {
+      setMessage("Please enter a location.");
       return;
     }
 
@@ -58,11 +79,11 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           pilot_id: pilotId,
           aircraft_id: aircraftItem.id,
           aircraft_identifier: aircraftItem.identifier,
-          category: form.category,
+          category: form.category as FlightCategory,
           flight_type: form.flight_type,
           date: form.date,
           flight_count: 1,
-          duration_minutes: form.duration_minutes,
+          duration_minutes: durationMinutes,
           day_flight: true,
           night_flight: false,
           location: form.location,
@@ -94,6 +115,9 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
             value={form.aircraft_id}
             onChange={(event) => setForm((current) => ({ ...current, aircraft_id: event.target.value }))}
           >
+            <option value="" disabled>
+              Select aircraft
+            </option>
             {aircraft.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.identifier} · {item.name}
@@ -107,6 +131,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
             className="input"
             value={form.flight_type}
             onChange={(event) => setForm((current) => ({ ...current, flight_type: event.target.value }))}
+            placeholder="Enter flight type / task"
           />
         </label>
         <label className="field">
@@ -123,8 +148,11 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           <select
             className="input"
             value={form.category}
-            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as FlightCategory }))}
+            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as FlightCategory | "" }))}
           >
+            <option value="" disabled>
+              Select category
+            </option>
             {categories.map((category) => (
               <option key={category.value} value={category.value}>
                 {category.label}
@@ -139,7 +167,8 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
             type="number"
             min={1}
             value={form.duration_minutes}
-            onChange={(event) => setForm((current) => ({ ...current, duration_minutes: Number(event.target.value) }))}
+            onChange={(event) => setForm((current) => ({ ...current, duration_minutes: event.target.value }))}
+            placeholder="Enter duration in minutes"
           />
         </label>
         <label className="field">
@@ -148,6 +177,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
             className="input"
             value={form.location}
             onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
+            placeholder="Enter location"
           />
         </label>
       </div>
