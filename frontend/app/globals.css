@@ -1674,9 +1674,34 @@ select.input option {
 }
 
 .admin-search-field {
+  position: relative;
   display: grid;
   gap: 6px;
   min-width: 0;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.admin-search-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.admin-search-field .input {
+  padding-left: 40px;
 }
 
 .admin-search-field span,

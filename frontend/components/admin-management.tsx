@@ -623,7 +623,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
           {activeTab === "users" ? (
             <div className="admin-user-toolbar">
-              <label className="admin-search-field">
+              <label className="admin-search-field" aria-label="Search users">
+                <span className="admin-search-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M10.5 4.5a6 6 0 1 0 3.73 10.69l4.54 4.54 1.41-1.41-4.54-4.54A6 6 0 0 0 10.5 4.5Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" />
+                  </svg>
+                </span>
                 <input
                   className="input"
                   value={userSearch}
