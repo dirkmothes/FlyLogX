@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { DropdownSelect } from "@/components/dropdown-select";
 import { API_BASE_URL, type ApiAircraft, type ApiFlight, type FlightCategory } from "@/lib/api";
 
 type Props = {
@@ -147,20 +148,15 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
       <div className="field-grid">
         <label className="field">
           <span>Aircraft</span>
-          <select
-            className="input"
+          <DropdownSelect
             value={form.aircraft_id}
-            onChange={(event) => setForm((current) => ({ ...current, aircraft_id: event.target.value }))}
-          >
-            <option value="" disabled>
-              Select aircraft
-            </option>
-            {aircraft.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.identifier} · {item.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Select aircraft"
+            options={aircraft.map((item) => ({
+              value: item.id,
+              label: `${item.identifier} · ${item.name}`,
+            }))}
+            onChange={(value) => setForm((current) => ({ ...current, aircraft_id: value }))}
+          />
         </label>
         <label className="field">
           <span>FLIGHT TYP / TASK / Description</span>
@@ -182,20 +178,12 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
         </label>
         <label className="field">
           <span>Category</span>
-          <select
-            className="input"
+          <DropdownSelect
             value={form.category}
-            onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as FlightCategory | "" }))}
-          >
-            <option value="" disabled>
-              Select category
-            </option>
-            {categories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+            placeholder="Select category"
+            options={categories.map((category) => ({ value: category.value, label: category.label }))}
+            onChange={(value) => setForm((current) => ({ ...current, category: value as FlightCategory | "" }))}
+          />
         </label>
         <label className="field">
           <span>Flight duration (min)</span>

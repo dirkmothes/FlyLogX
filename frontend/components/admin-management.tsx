@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { DropdownSelect } from "@/components/dropdown-select";
 import { API_BASE_URL, type ApiOrganization, type ApiUnit, type ApiUser, type RoleName } from "@/lib/api";
 
 type Props = {
@@ -877,20 +878,17 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 </label>
                 <label className="field">
                   <span>Parent organization</span>
-                  <select
-                    className="input"
+                  <DropdownSelect
                     value={organizationForm.parent_id}
-                    onChange={(event) => setOrganizationForm((current) => ({ ...current, parent_id: event.target.value }))}
-                  >
-                    <option value="">None</option>
-                    {organizations
-                      .filter((organization) => organization.id !== dialog.id)
-                      .map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                        {organization.name}
-                      </option>
-                      ))}
-                    </select>
+                    placeholder="None"
+                    options={[
+                      { value: "", label: "None" },
+                      ...organizations
+                        .filter((organization) => organization.id !== dialog.id)
+                        .map((organization) => ({ value: organization.id, label: organization.name })),
+                    ]}
+                    onChange={(value) => setOrganizationForm((current) => ({ ...current, parent_id: value }))}
+                  />
                 </label>
                 <DialogActions
                   busy={busy === "organization-save"}
@@ -904,17 +902,12 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
                 <label className="field">
                   <span>Organization</span>
-                  <select
-                    className="input"
+                  <DropdownSelect
                     value={unitForm.organization_id}
-                    onChange={(event) => setUnitForm((current) => ({ ...current, organization_id: event.target.value }))}
-                  >
-                    {organizations.map((organization) => (
-                      <option key={organization.id} value={organization.id}>
-                        {organization.name}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Select organization"
+                    options={organizations.map((organization) => ({ value: organization.id, label: organization.name }))}
+                    onChange={(value) => setUnitForm((current) => ({ ...current, organization_id: value }))}
+                  />
                 </label>
                 <div className="admin-dialog-grid">
                   <label className="field">
@@ -972,11 +965,11 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                 <div className="admin-dialog-grid">
                   <label className="field">
                     <span>Organization</span>
-                    <select
-                      className="input"
+                    <DropdownSelect
                       value={userForm.organization_id}
-                      onChange={(event) => {
-                        const organization_id = event.target.value;
+                      placeholder="Select organization"
+                      options={organizations.map((organization) => ({ value: organization.id, label: organization.name }))}
+                      onChange={(organization_id) => {
                         const firstUnit = units.find((unit) => unit.organization_id === organization_id);
                         setUserForm((current) => ({
                           ...current,
@@ -992,37 +985,37 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                               : [],
                         }));
                       }}
-                    >
-                      {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                          {organization.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </label>
                   <label className="field">
                     <span>Unit</span>
-                    <select className="input" value={userForm.unit_id} onChange={(event) => setUserForm((current) => ({ ...current, unit_id: event.target.value }))}>
-                      <option value="">No unit</option>
-                      {units
-                        .filter((unit) => unit.organization_id === userForm.organization_id)
-                        .map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.name}
-                          </option>
-                        ))}
-                    </select>
+                    <DropdownSelect
+                      value={userForm.unit_id}
+                      placeholder="No unit"
+                      options={[
+                        { value: "", label: "No unit" },
+                        ...units
+                          .filter((unit) => unit.organization_id === userForm.organization_id)
+                          .map((unit) => ({ value: unit.id, label: unit.name })),
+                      ]}
+                      onChange={(value) => setUserForm((current) => ({ ...current, unit_id: value }))}
+                    />
                   </label>
                 </div>
                 <div className="admin-dialog-grid">
                   <label className="field">
                     <span>Role</span>
-                    <select
-                      className="input"
+                    <DropdownSelect
                       value={userForm.role}
-                      onChange={(event) =>
+                      placeholder="Select role"
+                      options={[
+                        { value: "pilot", label: "Pilot" },
+                        { value: "supervisor", label: "Supervisor" },
+                        ...(viewerRole === "admin" ? [{ value: "admin", label: "Admin" }] : []),
+                      ]}
+                      onChange={(value) =>
                         setUserForm((current) => {
-                          const role = event.target.value as RoleName;
+                          const role = value as RoleName;
                           return {
                             ...current,
                             role,
@@ -1037,11 +1030,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                           };
                         })
                       }
-                    >
-                      <option value="pilot">Pilot</option>
-                      <option value="supervisor">Supervisor</option>
-                      {viewerRole === "admin" ? <option value="admin">Admin</option> : null}
-                    </select>
+                    />
                   </label>
                 </div>
                 {dialog.mode === "create" ? (

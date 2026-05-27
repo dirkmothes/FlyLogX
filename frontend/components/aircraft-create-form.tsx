@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { DropdownSelect } from "@/components/dropdown-select";
 import type { ApiAircraft, ApiUnit, AircraftStatus } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -138,18 +139,12 @@ export function AircraftCreateForm({ organizationId, units, mode = "create", air
       <div className="field-grid">
         <label className="field">
           <span>Unit</span>
-          <select
-            className="input"
+          <DropdownSelect
             value={form.owner_unit_id}
-            onChange={(event) => setForm((current) => ({ ...current, owner_unit_id: event.target.value }))}
-          >
-            <option value="">Select unit (optional)</option>
-            {units.map((unit) => (
-              <option key={unit.id} value={unit.id}>
-                {unit.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Select unit (optional)"
+            options={[{ value: "", label: "Select unit (optional)" }, ...units.map((unit) => ({ value: unit.id, label: unit.name }))]}
+            onChange={(value) => setForm((current) => ({ ...current, owner_unit_id: value }))}
+          />
         </label>
         <label className="field">
           <span>Name</span>
@@ -169,17 +164,12 @@ export function AircraftCreateForm({ organizationId, units, mode = "create", air
         </label>
         <label className="field">
           <span>Status</span>
-          <select
-            className="input"
+          <DropdownSelect
             value={form.status}
-            onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as AircraftStatus }))}
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+            placeholder="Select status"
+            options={statuses.map((status) => ({ value: status, label: status }))}
+            onChange={(value) => setForm((current) => ({ ...current, status: value as AircraftStatus }))}
+          />
         </label>
       </div>
       {message ? <div className="form-note">{message}</div> : null}

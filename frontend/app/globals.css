@@ -1116,6 +1116,103 @@ select.input {
   border-radius: var(--radius);
 }
 
+.dropdown-select {
+  position: relative;
+  min-width: 0;
+}
+
+.dropdown-select-trigger {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding-inline: 14px 12px;
+}
+
+.dropdown-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-select-placeholder {
+  color: var(--muted);
+}
+
+.dropdown-select-caret {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.dropdown-select-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.dropdown-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-select-option:hover {
+  background: rgba(47, 110, 166, 0.08);
+  border-color: rgba(47, 110, 166, 0.12);
+}
+
+.dropdown-select-option-active {
+  background: rgba(47, 110, 166, 0.12);
+  border-color: rgba(47, 110, 166, 0.18);
+  color: var(--blue);
+}
+
+.dropdown-select-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+:root[data-theme="dark"] .dropdown-select-menu {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .dropdown-select-option:hover {
+  background: rgba(93, 163, 226, 0.08);
+  border-color: rgba(93, 163, 226, 0.16);
+}
+
+:root[data-theme="dark"] .dropdown-select-option-active {
+  background: rgba(93, 163, 226, 0.16);
+  border-color: rgba(93, 163, 226, 0.24);
+  color: #d5ebff;
+}
+
 select.input:focus {
   background-color: var(--surface) !important;
 }

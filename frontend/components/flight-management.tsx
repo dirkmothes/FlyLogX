@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { FlightDeleteDialog } from "@/components/flight-delete-dialog";
 import { FlightDraftDialog } from "@/components/flight-draft-dialog";
+import { DropdownSelect } from "@/components/dropdown-select";
 import { DataTable } from "@/components/data-table";
 import { StatusPill } from "@/components/status-pill";
 import { API_BASE_URL, type ApiAircraft, type ApiFlight, type RoleName } from "@/lib/api";
@@ -307,31 +308,42 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         actions={
           <div className="flight-table-filters">
             {viewerRole === "supervisor" || viewerRole === "admin" ? (
-              <select className="input flight-filter-select" value={pilotFilter} onChange={(event) => setPilotFilter(event.target.value)}>
-                <option value="all">All pilots</option>
-                {pilotOptions.map((pilot) => (
-                  <option key={pilot.id} value={pilot.id}>
-                    {pilot.label}
-                  </option>
-                ))}
-              </select>
+              <DropdownSelect
+                className="flight-filter-select"
+                value={pilotFilter}
+                placeholder="All pilots"
+                options={[{ value: "all", label: "All pilots" }, ...pilotOptions.map((pilot) => ({ value: pilot.id, label: pilot.label }))]}
+                onChange={setPilotFilter}
+              />
             ) : null}
-            <select className="input flight-filter-select" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-              <option value="all">All categories</option>
-              <option value="U Flights">U Flights</option>
-              <option value="S Flights">S Flights</option>
-              <option value="E-H Flights">E-H Flights</option>
-              <option value="T Flights">T Flights</option>
-              <option value="A Flights">A Flights</option>
-            </select>
-            <select className="input flight-filter-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="all">All states</option>
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="reviewed">Reviewed</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <DropdownSelect
+              className="flight-filter-select"
+              value={categoryFilter}
+              placeholder="All categories"
+              options={[
+                { value: "all", label: "All categories" },
+                { value: "U Flights", label: "U Flights" },
+                { value: "S Flights", label: "S Flights" },
+                { value: "E-H Flights", label: "E-H Flights" },
+                { value: "T Flights", label: "T Flights" },
+                { value: "A Flights", label: "A Flights" },
+              ]}
+              onChange={setCategoryFilter}
+            />
+            <DropdownSelect
+              className="flight-filter-select"
+              value={statusFilter}
+              placeholder="All states"
+              options={[
+                { value: "all", label: "All states" },
+                { value: "draft", label: "Draft" },
+                { value: "submitted", label: "Submitted" },
+                { value: "reviewed", label: "Reviewed" },
+                { value: "approved", label: "Approved" },
+                { value: "rejected", label: "Rejected" },
+              ]}
+              onChange={setStatusFilter}
+            />
             <button
               type="button"
               className="button button-secondary flight-filter-reset"
