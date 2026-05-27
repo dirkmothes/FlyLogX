@@ -1894,6 +1894,80 @@ select.input option {
   border-color: rgba(67, 185, 120, 0.3);
 }
 
+.flight-action-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.flight-action-menu-trigger {
+  width: 40px;
+  height: 40px;
+}
+
+.flight-action-menu-trigger svg {
+  width: 18px;
+  height: 18px;
+}
+
+.flight-action-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 12;
+  min-width: 156px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+}
+
+.flight-action-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.flight-action-menu-item:hover {
+  background: var(--surface-2);
+}
+
+.flight-action-menu-item-edit {
+  color: var(--blue);
+}
+
+.flight-action-menu-item-submit {
+  color: var(--green);
+}
+
+.flight-action-menu-item-danger {
+  color: var(--red);
+}
+
+:root[data-theme="dark"] .flight-action-menu-panel {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .flight-action-menu-item:hover {
+  background: var(--surface-2);
+}
+
 .admin-record-meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1971,6 +2045,15 @@ select.input option {
 .admin-table-row {
   min-height: 76px;
   border-top: 1px solid var(--line);
+}
+
+.table-actions {
+  text-align: right;
+}
+
+.table-actions .flight-action-menu {
+  width: 100%;
+  justify-content: flex-end;
 }
 
 .admin-table-row:hover {
