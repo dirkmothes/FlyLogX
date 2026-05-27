@@ -4,7 +4,7 @@ import { FlightDraftDialog } from "@/components/flight-draft-dialog";
 import { StatusPill } from "@/components/status-pill";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
 import { loadSession } from "@/lib/session";
-import { aircraftStatusLabel, aircraftStatusTone, flightStatusTone, mapFlightRows } from "@/lib/view-model";
+import { flightStatusTone, mapFlightRows } from "@/lib/view-model";
 
 export const dynamic = "force-dynamic";
 
@@ -84,29 +84,6 @@ export default async function FlightsPage() {
         ]}
       />
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Aircraft overview</h2>
-            <p>Active systems in the central registry</p>
-          </div>
-        </div>
-        <div className="panel-body section-stack">
-          {aircraft.map((item) => (
-            <div className="workflow-step" key={item.id}>
-              <div className="bar-row-head">
-                <strong>
-                  {item.identifier} · {item.name}
-                </strong>
-                <StatusPill tone={aircraftStatusTone(item.status)}>{aircraftStatusLabel(item.status)}</StatusPill>
-              </div>
-              <span>
-                {item.manufacturer} · {item.model} · {item.operating_hours.toFixed(1)} h
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
     </AppShell>
   );
 }
