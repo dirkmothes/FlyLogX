@@ -1113,6 +1113,7 @@ select.input {
   background-repeat: no-repeat;
   color: var(--text);
   line-height: 1.2;
+  border-radius: var(--radius);
 }
 
 select.input:focus {
@@ -2834,7 +2835,7 @@ select.input,
   -moz-appearance: none !important;
   appearance: none !important;
   min-height: 46px;
-  border-radius: 12px !important;
+  border-radius: var(--radius) !important;
   background-color: var(--surface) !important;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--muted) 50%),
