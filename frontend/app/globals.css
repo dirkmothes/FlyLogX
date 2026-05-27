@@ -2219,6 +2219,16 @@ select.input option {
   white-space: nowrap;
 }
 
+.table-actions-cell {
+  width: 56px;
+  padding-inline: 8px;
+  text-align: center;
+}
+
+.flight-actions-cell .flight-action-menu {
+  margin-inline: auto;
+}
+
 .admin-table-row:hover {
   background: rgba(47, 110, 166, 0.04);
 }

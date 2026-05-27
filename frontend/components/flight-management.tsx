@@ -199,6 +199,11 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     {
       header: "State",
       className: "table-status-cell",
+      render: (row: FlightTableRow) => <StatusPill tone={flightStatusTone(row.rawStatus)}>{row.status}</StatusPill>,
+    },
+    {
+      header: "",
+      className: "table-actions-cell flight-actions-cell",
       render: (row: FlightTableRow) => {
         const flight = flights.find((item) => item.id === row.flightId) ?? null;
         const editable = flight ? canEditFlight(flight) : false;
@@ -207,64 +212,45 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         const deletable = flight ? canDeleteFlight(flight) : false;
         const hasActions = Boolean(editable || submittable || withdrawable || deletable);
 
-        return (
-          <div className="flight-status-actions">
-            <StatusPill tone={flightStatusTone(row.rawStatus)}>{row.status}</StatusPill>
-            {hasActions && flight ? (
-              <div className="flight-action-menu">
-                <button
-                  ref={(node) => {
-                    menuButtonRefs.current[flight.id] = node;
-                  }}
-                  type="button"
-                  className="flight-action-menu-trigger"
-                  aria-label={`Open actions for flight ${row.id}`}
-                  aria-expanded={menuOpenId === flight.id}
-                  onClick={() => {
-                    setMenuOpenId((current) => (current === flight.id ? null : flight.id));
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 5.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
-                  </svg>
-                </button>
-                {menuOpenId === flight.id && menuPosition ? (
-                  <div
-                    className="flight-action-popover"
-                    role="menu"
-                    aria-label={`Actions for flight ${row.id}`}
-                    style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
-                  >
-                    {editable ? (
-                      <>
-                        <button
-                          type="button"
-                          className="flight-action-menu-item flight-action-menu-item-edit"
-                          role="menuitem"
-                          onClick={() => {
-                            setMenuOpenId(null);
-                            setEditTargetId(flight.id);
-                          }}
-                        >
-                          Edit
-                        </button>
-                        {submittable ? (
-                          <button
-                            type="button"
-                            className="flight-action-menu-item flight-action-menu-item-submit"
-                            role="menuitem"
-                            disabled={busyId === flight.id}
-                            onClick={() => {
-                              setMenuOpenId(null);
-                              submitFlight(flight.id);
-                            }}
-                          >
-                            {busyId === flight.id ? "Submitting..." : "Submit"}
-                          </button>
-                        ) : null}
-                      </>
-                    ) : null}
-                    {withdrawable ? (
+        return hasActions && flight ? (
+          <div className="flight-action-menu">
+            <button
+              ref={(node) => {
+                menuButtonRefs.current[flight.id] = node;
+              }}
+              type="button"
+              className="flight-action-menu-trigger"
+              aria-label={`Open actions for flight ${row.id}`}
+              aria-expanded={menuOpenId === flight.id}
+              onClick={() => {
+                setMenuOpenId((current) => (current === flight.id ? null : flight.id));
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
+              </svg>
+            </button>
+            {menuOpenId === flight.id && menuPosition ? (
+              <div
+                className="flight-action-popover"
+                role="menu"
+                aria-label={`Actions for flight ${row.id}`}
+                style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
+              >
+                {editable ? (
+                  <>
+                    <button
+                      type="button"
+                      className="flight-action-menu-item flight-action-menu-item-edit"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        setEditTargetId(flight.id);
+                      }}
+                    >
+                      Edit
+                    </button>
+                    {submittable ? (
                       <button
                         type="button"
                         className="flight-action-menu-item flight-action-menu-item-submit"
@@ -272,31 +258,45 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
                         disabled={busyId === flight.id}
                         onClick={() => {
                           setMenuOpenId(null);
-                          withdrawFlight(flight.id);
+                          submitFlight(flight.id);
                         }}
                       >
-                        {busyId === flight.id ? "Withdrawing..." : "Withdraw"}
+                        {busyId === flight.id ? "Submitting..." : "Submit"}
                       </button>
                     ) : null}
-                    {deletable ? (
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-danger"
-                        role="menuitem"
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          setDeleteTargetId(flight.id);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    ) : null}
-                  </div>
+                  </>
+                ) : null}
+                {withdrawable ? (
+                  <button
+                    type="button"
+                    className="flight-action-menu-item flight-action-menu-item-submit"
+                    role="menuitem"
+                    disabled={busyId === flight.id}
+                    onClick={() => {
+                      setMenuOpenId(null);
+                      withdrawFlight(flight.id);
+                    }}
+                  >
+                    {busyId === flight.id ? "Withdrawing..." : "Withdraw"}
+                  </button>
+                ) : null}
+                {deletable ? (
+                  <button
+                    type="button"
+                    className="flight-action-menu-item flight-action-menu-item-danger"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpenId(null);
+                      setDeleteTargetId(flight.id);
+                    }}
+                  >
+                    Delete
+                  </button>
                 ) : null}
               </div>
             ) : null}
           </div>
-        );
+        ) : null;
       },
     },
   ];
