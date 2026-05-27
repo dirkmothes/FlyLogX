@@ -254,7 +254,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
               <option value="A Flights">A Flights</option>
             </select>
             <select className="input flight-filter-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-              <option value="all">All statuses</option>
+              <option value="all">All states</option>
               <option value="draft">Draft</option>
               <option value="submitted">Submitted</option>
               <option value="reviewed">Reviewed</option>
