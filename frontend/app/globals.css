@@ -2958,6 +2958,45 @@ select.input option {
     font-size: clamp(1.6rem, 5vw, 2rem);
   }
 
+  .login-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    min-height: 100dvh;
+    padding: 20px 16px 28px;
+  }
+
+  .login-hero,
+  .login-card {
+    width: min(100%, 560px);
+  }
+
+  .login-hero {
+    padding: 28px 24px;
+    gap: 18px;
+    border-radius: var(--radius);
+  }
+
+  .login-hero h1 {
+    font-size: clamp(1.9rem, 7vw, 2.6rem);
+  }
+
+  .login-hero p {
+    max-width: none;
+  }
+
+  .login-card {
+    padding: 0;
+    background: transparent;
+  }
+
+  .login-card .form-card {
+    max-width: none;
+    margin-inline: 0;
+  }
+
   .grid-2,
   .grid-3,
   .grid-4,
