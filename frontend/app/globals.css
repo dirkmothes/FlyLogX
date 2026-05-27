@@ -2572,12 +2572,98 @@ select.input option {
     padding-left: 56px;
   }
 
+  .page-heading,
+  .admin-command {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-heading h1 {
+    font-size: clamp(1.6rem, 5vw, 2rem);
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4,
+  .admin-directory {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-directory {
+    gap: 12px;
+  }
+
+  .admin-directory-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .admin-directory-tab {
+    flex: 1 1 180px;
+  }
+
+  .admin-directory-main {
+    min-width: 0;
+  }
+
+  .admin-user-toolbar,
+  .admin-command {
+    width: 100%;
+  }
+
+  .admin-user-toolbar,
+  .admin-dialog-grid,
+  .admin-form-grid,
+  .admin-item-form,
+  .admin-user-form,
+  .admin-record-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-record-top {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-user-record-card .admin-record-top,
+  .admin-entity-record-card .admin-record-top {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-record-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+
+  .admin-user-headline {
+    flex-wrap: wrap;
+  }
+
+  .admin-user-headline strong {
+    white-space: normal;
+  }
+
+  .admin-command-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-record-card {
+    padding: 14px;
+  }
+
   .admin-dialog-backdrop {
     padding: 10px;
   }
 
   .admin-dialog {
     max-height: calc(100vh - 20px);
+  }
+
+  .table {
+    min-width: 760px;
   }
 
   .admin-dialog-actions {
