@@ -50,7 +50,10 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
   const editTarget = flights.find((flight) => flight.id === editTargetId) ?? null;
   const deleteTarget = flights.find((flight) => flight.id === deleteTargetId) ?? null;
-  const canManageDraft = (flight: ApiFlight) => viewerRole === "admin" || flight.pilot_id === currentUserId;
+  const canManageFlight = (flight: ApiFlight) => viewerRole === "admin" || flight.pilot_id === currentUserId;
+  const canEditFlight = (flight: ApiFlight) => canManageFlight(flight) && flight.status === "draft";
+  const canWithdrawFlight = (flight: ApiFlight) => canManageFlight(flight) && flight.status === "submitted";
+  const canDeleteFlight = (flight: ApiFlight) => canManageFlight(flight) && (flight.status === "draft" || flight.status === "approved");
 
   const filteredRows = useMemo(
     () =>
@@ -148,6 +151,29 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     }
   }
 
+  async function withdrawFlight(flightId: string) {
+    setBusyId(flightId);
+    setMessage(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/flights/${flightId}/withdraw`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
+        throw new Error(payload?.detail || "Could not withdraw the entry.");
+      }
+
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not withdraw the entry.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   const columns = [
     { header: "Date", render: (row: FlightTableRow) => row.date },
     { header: "Pilot", render: (row: FlightTableRow) => row.pilot },
@@ -161,12 +187,15 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
       className: "table-status-cell",
       render: (row: FlightTableRow) => {
         const flight = flights.find((item) => item.id === row.flightId) ?? null;
-        const editable = flight ? canManageDraft(flight) && flight.status === "draft" : false;
+        const editable = flight ? canEditFlight(flight) : false;
+        const withdrawable = flight ? canWithdrawFlight(flight) : false;
+        const deletable = flight ? canDeleteFlight(flight) : false;
+        const hasActions = Boolean(editable || withdrawable || deletable);
 
         return (
           <div className="flight-status-actions">
             <StatusPill tone={flightStatusTone(row.rawStatus)}>{row.status}</StatusPill>
-            {editable && flight ? (
+            {hasActions && flight ? (
               <div className="flight-action-menu">
                 <button
                   ref={(node) => {
@@ -174,7 +203,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
                   }}
                   type="button"
                   className="flight-action-menu-trigger"
-                  aria-label={`Open actions for draft ${row.id}`}
+                  aria-label={`Open actions for flight ${row.id}`}
                   aria-expanded={menuOpenId === flight.id}
                   onClick={() => {
                     setMenuOpenId((current) => (current === flight.id ? null : flight.id));
@@ -188,43 +217,63 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
                   <div
                     className="flight-action-popover"
                     role="menu"
-                    aria-label={`Actions for draft ${row.id}`}
+                    aria-label={`Actions for flight ${row.id}`}
                     style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
                   >
-                    <button
-                      type="button"
-                      className="flight-action-menu-item flight-action-menu-item-edit"
-                      role="menuitem"
-                      onClick={() => {
-                        setMenuOpenId(null);
-                        setEditTargetId(flight.id);
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="flight-action-menu-item flight-action-menu-item-submit"
-                      role="menuitem"
-                      disabled={busyId === flight.id}
-                      onClick={() => {
-                        setMenuOpenId(null);
-                        submitFlight(flight.id);
-                      }}
-                    >
-                      {busyId === flight.id ? "Submitting..." : "Submit"}
-                    </button>
-                    <button
-                      type="button"
-                      className="flight-action-menu-item flight-action-menu-item-danger"
-                      role="menuitem"
-                      onClick={() => {
-                        setMenuOpenId(null);
-                        setDeleteTargetId(flight.id);
-                      }}
-                    >
-                      Delete
-                    </button>
+                    {editable ? (
+                      <>
+                        <button
+                          type="button"
+                          className="flight-action-menu-item flight-action-menu-item-edit"
+                          role="menuitem"
+                          onClick={() => {
+                            setMenuOpenId(null);
+                            setEditTargetId(flight.id);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="flight-action-menu-item flight-action-menu-item-submit"
+                          role="menuitem"
+                          disabled={busyId === flight.id}
+                          onClick={() => {
+                            setMenuOpenId(null);
+                            submitFlight(flight.id);
+                          }}
+                        >
+                          {busyId === flight.id ? "Submitting..." : "Submit"}
+                        </button>
+                      </>
+                    ) : null}
+                    {withdrawable ? (
+                      <button
+                        type="button"
+                        className="flight-action-menu-item flight-action-menu-item-submit"
+                        role="menuitem"
+                        disabled={busyId === flight.id}
+                        onClick={() => {
+                          setMenuOpenId(null);
+                          withdrawFlight(flight.id);
+                        }}
+                      >
+                        {busyId === flight.id ? "Withdrawing..." : "Withdraw"}
+                      </button>
+                    ) : null}
+                    {deletable ? (
+                      <button
+                        type="button"
+                        className="flight-action-menu-item flight-action-menu-item-danger"
+                        role="menuitem"
+                        onClick={() => {
+                          setMenuOpenId(null);
+                          setDeleteTargetId(flight.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

@@ -964,7 +964,7 @@ def delete_flight(db: Session, flight_id: str, actor_id: str) -> FlightEntry:
     flight = db.get(FlightModel, flight_id)
     if flight is None or flight.is_deleted:
         raise KeyError("flight_not_found")
-    if flight.status != FlightStatus.draft:
+    if flight.status not in {FlightStatus.draft, FlightStatus.approved}:
         raise KeyError("flight_not_deletable")
 
     before = _flight_to_domain(db, flight).model_dump(mode="json")
@@ -980,6 +980,47 @@ def delete_flight(db: Session, flight_id: str, actor_id: str) -> FlightEntry:
         entity_type="flight_entry",
         entity_id=flight.id,
         action="deleted",
+        actor_id=actor_id,
+        actor_name=db.get(UserModel, actor_id).name,
+        before_state=before,
+        after_state=after,
+    )
+    db.commit()
+    db.refresh(flight)
+    return _flight_to_domain(db, flight)
+
+
+def withdraw_flight(db: Session, flight_id: str, actor_id: str) -> FlightEntry:
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise KeyError("flight_not_found")
+    if flight.status != FlightStatus.submitted:
+        raise KeyError("flight_not_withdrawable")
+
+    before = _flight_to_domain(db, flight).model_dump(mode="json")
+    flight.status = FlightStatus.draft
+    flight.submitted_at = None
+    flight.reviewed_at = None
+    flight.approved_at = None
+    flight.reviewed_by = None
+    flight.approved_by = None
+    flight.rejected_by = None
+    flight.rejection_reason = None
+    flight.change_request = None
+    flight.flight_supervisor_name = None
+    flight.flight_supervisor_id = None
+    flight.flight_supervisor_signature = None
+    flight.updated_at = datetime.now(timezone.utc)
+    flight.updated_by = actor_id
+
+    db.flush()
+    after = _flight_to_domain(db, flight).model_dump(mode="json")
+    append_audit(
+        db,
+        organization_id=flight.organization_id,
+        entity_type="flight_entry",
+        entity_id=flight.id,
+        action="withdrawn",
         actor_id=actor_id,
         actor_name=db.get(UserModel, actor_id).name,
         before_state=before,

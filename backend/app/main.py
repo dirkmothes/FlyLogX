@@ -71,6 +71,7 @@ from .services import (
     unit_in_scope,
     user_in_scope,
     review_flight,
+    withdraw_flight,
     submit_flight,
     update_organization,
     update_aircraft,
@@ -755,8 +756,8 @@ def flight_delete(flight_id: str, user=Depends(get_current_user), db=Depends(get
     if flight is None or flight.is_deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
     if flight.pilot_id != user.id and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own draft flights")
-    if flight.status != FlightStatus.draft:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own flights")
+    if flight.status not in {FlightStatus.draft, FlightStatus.approved}:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer deletable")
     try:
         return delete_flight(db, flight_id, actor_id=user.id)
@@ -767,6 +768,21 @@ def flight_delete(flight_id: str, user=Depends(get_current_user), db=Depends(get
         if detail == "flight_not_deletable":
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer deletable")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Flight could not be deleted")
+
+
+@app.post("/api/flights/{flight_id}/withdraw")
+def flight_withdraw(flight_id: str, user=Depends(get_current_user), db=Depends(get_session)):
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+    if user.id != flight.pilot_id and user.role != RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only withdraw your own flights")
+    if flight.status != FlightStatus.submitted:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer withdrawable")
+    try:
+        return withdraw_flight(db, flight_id, user.id)
+    except KeyError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
 
 
 @app.post("/api/flights/{flight_id}/submit")

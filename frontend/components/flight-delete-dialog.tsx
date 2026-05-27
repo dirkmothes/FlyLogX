@@ -54,13 +54,13 @@ export function FlightDeleteDialog({ flight, open, onOpenChange }: Props) {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Could not delete the draft.");
+        throw new Error(payload?.detail || "Could not delete the entry.");
       }
 
       onOpenChange(false);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not delete the draft.");
+      setMessage(error instanceof Error ? error.message : "Could not delete the entry.");
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function FlightDeleteDialog({ flight, open, onOpenChange }: Props) {
       <section className="admin-dialog admin-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="flight-delete-dialog-title">
         <div className="admin-dialog-header admin-confirm-header">
           <div>
-            <span className="admin-mini-badge admin-danger-chip">Delete draft</span>
+            <span className="admin-mini-badge admin-danger-chip">Delete entry</span>
             <h3 id="flight-delete-dialog-title">Delete permanently</h3>
           </div>
           <button type="button" className="admin-close-button" onClick={() => onOpenChange(false)} aria-label="Close dialog">
@@ -90,7 +90,7 @@ export function FlightDeleteDialog({ flight, open, onOpenChange }: Props) {
           <p>
             {flight.flight_number || flight.id} · {flight.flight_type}
           </p>
-          <p>This draft will be moved to the deleted state and removed from the working list.</p>
+          <p>This entry will be moved to the deleted state and removed from the working list.</p>
         </div>
         {message ? <div className="form-note admin-dialog-message">{message}</div> : null}
         <div className="admin-dialog-actions">
@@ -98,7 +98,7 @@ export function FlightDeleteDialog({ flight, open, onOpenChange }: Props) {
             Cancel
           </button>
           <button type="button" className="button button-danger" onClick={handleDelete} disabled={loading}>
-            {loading ? "Deleting..." : "Delete draft"}
+            {loading ? "Deleting..." : "Delete entry"}
           </button>
         </div>
       </section>
