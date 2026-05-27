@@ -73,7 +73,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
       return;
     }
     if (!form.flight_type.trim()) {
-      setMessage("Please enter a flight type / task.");
+      setMessage("Please enter a flight type / task / description.");
       return;
     }
     if (!form.date) {
@@ -163,12 +163,12 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
           </select>
         </label>
         <label className="field">
-          <span>FLIGHT TYP / TASK</span>
+          <span>FLIGHT TYP / TASK / Description</span>
           <input
             className="input"
             value={form.flight_type}
             onChange={(event) => setForm((current) => ({ ...current, flight_type: event.target.value }))}
-            placeholder="Enter flight type / task"
+            placeholder="Enter flight type / task / description"
           />
         </label>
         <label className="field">
