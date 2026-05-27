@@ -654,7 +654,9 @@ def aircraft(user=Depends(get_current_user), db=Depends(get_session)):
 
 
 @app.post("/api/aircraft")
-def create_aircraft_endpoint(payload: AircraftCreateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def create_aircraft_endpoint(payload: AircraftCreateRequest, user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    if user.role == RoleName.supervisor and payload.organization_id != user.organization_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only create aircraft in your own organization")
     organization = db.get(OrganizationModel, payload.organization_id)
     if organization is None or organization.is_deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")

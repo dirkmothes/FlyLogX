@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function AircraftManagement({ viewerRole, organizationId, units, aircraft }: Props) {
+  const canCreateAircraft = viewerRole === "admin" || viewerRole === "supervisor";
   const canManageAircraft = viewerRole === "admin";
   const rows = useMemo(() => mapAircraftRows(aircraft), [aircraft]);
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export function AircraftManagement({ viewerRole, organizationId, units, aircraft
 
   return (
     <>
-      {canManageAircraft ? <AircraftCreateDialog organizationId={organizationId} units={units} /> : null}
+      {canCreateAircraft ? <AircraftCreateDialog organizationId={organizationId} units={units} /> : null}
 
       <DataTable
         title="Aircraft master data"

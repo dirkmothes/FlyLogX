@@ -18,7 +18,7 @@ export default async function AircraftPage() {
   });
 
   const units =
-    session.user.role === "admin"
+    session.user.role === "admin" || session.user.role === "supervisor"
       ? await apiFetch<ApiUnit[]>("/api/units", {
           headers: {
             ...getAuthHeader(session.token),
