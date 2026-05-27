@@ -11,18 +11,20 @@ export default async function AircraftPage() {
     return null;
   }
 
-  const [aircraft, units] = await Promise.all([
-    apiFetch<ApiAircraft[]>("/api/aircraft", {
-      headers: {
-        ...getAuthHeader(session.token),
-      },
-    }),
-    apiFetch<ApiUnit[]>("/api/units", {
-      headers: {
-        ...getAuthHeader(session.token),
-      },
-    }),
-  ]);
+  const aircraft = await apiFetch<ApiAircraft[]>("/api/aircraft", {
+    headers: {
+      ...getAuthHeader(session.token),
+    },
+  });
+
+  const units =
+    session.user.role === "admin"
+      ? await apiFetch<ApiUnit[]>("/api/units", {
+          headers: {
+            ...getAuthHeader(session.token),
+          },
+        })
+      : [];
 
   return (
     <AppShell
