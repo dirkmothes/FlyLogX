@@ -1901,6 +1901,13 @@ select.input option {
   justify-content: flex-end;
 }
 
+.flight-status-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .flight-action-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -2061,6 +2068,10 @@ select.input option {
 
 .table-actions {
   text-align: right;
+  white-space: nowrap;
+}
+
+.table-status-cell {
   white-space: nowrap;
 }
 

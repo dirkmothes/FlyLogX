@@ -138,86 +138,83 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     { header: "Mission type", render: (row: FlightTableRow) => row.type },
     { header: "Day", render: (row: FlightTableRow) => row.day },
     { header: "Night", render: (row: FlightTableRow) => row.night },
-    { header: "Status", render: (row: FlightTableRow) => <StatusPill tone={flightStatusTone(row.rawStatus)}>{row.status}</StatusPill> },
-    ...(rows.some((row) => row.rawStatus === "draft" && (viewerRole === "admin" || row.pilotId === currentUserId))
-      ? [
-          {
-            header: "Actions",
-            className: "table-actions",
-            render: (row: FlightTableRow) => {
-              const flight = flights.find((item) => item.id === row.flightId) ?? null;
-              const editable = flight ? canManageDraft(flight) && flight.status === "draft" : false;
-              if (!editable || !flight) {
-                return null;
-              }
+    {
+      header: "Status",
+      className: "table-status-cell",
+      render: (row: FlightTableRow) => {
+        const flight = flights.find((item) => item.id === row.flightId) ?? null;
+        const editable = flight ? canManageDraft(flight) && flight.status === "draft" : false;
 
-              return (
-                <div className="flight-action-menu">
-                  <button
-                    ref={(node) => {
-                      menuButtonRefs.current[flight.id] = node;
-                    }}
-                    type="button"
-                    className="flight-action-menu-trigger"
-                    aria-label={`Open actions for draft ${row.id}`}
-                    aria-expanded={menuOpenId === flight.id}
-                    onClick={() => {
-                      setMenuOpenId((current) => (current === flight.id ? null : flight.id));
-                    }}
+        return (
+          <div className="flight-status-actions">
+            <StatusPill tone={flightStatusTone(row.rawStatus)}>{row.status}</StatusPill>
+            {editable && flight ? (
+              <div className="flight-action-menu">
+                <button
+                  ref={(node) => {
+                    menuButtonRefs.current[flight.id] = node;
+                  }}
+                  type="button"
+                  className="flight-action-menu-trigger"
+                  aria-label={`Open actions for draft ${row.id}`}
+                  aria-expanded={menuOpenId === flight.id}
+                  onClick={() => {
+                    setMenuOpenId((current) => (current === flight.id ? null : flight.id));
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
+                  </svg>
+                </button>
+                {menuOpenId === flight.id && menuPosition ? (
+                  <div
+                    className="flight-action-popover"
+                    role="menu"
+                    aria-label={`Actions for draft ${row.id}`}
+                    style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
-                    </svg>
-                  </button>
-                  {menuOpenId === flight.id && menuPosition ? (
-                    <div
-                      className="flight-action-popover"
-                      role="menu"
-                      aria-label={`Actions for draft ${row.id}`}
-                      style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
+                    <button
+                      type="button"
+                      className="flight-action-menu-item flight-action-menu-item-edit"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        setEditTargetId(flight.id);
+                      }}
                     >
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-edit"
-                        role="menuitem"
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          setEditTargetId(flight.id);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-submit"
-                        role="menuitem"
-                        disabled={busyId === flight.id}
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          submitFlight(flight.id);
-                        }}
-                      >
-                        {busyId === flight.id ? "Submitting..." : "Submit"}
-                      </button>
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-danger"
-                        role="menuitem"
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          setDeleteTargetId(flight.id);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            },
-          },
-        ]
-      : []),
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="flight-action-menu-item flight-action-menu-item-submit"
+                      role="menuitem"
+                      disabled={busyId === flight.id}
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        submitFlight(flight.id);
+                      }}
+                    >
+                      {busyId === flight.id ? "Submitting..." : "Submit"}
+                    </button>
+                    <button
+                      type="button"
+                      className="flight-action-menu-item flight-action-menu-item-danger"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        setDeleteTargetId(flight.id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        );
+      },
+    },
   ];
 
   return (
