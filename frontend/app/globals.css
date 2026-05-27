@@ -1897,6 +1897,7 @@ select.input option {
 .flight-action-menu {
   position: relative;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-end;
 }
@@ -1912,11 +1913,10 @@ select.input option {
 }
 
 .flight-action-menu-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: static;
   z-index: 12;
-  min-width: 156px;
+  min-width: 168px;
+  margin-top: 8px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -2052,8 +2052,8 @@ select.input option {
 }
 
 .table-actions .flight-action-menu {
+  align-items: flex-end;
   width: 100%;
-  justify-content: flex-end;
 }
 
 .admin-table-row:hover {
