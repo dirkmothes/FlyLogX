@@ -33,13 +33,16 @@ export function DropdownSelect({
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const selected = useMemo(() => options.find((option) => option.value === value) ?? null, [options, value]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
       const target = event.target as Node | null;
-      if (target && rootRef.current && !rootRef.current.contains(target)) {
+      const clickedInsideTrigger = !!target && !!rootRef.current && rootRef.current.contains(target);
+      const clickedInsideMenu = !!target && !!menuRef.current && menuRef.current.contains(target);
+      if (!clickedInsideTrigger && !clickedInsideMenu) {
         setOpen(false);
       }
     }
@@ -111,6 +114,7 @@ export function DropdownSelect({
       {open && menuStyle
         ? createPortal(
             <div
+              ref={menuRef}
               className={`dropdown-select-menu ${menuClassName}`.trim()}
               role="listbox"
               aria-label={placeholder}
