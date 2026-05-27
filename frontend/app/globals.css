@@ -2010,9 +2010,11 @@ select.input option {
 
 .flight-action-menu {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 6px;
 }
 
 .flight-table-filters {
@@ -2044,8 +2046,9 @@ select.input option {
 
 .flight-status-actions {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   min-width: 0;
 }
 
