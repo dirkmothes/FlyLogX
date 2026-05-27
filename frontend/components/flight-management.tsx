@@ -190,7 +190,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
   const columns = [
     { header: "Date", render: (row: FlightTableRow) => row.date },
-    { header: "Pilot", render: (row: FlightTableRow) => row.pilot },
+    ...(viewerRole === "pilot" ? [] : [{ header: "Pilot", render: (row: FlightTableRow) => row.pilot }]),
     { header: "Aircraft", render: (row: FlightTableRow) => row.aircraft },
     { header: "Mission type", render: (row: FlightTableRow) => row.type },
     { header: "Category", render: (row: FlightTableRow) => row.category },
