@@ -223,32 +223,6 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
       {message ? <div className="form-note">{message}</div> : null}
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Status overview</h2>
-          </div>
-        </div>
-        <div className="panel-body grid-4">
-          <div className="mini-card">
-            <h3>Drafts</h3>
-            <p>{rows.filter((row) => row.status === "Draft").length} open entries</p>
-          </div>
-          <div className="mini-card">
-            <h3>Submitted</h3>
-            <p>{rows.filter((row) => row.status === "Submitted").length} entries waiting for review</p>
-          </div>
-          <div className="mini-card">
-            <h3>Approved</h3>
-            <p>{rows.filter((row) => row.status === "Approved").length} confirmed entries</p>
-          </div>
-          <div className="mini-card">
-            <h3>Rejected</h3>
-            <p>{rows.filter((row) => row.status === "Rejected").length} entries with remarks</p>
-          </div>
-        </div>
-      </section>
-
       <DataTable
         title="Digital flight records"
         rows={rows}
