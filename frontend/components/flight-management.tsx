@@ -157,7 +157,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     { header: "Duration", render: (row: FlightTableRow) => row.duration },
     { header: "Period", render: (row: FlightTableRow) => row.period },
     {
-      header: "Status",
+      header: "State",
       className: "table-status-cell",
       render: (row: FlightTableRow) => {
         const flight = flights.find((item) => item.id === row.flightId) ?? null;
