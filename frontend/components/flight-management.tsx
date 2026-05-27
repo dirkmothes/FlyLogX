@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { FlightDeleteDialog } from "@/components/flight-delete-dialog";
@@ -29,7 +29,6 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
   const router = useRouter();
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -47,28 +46,6 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
   const editTarget = flights.find((flight) => flight.id === editTargetId) ?? null;
   const deleteTarget = flights.find((flight) => flight.id === deleteTargetId) ?? null;
   const canManageDraft = (flight: ApiFlight) => viewerRole === "admin" || flight.pilot_id === currentUserId;
-
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent) {
-      const target = event.target as HTMLElement | null;
-      if (!target?.closest(".flight-action-menu")) {
-        setMenuOpenId(null);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMenuOpenId(null);
-      }
-    }
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   async function submitFlight(flightId: string) {
     setBusyId(flightId);
@@ -116,57 +93,32 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
               }
 
               return (
-                <div className="flight-action-menu">
+                <div className="admin-record-actions flight-action-group">
                   <button
                     type="button"
-                    className="admin-command-button flight-action-menu-trigger"
-                    aria-label={`Open actions for draft ${row.id}`}
-                    aria-expanded={menuOpenId === flight.id}
-                    onClick={() => setMenuOpenId((current) => (current === flight.id ? null : flight.id))}
+                    className="admin-action-button admin-action-button-edit"
+                    title={`Edit draft ${row.id}`}
+                    onClick={() => setEditTargetId(flight.id)}
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 5.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Zm0 6.1a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8Z" fill="currentColor" />
-                    </svg>
-                    <span className="sr-only">Actions</span>
+                    Edit
                   </button>
-                  {menuOpenId === flight.id ? (
-                    <div className="flight-action-menu-panel" role="menu" aria-label={`Actions for draft ${row.id}`}>
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-edit"
-                        role="menuitem"
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          setEditTargetId(flight.id);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-submit"
-                        role="menuitem"
-                        disabled={busyId === flight.id}
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          submitFlight(flight.id);
-                        }}
-                      >
-                        {busyId === flight.id ? "Submitting..." : "Submit"}
-                      </button>
-                      <button
-                        type="button"
-                        className="flight-action-menu-item flight-action-menu-item-danger"
-                        role="menuitem"
-                        onClick={() => {
-                          setMenuOpenId(null);
-                          setDeleteTargetId(flight.id);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ) : null}
+                  <button
+                    type="button"
+                    className="admin-action-button admin-action-button-submit"
+                    title={`Submit draft ${row.id}`}
+                    disabled={busyId === flight.id}
+                    onClick={() => submitFlight(flight.id)}
+                  >
+                    {busyId === flight.id ? "Submitting..." : "Submit"}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-action-button admin-danger-button"
+                    title={`Delete draft ${row.id}`}
+                    onClick={() => setDeleteTargetId(flight.id)}
+                  >
+                    Delete
+                  </button>
                 </div>
               );
             },
