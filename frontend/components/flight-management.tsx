@@ -33,6 +33,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [pilotFilter, setPilotFilter] = useState<string>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -60,9 +61,20 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
       rows.filter((row) => {
         const matchesCategory = categoryFilter === "all" || row.category === categoryFilter;
         const matchesStatus = statusFilter === "all" || row.rawStatus === statusFilter;
-        return matchesCategory && matchesStatus;
+        const matchesPilot = viewerRole === "supervisor" || viewerRole === "admin" ? pilotFilter === "all" || row.pilotId === pilotFilter : true;
+        return matchesCategory && matchesStatus && matchesPilot;
       }),
-    [categoryFilter, rows, statusFilter],
+    [categoryFilter, pilotFilter, rows, statusFilter, viewerRole],
+  );
+
+  const pilotOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          rows.map((row) => [row.pilotId, { id: row.pilotId, label: row.pilot }]),
+        ).values(),
+      ).sort((left, right) => left.label.localeCompare(right.label)),
+    [rows],
   );
 
   useEffect(() => {
@@ -310,14 +322,25 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
             </select>
+            {viewerRole === "supervisor" || viewerRole === "admin" ? (
+              <select className="input flight-filter-select" value={pilotFilter} onChange={(event) => setPilotFilter(event.target.value)}>
+                <option value="all">All pilots</option>
+                {pilotOptions.map((pilot) => (
+                  <option key={pilot.id} value={pilot.id}>
+                    {pilot.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <button
               type="button"
               className="button button-secondary flight-filter-reset"
               onClick={() => {
                 setCategoryFilter("all");
                 setStatusFilter("all");
+                setPilotFilter("all");
               }}
-              disabled={categoryFilter === "all" && statusFilter === "all"}
+              disabled={categoryFilter === "all" && statusFilter === "all" && pilotFilter === "all"}
             >
               Reset
             </button>
