@@ -2426,6 +2426,10 @@ select.input option {
   backdrop-filter: blur(10px);
 }
 
+.account-dialog-backdrop {
+  z-index: 260;
+}
+
 .admin-dialog {
   width: min(720px, 100%);
   max-height: min(760px, calc(100vh - 40px));
@@ -2436,6 +2440,10 @@ select.input option {
   background: var(--surface);
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.28);
   overflow: hidden;
+}
+
+.account-dialog {
+  z-index: 261;
 }
 
 .flight-draft-dialog {

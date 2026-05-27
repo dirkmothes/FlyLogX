@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import type { ApiUser } from "@/lib/api";
@@ -35,6 +36,7 @@ function UserIcon() {
 export function AccountDialog({ user }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState<AccountForm>({
@@ -44,6 +46,10 @@ export function AccountDialog({ user }: Props) {
     email: user.email,
     password: "",
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -141,111 +147,114 @@ export function AccountDialog({ user }: Props) {
         <span className="sr-only">My account</span>
       </button>
 
-      {open ? (
-        <div
-          className="admin-dialog-backdrop"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setOpen(false);
-            }
-          }}
-        >
-          <section
-            className="admin-dialog account-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="account-dialog-title"
-          >
-            <div className="admin-dialog-header">
-              <div>
-                <span className="admin-mini-badge">Account settings</span>
-                <h3 id="account-dialog-title">My account</h3>
-                <p>Update your profile details and password here.</p>
-              </div>
-              <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
-                ×
-              </button>
-            </div>
-
-            <form className="admin-dialog-form" onSubmit={handleSubmit}>
-              <div className="mini-card">
-                <h3>{user.name}</h3>
-                <p>@{user.username}</p>
-                <p>
-                  Role: <strong>{user.role}</strong>
-                </p>
-              </div>
-
-              <div className="admin-dialog-grid">
-                <label className="field">
-                  <span>Username</span>
-                  <input
-                    className="input"
-                    value={form.username}
-                    onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-                  />
-                </label>
-                <label className="field">
-                  <span>Email</span>
-                  <input
-                    className="input"
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                  />
-                </label>
-              </div>
-
-              <div className="admin-dialog-grid">
-                <label className="field">
-                  <span>First name</span>
-                  <input
-                    className="input"
-                    value={form.first_name}
-                    onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))}
-                  />
-                </label>
-                <label className="field">
-                  <span>Last name</span>
-                  <input
-                    className="input"
-                    value={form.last_name}
-                    onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))}
-                  />
-                </label>
-              </div>
-
-              <div className="admin-dialog-grid">
-                <label className="field">
-                  <span>New password</span>
-                  <input
-                    className="input"
-                    type="password"
-                    value={form.password}
-                    onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                  />
-                </label>
-                <div className="account-note-box">
-                  <span>Note</span>
-                  <p>Leave the password field empty if you only want to change your profile data.</p>
+      {mounted && open
+        ? createPortal(
+            <div
+              className="admin-dialog-backdrop account-dialog-backdrop"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setOpen(false);
+                }
+              }}
+            >
+              <section
+                className="admin-dialog account-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="account-dialog-title"
+              >
+                <div className="admin-dialog-header">
+                  <div>
+                    <span className="admin-mini-badge">Account settings</span>
+                    <h3 id="account-dialog-title">My account</h3>
+                    <p>Update your profile details and password here.</p>
+                  </div>
+                  <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
+                    ×
+                  </button>
                 </div>
-              </div>
 
-              {message ? <div className="form-error">{message}</div> : null}
+                <form className="admin-dialog-form" onSubmit={handleSubmit}>
+                  <div className="mini-card">
+                    <h3>{user.name}</h3>
+                    <p>@{user.username}</p>
+                    <p>
+                      Role: <strong>{user.role}</strong>
+                    </p>
+                  </div>
 
-              <div className="admin-dialog-actions">
-                <button type="button" className="button button-secondary" onClick={() => setOpen(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="button button-primary" disabled={busy}>
-                  Save
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      ) : null}
+                  <div className="admin-dialog-grid">
+                    <label className="field">
+                      <span>Username</span>
+                      <input
+                        className="input"
+                        value={form.username}
+                        onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Email</span>
+                      <input
+                        className="input"
+                        type="email"
+                        value={form.email}
+                        onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="admin-dialog-grid">
+                    <label className="field">
+                      <span>First name</span>
+                      <input
+                        className="input"
+                        value={form.first_name}
+                        onChange={(event) => setForm((current) => ({ ...current, first_name: event.target.value }))}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Last name</span>
+                      <input
+                        className="input"
+                        value={form.last_name}
+                        onChange={(event) => setForm((current) => ({ ...current, last_name: event.target.value }))}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="admin-dialog-grid">
+                    <label className="field">
+                      <span>New password</span>
+                      <input
+                        className="input"
+                        type="password"
+                        value={form.password}
+                        onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                      />
+                    </label>
+                    <div className="account-note-box">
+                      <span>Note</span>
+                      <p>Leave the password field empty if you only want to change your profile data.</p>
+                    </div>
+                  </div>
+
+                  {message ? <div className="form-error">{message}</div> : null}
+
+                  <div className="admin-dialog-actions">
+                    <button type="button" className="button button-secondary" onClick={() => setOpen(false)}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="button button-primary" disabled={busy}>
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </section>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
