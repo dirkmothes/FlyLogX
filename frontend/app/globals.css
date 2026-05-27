@@ -1122,11 +1122,16 @@ select.input {
 }
 
 .dropdown-select-trigger {
+  display: inline-flex;
+  align-items: center;
   width: 100%;
   justify-content: space-between;
   gap: 12px;
   text-align: left;
-  padding-inline: 14px 12px;
+  padding: 13px 14px;
+  min-height: 46px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .dropdown-select-value {
@@ -1152,7 +1157,9 @@ select.input {
   top: calc(100% + 8px);
   left: 0;
   z-index: 30;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  max-width: min(100%, 420px);
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1179,6 +1186,10 @@ select.input {
   font-weight: 700;
   text-align: left;
   cursor: pointer;
+}
+
+.dropdown-select-menu .dropdown-select-option {
+  white-space: nowrap;
 }
 
 .dropdown-select-option:hover {
