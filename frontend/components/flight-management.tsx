@@ -306,6 +306,16 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         title="Digital flight records"
         actions={
           <div className="flight-table-filters">
+            {viewerRole === "supervisor" || viewerRole === "admin" ? (
+              <select className="input flight-filter-select" value={pilotFilter} onChange={(event) => setPilotFilter(event.target.value)}>
+                <option value="all">All pilots</option>
+                {pilotOptions.map((pilot) => (
+                  <option key={pilot.id} value={pilot.id}>
+                    {pilot.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <select className="input flight-filter-select" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
               <option value="all">All categories</option>
               <option value="U Flights">U Flights</option>
@@ -322,16 +332,6 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
             </select>
-            {viewerRole === "supervisor" || viewerRole === "admin" ? (
-              <select className="input flight-filter-select" value={pilotFilter} onChange={(event) => setPilotFilter(event.target.value)}>
-                <option value="all">All pilots</option>
-                {pilotOptions.map((pilot) => (
-                  <option key={pilot.id} value={pilot.id}>
-                    {pilot.label}
-                  </option>
-                ))}
-              </select>
-            ) : null}
             <button
               type="button"
               className="button button-secondary flight-filter-reset"
