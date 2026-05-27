@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-import { API_BASE_URL, type ApiAircraft, type FlightCategory } from "@/lib/api";
+import { API_BASE_URL, type ApiAircraft, type ApiFlight, type FlightCategory } from "@/lib/api";
 
 type Props = {
   organizationId: string;
   unitId: string;
   pilotId: string;
   aircraft: ApiAircraft[];
+  mode?: "create" | "edit";
+  flight?: ApiFlight | null;
   onSuccess?: () => void;
 };
 
@@ -21,18 +23,45 @@ const categories: Array<{ value: FlightCategory; label: string }> = [
   { value: "A Flights", label: "A Flights" },
 ];
 
-export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onSuccess }: Props) {
+type FormState = {
+  aircraft_id: string;
+  category: FlightCategory | "";
+  flight_type: string;
+  date: string;
+  duration_minutes: string;
+  location: string;
+  day_flight: boolean;
+  night_flight: boolean;
+};
+
+function buildFormState(flight?: ApiFlight | null): FormState {
+  return {
+    aircraft_id: flight?.aircraft_id ?? "",
+    category: flight?.category ?? "",
+    flight_type: flight?.flight_type ?? "",
+    date: flight?.date ?? "",
+    duration_minutes: flight ? String(flight.duration_minutes) : "",
+    location: flight?.location ?? "",
+    day_flight: flight?.day_flight ?? true,
+    night_flight: flight?.night_flight ?? false,
+  };
+}
+
+export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mode = "create", flight = null, onSuccess }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    aircraft_id: "",
-    category: "" as FlightCategory | "",
-    flight_type: "",
-    date: "",
-    duration_minutes: "",
-    location: "",
-  });
+  const [form, setForm] = useState<FormState>(() => buildFormState(flight));
+
+  useEffect(() => {
+    setForm(buildFormState(flight));
+    setMessage(null);
+  }, [flight]);
+
+  const isEdit = mode === "edit";
+  const currentOrganizationId = flight?.organization_id ?? organizationId;
+  const currentUnitId = flight?.unit_id ?? unitId;
+  const currentPilotId = flight?.pilot_id ?? pilotId;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,16 +96,16 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
     setMessage(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/flights`, {
-        method: "POST",
+      const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}${isEdit && flight ? `/api/flights/${flight.id}` : "/api/flights"}`, {
+        method: isEdit && flight ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          organization_id: organizationId,
-          unit_id: unitId,
-          pilot_id: pilotId,
+          organization_id: currentOrganizationId,
+          unit_id: currentUnitId,
+          pilot_id: currentPilotId,
           aircraft_id: aircraftItem.id,
           aircraft_identifier: aircraftItem.identifier,
           category: form.category as FlightCategory,
@@ -84,22 +113,32 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
           date: form.date,
           flight_count: 1,
           duration_minutes: durationMinutes,
-          day_flight: true,
-          night_flight: false,
+          day_flight: form.day_flight,
+          night_flight: form.night_flight,
           location: form.location,
+          coordinates: flight?.coordinates ?? null,
+          special_notes: flight?.special_notes ?? null,
+          remarks: flight?.remarks ?? null,
+          flight_supervisor_name: flight?.flight_supervisor_name ?? null,
+          flight_supervisor_id: flight?.flight_supervisor_id ?? null,
+          flight_supervisor_signature: flight?.flight_supervisor_signature ?? null,
+          previous_flights: flight?.previous_flights ?? 0,
+          previous_hours: flight?.previous_hours ?? 0,
+          monthly_carryover: flight?.monthly_carryover ?? 0,
+          yearly_carryover: flight?.yearly_carryover ?? 0,
         }),
       });
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(payload?.detail || "Could not create the entry.");
+        throw new Error(payload?.detail || (isEdit ? "Could not update the entry." : "Could not create the entry."));
       }
 
-      setMessage("Draft saved and shown in the logbook.");
+      setMessage(isEdit ? "Draft updated." : "Draft saved and shown in the logbook.");
       onSuccess?.();
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not create the entry.");
+      setMessage(error instanceof Error ? error.message : isEdit ? "Could not update the entry." : "Could not create the entry.");
     } finally {
       setLoading(false);
     }
@@ -184,7 +223,7 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, onS
       {message ? <div className="form-note">{message}</div> : null}
       <div className="form-actions">
         <button className="button button-primary" type="submit" disabled={loading || aircraft.length === 0}>
-          {loading ? "Saving..." : "Create draft"}
+          {loading ? "Saving..." : isEdit ? "Save draft" : "Create draft"}
         </button>
       </div>
     </form>

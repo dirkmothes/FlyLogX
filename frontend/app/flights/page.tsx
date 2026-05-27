@@ -1,10 +1,7 @@
 import { AppShell } from "@/components/app-shell";
-import { DataTable } from "@/components/data-table";
-import { FlightDraftDialog } from "@/components/flight-draft-dialog";
-import { StatusPill } from "@/components/status-pill";
+import { FlightManagement } from "@/components/flight-management";
 import { apiFetch, getAuthHeader, type ApiAircraft, type ApiFlight } from "@/lib/api";
 import { loadSession } from "@/lib/session";
-import { flightStatusTone, mapFlightRows } from "@/lib/view-model";
 
 export const dynamic = "force-dynamic";
 
@@ -27,61 +24,19 @@ export default async function FlightsPage() {
     }),
   ]);
 
-  const rows = mapFlightRows(flights);
-
   return (
     <AppShell
       title="Flight logbook and records"
       breadcrumbs={["FlyLogX", "Module", "Flights"]}
       user={session.user}
     >
-      <FlightDraftDialog
+      <FlightManagement
+        viewerRole={session.user.role}
+        currentUserId={session.user.id}
         organizationId={session.user.organization_id}
         unitId={session.user.unit_id ?? session.user.organization_id}
-        pilotId={session.user.id}
         aircraft={aircraft.filter((item) => item.organization_id === session.user.organization_id)}
-      />
-
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h2>Status overview</h2>
-          </div>
-        </div>
-        <div className="panel-body grid-4">
-          <div className="mini-card">
-            <h3>Drafts</h3>
-            <p>{rows.filter((row) => row.status === "Draft").length} open entries</p>
-          </div>
-          <div className="mini-card">
-            <h3>Submitted</h3>
-            <p>{rows.filter((row) => row.status === "Submitted").length} entries waiting for review</p>
-          </div>
-          <div className="mini-card">
-            <h3>Approved</h3>
-            <p>{rows.filter((row) => row.status === "Approved").length} confirmed entries</p>
-          </div>
-          <div className="mini-card">
-            <h3>Rejected</h3>
-            <p>{rows.filter((row) => row.status === "Rejected").length} entries with remarks</p>
-          </div>
-        </div>
-      </section>
-
-      <DataTable
-        title="Digital flight records"
-        rows={rows}
-        columns={[
-          { header: "Date", render: (row) => row.date },
-          { header: "Pilot", render: (row) => row.pilot },
-          { header: "Aircraft", render: (row) => row.aircraft },
-          { header: "Category", render: (row) => row.category },
-          { header: "Duration", render: (row) => row.duration },
-          { header: "Mission type", render: (row) => row.type },
-          { header: "Day", render: (row) => row.day },
-          { header: "Night", render: (row) => row.night },
-          { header: "Status", render: (row) => <StatusPill tone={flightStatusTone(row.status)}>{row.status}</StatusPill> },
-        ]}
+        flights={flights}
       />
 
     </AppShell>

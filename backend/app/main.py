@@ -26,6 +26,7 @@ from .domain import (
     FlightCreateRequest,
     FlightEntry,
     FlightStatus,
+    FlightUpdateRequest,
     LoginRequest,
     Organization,
     OrganizationCreateRequest,
@@ -64,6 +65,7 @@ from .services import (
     list_users,
     delete_organization,
     delete_aircraft,
+    delete_flight,
     delete_unit,
     delete_user,
     unit_in_scope,
@@ -72,6 +74,7 @@ from .services import (
     submit_flight,
     update_organization,
     update_aircraft,
+    update_flight,
     update_unit,
     update_user,
 )
@@ -724,6 +727,48 @@ def flight_create(payload: FlightCreateRequest, user=Depends(get_current_user), 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
 
 
+@app.put("/api/flights/{flight_id}", response_model=FlightEntry)
+def flight_update(flight_id: str, payload: FlightUpdateRequest, user=Depends(get_current_user), db=Depends(get_session)):
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+    if flight.pilot_id != user.id and user.role != RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your own draft flights")
+    if flight.status != FlightStatus.draft:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer editable")
+    try:
+        return update_flight(db, flight_id, payload, actor_id=user.id)
+    except KeyError as exc:
+        detail = exc.args[0] if exc.args else ""
+        if detail == "flight_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+        if detail == "flight_not_editable":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer editable")
+        if detail == "aircraft_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Flight could not be updated")
+
+
+@app.delete("/api/flights/{flight_id}", response_model=FlightEntry)
+def flight_delete(flight_id: str, user=Depends(get_current_user), db=Depends(get_session)):
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+    if flight.pilot_id != user.id and user.role != RoleName.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete your own draft flights")
+    if flight.status != FlightStatus.draft:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer deletable")
+    try:
+        return delete_flight(db, flight_id, actor_id=user.id)
+    except KeyError as exc:
+        detail = exc.args[0] if exc.args else ""
+        if detail == "flight_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+        if detail == "flight_not_deletable":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer deletable")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Flight could not be deleted")
+
+
 @app.post("/api/flights/{flight_id}/submit")
 def flight_submit(flight_id: str, user=Depends(get_current_user), db=Depends(get_session)):
     flight = db.get(FlightModel, flight_id)
@@ -731,6 +776,8 @@ def flight_submit(flight_id: str, user=Depends(get_current_user), db=Depends(get
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
     if user.id != flight.pilot_id and user.role != RoleName.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only submit your own flights")
+    if flight.status != FlightStatus.draft:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer submittable")
     try:
         return submit_flight(db, flight_id, user.id)
     except KeyError:

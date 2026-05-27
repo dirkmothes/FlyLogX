@@ -306,6 +306,10 @@ class FlightCreateRequest(BaseModel):
     yearly_carryover: float = 0.0
 
 
+class FlightUpdateRequest(FlightCreateRequest):
+    pass
+
+
 class DashboardSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

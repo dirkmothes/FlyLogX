@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import type { ApiAircraft } from "@/lib/api";
+import type { ApiAircraft, ApiFlight } from "@/lib/api";
 import { FlightDraftForm } from "@/components/flight-draft-form";
 
 type Props = {
@@ -10,6 +10,11 @@ type Props = {
   unitId: string;
   pilotId: string;
   aircraft: ApiAircraft[];
+  mode?: "create" | "edit";
+  flight?: ApiFlight | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 };
 
 function PlusIcon() {
@@ -27,11 +32,25 @@ function PlusIcon() {
   );
 }
 
-export function FlightDraftDialog({ organizationId, unitId, pilotId, aircraft }: Props) {
-  const [open, setOpen] = useState(false);
+export function FlightDraftDialog({
+  organizationId,
+  unitId,
+  pilotId,
+  aircraft,
+  mode = "create",
+  flight = null,
+  open,
+  onOpenChange,
+  hideTrigger = false,
+}: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  const isEdit = mode === "edit";
 
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       return;
     }
 
@@ -43,30 +62,36 @@ export function FlightDraftDialog({ organizationId, unitId, pilotId, aircraft }:
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [isOpen, setOpen]);
+
+  if (isEdit && !flight) {
+    return null;
+  }
 
   return (
     <>
-      <section className="admin-command">
-        <div>
-          <span className="admin-kicker">Flight records</span>
-          <h2>Create a new draft entry</h2>
-        </div>
-        <div className="admin-command-actions">
-          <button
-            type="button"
-            className="admin-command-button"
-            onClick={() => setOpen(true)}
-            aria-label="Create new draft"
-            title="Create new draft"
-          >
-            <PlusIcon />
-            <span className="sr-only">Create new draft</span>
-          </button>
-        </div>
-      </section>
+      {!hideTrigger && !isEdit ? (
+        <section className="admin-command">
+          <div>
+            <span className="admin-kicker">Flight records</span>
+            <h2>Create a new draft entry</h2>
+          </div>
+          <div className="admin-command-actions">
+            <button
+              type="button"
+              className="admin-command-button"
+              onClick={() => setOpen(true)}
+              aria-label="Create new draft"
+              title="Create new draft"
+            >
+              <PlusIcon />
+              <span className="sr-only">Create new draft</span>
+            </button>
+          </div>
+        </section>
+      ) : null}
 
-      {open ? (
+      {isOpen ? (
         <div
           className="admin-dialog-backdrop"
           role="presentation"
@@ -79,8 +104,8 @@ export function FlightDraftDialog({ organizationId, unitId, pilotId, aircraft }:
           <section className="admin-dialog flight-draft-dialog" role="dialog" aria-modal="true" aria-labelledby="flight-draft-dialog-title">
             <div className="admin-dialog-header">
               <div>
-                <span className="admin-mini-badge">New flight entry</span>
-                <h3 id="flight-draft-dialog-title">Create new draft</h3>
+                <span className="admin-mini-badge">{isEdit ? "Edit flight" : "New flight entry"}</span>
+                <h3 id="flight-draft-dialog-title">{isEdit ? "Edit draft" : "Create new draft"}</h3>
               </div>
               <button type="button" className="admin-close-button" onClick={() => setOpen(false)} aria-label="Close dialog">
                 ×
@@ -93,6 +118,8 @@ export function FlightDraftDialog({ organizationId, unitId, pilotId, aircraft }:
                 unitId={unitId}
                 pilotId={pilotId}
                 aircraft={aircraft}
+                mode={mode}
+                flight={flight}
                 onSuccess={() => setOpen(false)}
               />
             </div>

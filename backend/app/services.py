@@ -28,6 +28,7 @@ from .domain import (
     FlightCreateRequest,
     FlightEntry,
     FlightStatus,
+    FlightUpdateRequest,
     OrganizationCreateRequest,
     OrganizationUpdateRequest,
     Organization,
@@ -901,10 +902,100 @@ def create_flight(db: Session, payload: FlightCreateRequest, actor_id: str) -> F
     return _flight_to_domain(db, flight)
 
 
+def update_flight(db: Session, flight_id: str, payload: FlightUpdateRequest, actor_id: str) -> FlightEntry:
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise KeyError("flight_not_found")
+    if flight.status != FlightStatus.draft:
+        raise KeyError("flight_not_editable")
+
+    aircraft = db.get(AircraftModel, payload.aircraft_id)
+    if aircraft is None or aircraft.is_deleted:
+        raise KeyError("aircraft_not_found")
+
+    before = _flight_to_domain(db, flight).model_dump(mode="json")
+    flight.organization_id = payload.organization_id
+    flight.unit_id = payload.unit_id
+    flight.pilot_id = payload.pilot_id
+    flight.aircraft_id = payload.aircraft_id
+    flight.aircraft_identifier = payload.aircraft_identifier or aircraft.identifier
+    flight.category = payload.category
+    flight.flight_type = payload.flight_type
+    flight.date = payload.date
+    flight.flight_count = payload.flight_count
+    flight.duration_minutes = payload.duration_minutes
+    flight.day_flight = payload.day_flight
+    flight.night_flight = payload.night_flight
+    flight.location = payload.location
+    flight.coordinates = payload.coordinates
+    flight.special_notes = payload.special_notes
+    flight.remarks = payload.remarks
+    flight.flight_supervisor_name = payload.flight_supervisor_name
+    flight.flight_supervisor_id = payload.flight_supervisor_id
+    flight.flight_supervisor_signature = payload.flight_supervisor_signature
+    flight.previous_flights = payload.previous_flights
+    flight.previous_hours = payload.previous_hours
+    flight.monthly_carryover = payload.monthly_carryover
+    flight.yearly_carryover = payload.yearly_carryover
+    flight.total_flights = payload.previous_flights + payload.flight_count
+    flight.total_hours = round(payload.previous_hours + payload.duration_minutes / 60.0, 2)
+    flight.updated_at = datetime.now(timezone.utc)
+    flight.updated_by = actor_id
+
+    db.flush()
+    after = _flight_to_domain(db, flight).model_dump(mode="json")
+    append_audit(
+        db,
+        organization_id=flight.organization_id,
+        entity_type="flight_entry",
+        entity_id=flight.id,
+        action="updated",
+        actor_id=actor_id,
+        actor_name=db.get(UserModel, actor_id).name,
+        before_state=before,
+        after_state=after,
+    )
+    db.commit()
+    db.refresh(flight)
+    return _flight_to_domain(db, flight)
+
+
+def delete_flight(db: Session, flight_id: str, actor_id: str) -> FlightEntry:
+    flight = db.get(FlightModel, flight_id)
+    if flight is None or flight.is_deleted:
+        raise KeyError("flight_not_found")
+    if flight.status != FlightStatus.draft:
+        raise KeyError("flight_not_deletable")
+
+    before = _flight_to_domain(db, flight).model_dump(mode="json")
+    flight.is_deleted = True
+    flight.updated_at = datetime.now(timezone.utc)
+    flight.updated_by = actor_id
+
+    db.flush()
+    after = _flight_to_domain(db, flight).model_dump(mode="json")
+    append_audit(
+        db,
+        organization_id=flight.organization_id,
+        entity_type="flight_entry",
+        entity_id=flight.id,
+        action="deleted",
+        actor_id=actor_id,
+        actor_name=db.get(UserModel, actor_id).name,
+        before_state=before,
+        after_state=after,
+    )
+    db.commit()
+    db.refresh(flight)
+    return _flight_to_domain(db, flight)
+
+
 def submit_flight(db: Session, flight_id: str, actor_id: str) -> FlightEntry:
     flight = db.get(FlightModel, flight_id)
     if flight is None or flight.is_deleted:
         raise KeyError("flight_not_found")
+    if flight.status != FlightStatus.draft:
+        raise KeyError("flight_not_submittable")
     before = _flight_to_domain(db, flight).model_dump(mode="json")
     flight.status = FlightStatus.submitted
     flight.submitted_at = datetime.now(timezone.utc)
