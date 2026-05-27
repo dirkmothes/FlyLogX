@@ -1897,26 +1897,33 @@ select.input option {
 .flight-action-menu {
   position: relative;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: flex-end;
 }
 
 .flight-action-menu-trigger {
-  width: 40px;
-  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
 }
 
 .flight-action-menu-trigger svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
-.flight-action-menu-panel {
-  position: static;
-  z-index: 12;
-  min-width: 168px;
-  margin-top: 8px;
+.flight-action-popover {
+  position: fixed;
+  z-index: 50;
+  min-width: 148px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1960,6 +1967,11 @@ select.input option {
 }
 
 :root[data-theme="dark"] .flight-action-menu-panel {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .flight-action-popover {
   background: var(--surface);
   border-color: var(--line);
 }
@@ -2049,11 +2061,7 @@ select.input option {
 
 .table-actions {
   text-align: right;
-}
-
-.table-actions .flight-action-menu {
-  align-items: flex-end;
-  width: 100%;
+  white-space: nowrap;
 }
 
 .admin-table-row:hover {
