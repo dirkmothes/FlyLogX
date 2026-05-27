@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AircraftCreateDialog } from "@/components/aircraft-create-dialog";
 import { AircraftDeleteDialog } from "@/components/aircraft-delete-dialog";
 import { DataTable } from "@/components/data-table";
+import { RowActionMenu } from "@/components/row-action-menu";
 import { StatusPill } from "@/components/status-pill";
 import type { ApiAircraft, ApiUnit, RoleName } from "@/lib/api";
 import { aircraftStatusTone, mapAircraftRows } from "@/lib/view-model";
@@ -35,29 +36,25 @@ export function AircraftManagement({ viewerRole, organizationId, units, aircraft
     ...(canManageAircraft
       ? [
           {
-            header: "Actions",
-            className: "table-actions",
+            header: "",
+            className: "table-actions-cell aircraft-actions-cell",
             render: (row: (typeof rows)[number]) => (
-              <div className="admin-record-actions">
-                <button
-                  type="button"
-                  className="admin-action-button admin-action-button-edit"
-                  title="Edit aircraft"
-                  aria-label={`Edit aircraft ${row.identifier}`}
-                  onClick={() => setEditTargetId(row.id)}
-                >
-                  <span>Edit</span>
-                </button>
-                <button
-                  type="button"
-                  className="admin-action-button admin-danger-button"
-                  title="Delete aircraft"
-                  aria-label={`Delete aircraft ${row.identifier}`}
-                  onClick={() => setDeleteTargetId(row.id)}
-                >
-                  <span>Delete</span>
-                </button>
-              </div>
+              <RowActionMenu
+                label={`Actions for aircraft ${row.identifier}`}
+                className="aircraft-row-action-menu"
+                actions={[
+                  {
+                    label: "Edit",
+                    tone: "edit",
+                    onSelect: () => setEditTargetId(row.id),
+                  },
+                  {
+                    label: "Delete",
+                    tone: "danger",
+                    onSelect: () => setDeleteTargetId(row.id),
+                  },
+                ]}
+              />
             ),
           },
         ]

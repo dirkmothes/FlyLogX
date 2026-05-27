@@ -1986,6 +1986,89 @@ select.input option {
   background: rgba(162, 58, 58, 0.16);
 }
 
+.row-action-menu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.row-action-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.row-action-menu-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.row-action-popover {
+  position: fixed;
+  z-index: 50;
+  min-width: 148px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+}
+
+.row-action-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row-action-menu-item:hover {
+  background: var(--surface-2);
+}
+
+.row-action-menu-item-edit {
+  color: var(--blue);
+}
+
+.row-action-menu-item-submit {
+  color: var(--green);
+}
+
+.row-action-menu-item-danger {
+  color: var(--red);
+}
+
+:root[data-theme="dark"] .row-action-popover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .row-action-menu-item:hover {
+  background: var(--surface-2);
+}
+
 :root[data-theme="dark"] .admin-action-button-reset {
   background: rgba(126, 150, 176, 0.12);
   border-color: rgba(126, 150, 176, 0.2);
@@ -2226,6 +2309,17 @@ select.input option {
 }
 
 .flight-actions-cell .flight-action-menu {
+  margin-inline: auto;
+}
+
+.aircraft-actions-cell {
+  width: 56px;
+  padding-inline: 8px;
+  text-align: center;
+}
+
+.aircraft-actions-cell .row-action-menu,
+.admin-record-actions .row-action-menu {
   margin-inline: auto;
 }
 

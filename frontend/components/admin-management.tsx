@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { DropdownSelect } from "@/components/dropdown-select";
+import { RowActionMenu } from "@/components/row-action-menu";
 import { API_BASE_URL, type ApiOrganization, type ApiUnit, type ApiUser, type RoleName } from "@/lib/api";
 
 type Props = {
@@ -716,35 +717,35 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       </div>
                     </div>
                     <div className="admin-record-actions">
-                      <button type="button" className="admin-action-button admin-action-button-edit" title="Edit user" onClick={() => openEditUser(user)}>
-                        Edit
-                      </button>
-                      {viewerRole === "admin" || viewerRole === "supervisor" ? (
-                        <>
-                          <button
-                            type="button"
-                            className="admin-action-button admin-action-button-reset"
-                            title="Reset password"
-                            onClick={() => openResetPassword(user)}
-                          >
-                            Reset password
-                          </button>
-                          <button
-                            type="button"
-                            className="admin-action-button admin-danger-button"
-                            title="Delete user"
-                            onClick={() =>
-                              openDeleteTarget({
-                                type: "user",
-                                id: user.id,
-                                label: `${user.name} (@${user.username})`,
-                              })
-                            }
-                          >
-                            Delete
-                          </button>
-                        </>
-                      ) : null}
+                      <RowActionMenu
+                        label={`Actions for user ${user.username}`}
+                        actions={[
+                          {
+                            label: "Edit",
+                            tone: "edit",
+                            onSelect: () => openEditUser(user),
+                          },
+                          ...(viewerRole === "admin" || viewerRole === "supervisor"
+                            ? [
+                                {
+                                  label: "Reset password",
+                                  tone: "neutral" as const,
+                                  onSelect: () => openResetPassword(user),
+                                },
+                                {
+                                  label: "Delete",
+                                  tone: "danger" as const,
+                                  onSelect: () =>
+                                    openDeleteTarget({
+                                      type: "user",
+                                      id: user.id,
+                                      label: `${user.name} (@${user.username})`,
+                                    }),
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
                     </div>
                   </div>
                 </article>
@@ -766,28 +767,32 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         </div>
                       </div>
                       <div className="admin-record-actions">
-                        <button type="button" className="admin-action-button admin-action-button-edit" title="Edit unit" onClick={() => openEditUnit(unit)}>
-                          Edit
-                        </button>
-                        {viewerRole === "admin" ? (
-                          <button
-                            type="button"
-                            className="admin-action-button admin-danger-button"
-                            title={deleteBlocked ? "Delete unavailable while users are assigned" : "Delete unit"}
-                            disabled={deleteBlocked}
-                            onClick={() =>
-                              deleteBlocked
-                                ? null
-                                : openDeleteTarget({
-                                    type: "unit",
-                                    id: unit.id,
-                                    label: unit.name,
-                                  })
-                            }
-                          >
-                            Delete
-                          </button>
-                        ) : null}
+                        <RowActionMenu
+                          label={`Actions for unit ${unit.name}`}
+                          actions={[
+                            {
+                              label: "Edit",
+                              tone: "edit",
+                              onSelect: () => openEditUnit(unit),
+                            },
+                            ...(viewerRole === "admin"
+                              ? [
+                                  {
+                                    label: "Delete",
+                                    tone: "danger" as const,
+                                    disabled: deleteBlocked,
+                                    title: deleteBlocked ? "Delete unavailable while users are assigned" : "Delete unit",
+                                    onSelect: () =>
+                                      openDeleteTarget({
+                                        type: "unit",
+                                        id: unit.id,
+                                        label: unit.name,
+                                      }),
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
                       </div>
                     </div>
                   </article>
@@ -811,37 +816,32 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         </div>
                       </div>
                       <div className="admin-record-actions">
-                        <button
-                          type="button"
-                          className="admin-action-button admin-action-button-edit"
-                          title="Edit organization"
-                          onClick={() => openEditOrganization(organization)}
-                        >
-                          Edit
-                        </button>
-                        {viewerRole === "admin" ? (
-                          <button
-                            type="button"
-                            className="admin-action-button admin-danger-button"
-                            title={
-                              deleteBlocked
-                                ? "Delete unavailable while linked records exist"
-                                : "Delete organization"
-                            }
-                            disabled={deleteBlocked}
-                            onClick={() =>
-                              deleteBlocked
-                                ? null
-                                : openDeleteTarget({
-                                    type: "organization",
-                                    id: organization.id,
-                                    label: organization.name,
-                                  })
-                            }
-                          >
-                            Delete
-                          </button>
-                        ) : null}
+                        <RowActionMenu
+                          label={`Actions for organization ${organization.name}`}
+                          actions={[
+                            {
+                              label: "Edit",
+                              tone: "edit",
+                              onSelect: () => openEditOrganization(organization),
+                            },
+                            ...(viewerRole === "admin"
+                              ? [
+                                  {
+                                    label: "Delete",
+                                    tone: "danger" as const,
+                                    disabled: deleteBlocked,
+                                    title: deleteBlocked ? "Delete unavailable while linked records exist" : "Delete organization",
+                                    onSelect: () =>
+                                      openDeleteTarget({
+                                        type: "organization",
+                                        id: organization.id,
+                                        label: organization.name,
+                                      }),
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
                       </div>
                     </div>
                   </article>
