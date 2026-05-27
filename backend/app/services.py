@@ -906,7 +906,7 @@ def update_flight(db: Session, flight_id: str, payload: FlightUpdateRequest, act
     flight = db.get(FlightModel, flight_id)
     if flight is None or flight.is_deleted:
         raise KeyError("flight_not_found")
-    if flight.status != FlightStatus.draft:
+    if flight.status not in {FlightStatus.draft, FlightStatus.rejected}:
         raise KeyError("flight_not_editable")
 
     aircraft = db.get(AircraftModel, payload.aircraft_id)
@@ -914,6 +914,19 @@ def update_flight(db: Session, flight_id: str, payload: FlightUpdateRequest, act
         raise KeyError("aircraft_not_found")
 
     before = _flight_to_domain(db, flight).model_dump(mode="json")
+    if flight.status == FlightStatus.rejected:
+        flight.status = FlightStatus.draft
+        flight.submitted_at = None
+        flight.reviewed_at = None
+        flight.approved_at = None
+        flight.reviewed_by = None
+        flight.approved_by = None
+        flight.rejected_by = None
+        flight.rejection_reason = None
+        flight.change_request = None
+        flight.flight_supervisor_name = None
+        flight.flight_supervisor_id = None
+        flight.flight_supervisor_signature = None
     flight.organization_id = payload.organization_id
     flight.unit_id = payload.unit_id
     flight.pilot_id = payload.pilot_id

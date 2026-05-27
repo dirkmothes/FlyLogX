@@ -734,8 +734,8 @@ def flight_update(flight_id: str, payload: FlightUpdateRequest, user=Depends(get
     if flight is None or flight.is_deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
     if flight.pilot_id != user.id and user.role != RoleName.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your own draft flights")
-    if flight.status != FlightStatus.draft:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only edit your own draft or rejected flights")
+    if flight.status not in {FlightStatus.draft, FlightStatus.rejected}:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer editable")
     try:
         return update_flight(db, flight_id, payload, actor_id=user.id)

@@ -53,7 +53,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
   const editTarget = flights.find((flight) => flight.id === editTargetId) ?? null;
   const deleteTarget = flights.find((flight) => flight.id === deleteTargetId) ?? null;
   const canManageFlight = (flight: ApiFlight) => viewerRole === "admin" || flight.pilot_id === currentUserId;
-  const canEditFlight = (flight: ApiFlight) => canManageFlight(flight) && flight.status === "draft";
+  const canEditFlight = (flight: ApiFlight) => canManageFlight(flight) && (flight.status === "draft" || flight.status === "rejected");
   const canWithdrawFlight = (flight: ApiFlight) => canManageFlight(flight) && flight.status === "submitted";
   const canDeleteFlight = (flight: ApiFlight) => canManageFlight(flight) && (flight.status === "draft" || flight.status === "approved");
 
