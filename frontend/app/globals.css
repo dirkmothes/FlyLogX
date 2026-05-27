@@ -1901,6 +1901,22 @@ select.input option {
   justify-content: flex-end;
 }
 
+.flight-filter-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.flight-filter-toolbar .field {
+  margin-top: 0;
+}
+
+.flight-filter-reset {
+  height: 46px;
+}
+
 .flight-status-actions {
   display: inline-flex;
   align-items: center;
@@ -2640,6 +2656,10 @@ select.input option {
   .main-column {
     grid-column: 1;
     min-width: 0;
+  }
+
+  .flight-filter-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .sidebar {
