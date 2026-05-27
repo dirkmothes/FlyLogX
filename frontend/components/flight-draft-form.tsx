@@ -30,8 +30,7 @@ type FormState = {
   date: string;
   duration_minutes: string;
   location: string;
-  day_flight: boolean;
-  night_flight: boolean;
+  period: "day" | "night";
 };
 
 function buildFormState(flight?: ApiFlight | null): FormState {
@@ -42,8 +41,7 @@ function buildFormState(flight?: ApiFlight | null): FormState {
     date: flight?.date ?? "",
     duration_minutes: flight ? String(flight.duration_minutes) : "",
     location: flight?.location ?? "",
-    day_flight: flight?.day_flight ?? true,
-    night_flight: flight?.night_flight ?? false,
+    period: flight?.night_flight ? "night" : "day",
   };
 }
 
@@ -113,8 +111,8 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
           date: form.date,
           flight_count: 1,
           duration_minutes: durationMinutes,
-          day_flight: form.day_flight,
-          night_flight: form.night_flight,
+          day_flight: form.period === "day",
+          night_flight: form.period === "night",
           location: form.location,
           coordinates: flight?.coordinates ?? null,
           special_notes: flight?.special_notes ?? null,
@@ -210,6 +208,25 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
             placeholder="Enter duration in minutes"
           />
         </label>
+        <div className="field admin-state-group">
+          <span className="admin-state-label">Day / Night</span>
+          <div className="admin-state-toggle" role="group" aria-label="Flight period">
+            <button
+              type="button"
+              className={`admin-state-option ${form.period === "day" ? "admin-state-option-active" : ""}`}
+              onClick={() => setForm((current) => ({ ...current, period: "day" }))}
+            >
+              Day
+            </button>
+            <button
+              type="button"
+              className={`admin-state-option ${form.period === "night" ? "admin-state-option-active" : ""}`}
+              onClick={() => setForm((current) => ({ ...current, period: "night" }))}
+            >
+              Night
+            </button>
+          </div>
+        </div>
         <label className="field">
           <span>Location</span>
           <input

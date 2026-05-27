@@ -28,8 +28,7 @@ export const flightRows: FlightRow[] = [
     type: "Reconnaissance Flight",
     status: "Approved",
     location: "Training Area North",
-    day: "42 min",
-    night: "0 min",
+    period: "Day",
     reviewer: "Lt Col. A. Leiter",
   },
   {
@@ -43,8 +42,7 @@ export const flightRows: FlightRow[] = [
     type: "Training Flight",
     status: "Submitted",
     location: "Airfield West",
-    day: "0 min",
-    night: "26 min",
+    period: "Night",
   },
   {
     id: "FLX-2026-0043",
@@ -57,8 +55,7 @@ export const flightRows: FlightRow[] = [
     type: "Technical Test Flight",
     status: "Draft",
     location: "Hangar 3",
-    day: "15 min",
-    night: "0 min",
+    period: "Day",
   },
 ];
 

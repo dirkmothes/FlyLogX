@@ -12,8 +12,7 @@ export type FlightRow = {
   type: string;
   status: string;
   location: string;
-  day: string;
-  night: string;
+  period: string;
   reviewer?: string;
 };
 
@@ -119,8 +118,7 @@ export function mapFlightRows(flights: ApiFlight[]): FlightRow[] {
     type: flight.flight_type,
     status: flightStatusLabel(flight.status),
     location: flight.location,
-    day: flight.day_flight ? formatDuration(flight.duration_minutes) : "0 min",
-    night: flight.night_flight ? formatDuration(flight.duration_minutes) : "0 min",
+    period: flight.night_flight ? "Night" : "Day",
     reviewer: flight.flight_supervisor_name ?? undefined,
   }));
 }

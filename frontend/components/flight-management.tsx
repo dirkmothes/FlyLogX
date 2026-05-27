@@ -155,8 +155,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     { header: "Category", render: (row: FlightTableRow) => row.category },
     { header: "Duration", render: (row: FlightTableRow) => row.duration },
     { header: "Mission type", render: (row: FlightTableRow) => row.type },
-    { header: "Day", render: (row: FlightTableRow) => row.day },
-    { header: "Night", render: (row: FlightTableRow) => row.night },
+    { header: "Period", render: (row: FlightTableRow) => row.period },
     {
       header: "Status",
       className: "table-status-cell",

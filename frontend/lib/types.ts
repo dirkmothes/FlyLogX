@@ -17,8 +17,7 @@ export type FlightRow = {
   type: string;
   status: FlightStatus;
   location: string;
-  day: string;
-  night: string;
+  period: string;
   reviewer?: string;
 };
 
