@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import re
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from .db import (
@@ -836,7 +836,20 @@ def list_flights(
         stmt = stmt.where(FlightModel.aircraft_id == aircraft_id)
     if status:
         stmt = stmt.where(FlightModel.status == status)
-    stmt = stmt.order_by(FlightModel.date.desc(), FlightModel.created_at.desc())
+    open_status_rank = case(
+        (
+            FlightModel.status.in_(
+                [
+                    FlightStatus.draft,
+                    FlightStatus.submitted,
+                    FlightStatus.rejected,
+                ]
+            ),
+            1,
+        ),
+        else_=0,
+    )
+    stmt = stmt.order_by(open_status_rank.asc(), FlightModel.updated_at.desc(), FlightModel.created_at.desc())
     return [_flight_to_domain(db, row) for row in db.scalars(stmt).all()]
 
 
