@@ -2427,7 +2427,7 @@ select.input option {
 }
 
 .account-dialog-backdrop {
-  z-index: 260;
+  z-index: 1000;
 }
 
 .admin-dialog {
@@ -2443,7 +2443,8 @@ select.input option {
 }
 
 .account-dialog {
-  z-index: 261;
+  position: relative;
+  z-index: 1001;
 }
 
 .flight-draft-dialog {
