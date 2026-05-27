@@ -672,7 +672,19 @@ def create_aircraft_endpoint(payload: AircraftCreateRequest, user=Depends(requir
 
 
 @app.put("/api/aircraft/{aircraft_id}")
-def update_aircraft_endpoint(aircraft_id: str, payload: AircraftCreateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def update_aircraft_endpoint(
+    aircraft_id: str,
+    payload: AircraftCreateRequest,
+    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    db=Depends(get_session),
+):
+    aircraft = db.get(AircraftModel, aircraft_id)
+    if aircraft is None or aircraft.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+    if user.role == RoleName.supervisor and aircraft.organization_id != user.organization_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only update aircraft in your own organization")
+    if user.role == RoleName.supervisor and payload.organization_id != user.organization_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only update aircraft in your own organization")
     try:
         return update_aircraft(db, aircraft_id, payload, actor_id=user.id)
     except KeyError as exc:
@@ -687,7 +699,12 @@ def update_aircraft_endpoint(aircraft_id: str, payload: AircraftCreateRequest, u
 
 
 @app.delete("/api/aircraft/{aircraft_id}")
-def delete_aircraft_endpoint(aircraft_id: str, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def delete_aircraft_endpoint(aircraft_id: str, user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    aircraft = db.get(AircraftModel, aircraft_id)
+    if aircraft is None or aircraft.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+    if user.role == RoleName.supervisor and aircraft.organization_id != user.organization_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only delete aircraft in your own organization")
     try:
         return delete_aircraft(db, aircraft_id, actor_id=user.id)
     except KeyError as exc:

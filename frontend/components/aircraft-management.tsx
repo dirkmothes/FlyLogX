@@ -18,7 +18,7 @@ type Props = {
 
 export function AircraftManagement({ viewerRole, organizationId, units, aircraft }: Props) {
   const canCreateAircraft = viewerRole === "admin" || viewerRole === "supervisor";
-  const canManageAircraft = viewerRole === "admin";
+  const canManageAircraft = viewerRole === "admin" || viewerRole === "supervisor";
   const rows = useMemo(() => mapAircraftRows(aircraft), [aircraft]);
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
