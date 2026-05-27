@@ -750,6 +750,15 @@ p {
   margin-bottom: 6px;
 }
 
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .panel-body {
   padding: 20px;
 }
@@ -1901,20 +1910,26 @@ select.input option {
   justify-content: flex-end;
 }
 
-.flight-filter-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: end;
-  margin-bottom: 16px;
+.flight-table-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.flight-filter-toolbar .field {
-  margin-top: 0;
+.flight-filter-select {
+  width: 140px;
+  min-width: 0;
+  padding-block: 7px;
+  padding-inline: 12px 34px;
+  font-size: 0.88rem;
 }
 
 .flight-filter-reset {
-  height: 46px;
+  height: 36px;
+  padding-inline: 12px;
+  font-size: 0.84rem;
 }
 
 .flight-status-actions {
@@ -2656,10 +2671,6 @@ select.input option {
   .main-column {
     grid-column: 1;
     min-width: 0;
-  }
-
-  .flight-filter-toolbar {
-    grid-template-columns: 1fr;
   }
 
   .sidebar {

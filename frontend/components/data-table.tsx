@@ -9,12 +9,13 @@ type Column<T> = {
 type Props<T> = {
   title: string;
   subtitle?: string;
+  actions?: ReactNode;
   columns: Column<T>[];
   rows: T[];
   emptyMessage?: string;
 };
 
-export function DataTable<T>({ title, subtitle, columns, rows, emptyMessage = "No data available." }: Props<T>) {
+export function DataTable<T>({ title, subtitle, actions, columns, rows, emptyMessage = "No data available." }: Props<T>) {
   return (
     <section className="panel">
       <div className="panel-header">
@@ -22,6 +23,7 @@ export function DataTable<T>({ title, subtitle, columns, rows, emptyMessage = "N
           <h2>{title}</h2>
           {subtitle ? <p>{subtitle}</p> : null}
         </div>
+        {actions ? <div className="panel-header-actions">{actions}</div> : null}
       </div>
       <div className="table-wrap">
         <table className="table">
