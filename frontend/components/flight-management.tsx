@@ -152,9 +152,9 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
     { header: "Date", render: (row: FlightTableRow) => row.date },
     { header: "Pilot", render: (row: FlightTableRow) => row.pilot },
     { header: "Aircraft", render: (row: FlightTableRow) => row.aircraft },
+    { header: "Mission type", render: (row: FlightTableRow) => row.type },
     { header: "Category", render: (row: FlightTableRow) => row.category },
     { header: "Duration", render: (row: FlightTableRow) => row.duration },
-    { header: "Mission type", render: (row: FlightTableRow) => row.type },
     { header: "Period", render: (row: FlightTableRow) => row.period },
     {
       header: "Status",
