@@ -389,7 +389,7 @@ def organization_create(
 def organization_update(
     organization_id: str,
     payload: OrganizationUpdateRequest,
-    user=Depends(require_role(RoleName.admin, RoleName.supervisor)),
+    user=Depends(require_role(RoleName.admin)),
     db=Depends(get_session),
 ):
     target_organization = db.get(OrganizationModel, organization_id)
@@ -433,7 +433,8 @@ def units(user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=De
 
 
 @app.post("/api/units", response_model=Unit)
-def unit_create(payload: UnitCreateRequest, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def unit_create(payload: UnitCreateRequest, user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    _ensure_scope(user, db, organization_id=payload.organization_id)
     try:
         return create_unit(db, payload, actor_id=user.id)
     except KeyError as exc:
@@ -480,7 +481,8 @@ def unit_update(
 
 
 @app.delete("/api/units/{unit_id}")
-def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin, RoleName.supervisor)), db=Depends(get_session)):
+    _ensure_scope(user, db, unit_id=unit_id)
     try:
         return delete_unit(db, unit_id, actor_id=user.id)
     except KeyError as exc:

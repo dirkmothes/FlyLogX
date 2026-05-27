@@ -162,13 +162,14 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   ];
 
   const canCreateUsers = viewerRole === "admin" || viewerRole === "supervisor";
-  const canCreateStructure = viewerRole === "admin";
+  const canCreateUnits = viewerRole === "admin" || viewerRole === "supervisor";
+  const canCreateOrganizations = viewerRole === "admin";
   const activeCreateType =
     activeTab === "users" && canCreateUsers
       ? "user"
-      : activeTab === "units" && canCreateStructure
+      : activeTab === "units" && canCreateUnits
         ? "unit"
-        : activeTab === "organizations" && canCreateStructure
+        : activeTab === "organizations" && canCreateOrganizations
           ? "organization"
           : null;
   const activeCreateLabel =
@@ -237,7 +238,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   }
 
   function openCreate(type: "organization" | "unit" | "user") {
-    if (type !== "user" && !canCreateStructure) {
+    if (type === "organization" && !canCreateOrganizations) {
+      return;
+    }
+    if (type === "unit" && !canCreateUnits) {
       return;
     }
     if (type === "user" && !canCreateUsers) {
@@ -733,14 +737,21 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                                   onSelect: () => openResetPassword(user),
                                 },
                                 {
-                                  label: "Delete",
-                                  tone: "danger" as const,
-                                  onSelect: () =>
-                                    openDeleteTarget({
-                                      type: "user",
-                                      id: user.id,
-                                      label: `${user.name} (@${user.username})`,
-                                    }),
+                                  label: user.active && !user.is_deleted ? "Delete" : "Unlock",
+                                  tone: user.active && !user.is_deleted ? ("danger" as const) : ("submit" as const),
+                                  disabled: busy === `user-${user.id}-${user.active && !user.is_deleted ? "delete" : "restore"}`,
+                                  title: user.active && !user.is_deleted ? "Delete user" : "Unlock user",
+                                  onSelect: () => {
+                                    if (user.active && !user.is_deleted) {
+                                      openDeleteTarget({
+                                        type: "user",
+                                        id: user.id,
+                                        label: `${user.name} (@${user.username})`,
+                                      });
+                                      return;
+                                    }
+                                    restoreUser(user.id, `user-${user.id}-restore`);
+                                  },
                                 },
                               ]
                             : []),
@@ -775,7 +786,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                               tone: "edit",
                               onSelect: () => openEditUnit(unit),
                             },
-                            ...(viewerRole === "admin"
+                            ...(viewerRole === "admin" || viewerRole === "supervisor"
                               ? [
                                   {
                                     label: "Delete",
@@ -819,13 +830,13 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         <RowActionMenu
                           label={`Actions for organization ${organization.name}`}
                           actions={[
-                            {
-                              label: "Edit",
-                              tone: "edit",
-                              onSelect: () => openEditOrganization(organization),
-                            },
                             ...(viewerRole === "admin"
                               ? [
+                                  {
+                                    label: "Edit",
+                                    tone: "edit" as const,
+                                    onSelect: () => openEditOrganization(organization),
+                                  },
                                   {
                                     label: "Delete",
                                     tone: "danger" as const,
