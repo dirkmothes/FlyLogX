@@ -59,6 +59,45 @@ def _flight_to_domain(db: Session, item: FlightModel) -> FlightEntry:
     return FlightEntry.model_validate(payload)
 
 
+def _aircraft_sort_rank(status: AircraftStatus | None) -> int:
+    if status == AircraftStatus.active:
+        return 0
+    if status == AircraftStatus.maintenance:
+        return 1
+    if status == AircraftStatus.retired:
+        return 2
+    return 3
+
+
+def _aircraft_sort_key(status: AircraftStatus | None, identifier: str | None) -> tuple[int, str]:
+    return _aircraft_sort_rank(status), (identifier or "").lower()
+
+
+def _aircraft_lookup_map(db: Session) -> dict[str, AircraftModel]:
+    rows = db.scalars(select(AircraftModel).where(AircraftModel.is_deleted.is_(False))).all()
+    return {row.id: row for row in rows}
+
+
+def _sort_flights_by_aircraft(db: Session, flights: list[FlightEntry]) -> list[FlightEntry]:
+    aircraft_lookup = _aircraft_lookup_map(db)
+    sort_keys: dict[str, tuple[int, str]] = {}
+    for flight in flights:
+        if flight.aircraft_identifier in sort_keys:
+            continue
+        aircraft = aircraft_lookup.get(flight.aircraft_id)
+        sort_keys[flight.aircraft_identifier] = _aircraft_sort_key(aircraft.status if aircraft else None, flight.aircraft_identifier)
+
+    return sorted(
+        flights,
+        key=lambda flight: (
+            sort_keys.get(flight.aircraft_identifier, (3, flight.aircraft_identifier.lower())),
+            flight.date,
+            flight.created_at,
+        ),
+        reverse=False,
+    )
+
+
 def _organization_to_domain(item: OrganizationModel) -> Organization:
     return Organization.model_validate(item)
 
@@ -1159,12 +1198,12 @@ def dashboard_for_user(db: Session, user_id: str) -> DashboardSummary:
     if user is None or user.is_deleted:
         raise KeyError("user_not_found")
     flights = list_flights(db, organization_id=user.organization_id, user_id=user_id)
-    return build_dashboard_summary(flights, title=f"{user.name} dashboard")
+    return build_dashboard_summary(db, flights, title=f"{user.name} dashboard")
 
 
 def dashboard_for_global(db: Session) -> DashboardSummary:
     flights = list_flights(db)
-    summary = build_dashboard_summary(flights, title="Global dashboard")
+    summary = build_dashboard_summary(db, flights, title="Global dashboard")
     summary.unit_comparison = [
         {"label": "Organizations", "value": len({flight.organization_id for flight in flights})},
         {"label": "Units", "value": len({flight.unit_id for flight in flights if flight.unit_id})},
@@ -1181,7 +1220,7 @@ def dashboard_for_unit(db: Session, unit_id: str) -> DashboardSummary:
         raise KeyError("unit_not_found")
     flights = list_flights(db, organization_id=unit.organization_id)
     flights = [flight for flight in flights if flight.unit_id == unit_id]
-    summary = build_dashboard_summary(flights, title=f"Unit {unit.name}")
+    summary = build_dashboard_summary(db, flights, title=f"Unit {unit.name}")
     summary.unit_comparison = [
         {"label": "Pilots", "value": len({flight.pilot_id for flight in flights})},
         {"label": "Flights", "value": len(flights)},
@@ -1192,7 +1231,7 @@ def dashboard_for_unit(db: Session, unit_id: str) -> DashboardSummary:
     return summary
 
 
-def build_dashboard_summary(flights: list[FlightEntry], title: str) -> DashboardSummary:
+def build_dashboard_summary(db: Session, flights: list[FlightEntry], title: str) -> DashboardSummary:
     total_minutes = sum(flight.duration_minutes for flight in flights if flight.status != FlightStatus.draft)
     total_hours = round(total_minutes / 60.0, 2)
     total_flights = sum(flight.flight_count for flight in flights if flight.status != FlightStatus.draft)
@@ -1203,6 +1242,8 @@ def build_dashboard_summary(flights: list[FlightEntry], title: str) -> Dashboard
     by_category: dict[str, float] = defaultdict(float)
     by_aircraft: dict[str, float] = defaultdict(float)
     by_month: dict[str, float] = defaultdict(float)
+    aircraft_lookup = _aircraft_lookup_map(db)
+    aircraft_sort_keys: dict[str, tuple[int, str]] = {}
     for flight in flights:
         if flight.status == FlightStatus.draft:
             continue
@@ -1210,7 +1251,11 @@ def build_dashboard_summary(flights: list[FlightEntry], title: str) -> Dashboard
         by_category[flight.category.value] += duration_hours
         by_aircraft[flight.aircraft_identifier] += duration_hours
         by_month[flight.date.strftime("%Y-%m")] += duration_hours
+        if flight.aircraft_identifier not in aircraft_sort_keys:
+            aircraft = aircraft_lookup.get(flight.aircraft_id)
+            aircraft_sort_keys[flight.aircraft_identifier] = _aircraft_sort_key(aircraft.status if aircraft else None, flight.aircraft_identifier)
 
+    ordered_by_aircraft = dict(sorted(by_aircraft.items(), key=lambda item: aircraft_sort_keys.get(item[0], (3, item[0].lower()))))
     recent = sorted(flights, key=lambda item: (item.date, item.created_at), reverse=True)[:5]
     return DashboardSummary(
         title=title,
@@ -1220,7 +1265,7 @@ def build_dashboard_summary(flights: list[FlightEntry], title: str) -> Dashboard
         rejected_entries=rejected_entries,
         approved_entries=approved_entries,
         by_category=dict(by_category),
-        by_aircraft=dict(by_aircraft),
+        by_aircraft=ordered_by_aircraft,
         by_month=dict(by_month),
         recent_flights=recent,
         incomplete_entries=len([flight for flight in flights if flight.status == FlightStatus.draft]),
@@ -1248,6 +1293,7 @@ def export_summary(format_name: str, db: Session) -> dict[str, str | int]:
 
 def export_flights_csv(db: Session, organization_id: str | None = None, user_id: str | None = None, status: FlightStatus | None = None) -> str:
     flights = list_flights(db, organization_id=organization_id, user_id=user_id, status=status)
+    flights = _sort_flights_by_aircraft(db, flights)
     buffer = StringIO()
     csv_writer = writer(buffer)
     csv_writer.writerow(
@@ -1291,6 +1337,7 @@ def export_flights_pdf(db: Session, organization_id: str | None = None, user_id:
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     flights = list_flights(db, organization_id=organization_id, user_id=user_id, status=status)
+    flights = _sort_flights_by_aircraft(db, flights)
     buffer = BytesIO()
     document = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=24, rightMargin=24, topMargin=24, bottomMargin=24)
     styles = getSampleStyleSheet()
