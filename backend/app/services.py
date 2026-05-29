@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import re
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from .db import (
@@ -22,6 +22,7 @@ from .db import (
 )
 from .domain import (
     Aircraft,
+    AircraftStatus,
     AircraftCreateRequest,
     AuditEvent,
     DashboardSummary,
@@ -323,7 +324,17 @@ def list_units(db: Session, user: UserModel | None = None) -> list[Unit]:
 
 
 def list_aircraft(db: Session) -> list[Aircraft]:
-    rows = db.scalars(select(AircraftModel).where(AircraftModel.is_deleted.is_(False))).all()
+    status_rank = case(
+        (AircraftModel.status == AircraftStatus.active, 0),
+        (AircraftModel.status == AircraftStatus.maintenance, 1),
+        (AircraftModel.status == AircraftStatus.retired, 2),
+        else_=3,
+    )
+    rows = db.scalars(
+        select(AircraftModel)
+        .where(AircraftModel.is_deleted.is_(False))
+        .order_by(status_rank.asc(), func.lower(AircraftModel.identifier).asc())
+    ).all()
     return [Aircraft.model_validate(row) for row in rows]
 
 
