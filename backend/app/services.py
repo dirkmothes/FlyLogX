@@ -1151,6 +1151,19 @@ def dashboard_for_user(db: Session, user_id: str) -> DashboardSummary:
     return build_dashboard_summary(flights, title=f"{user.name} dashboard")
 
 
+def dashboard_for_global(db: Session) -> DashboardSummary:
+    flights = list_flights(db)
+    summary = build_dashboard_summary(flights, title="Global dashboard")
+    summary.unit_comparison = [
+        {"label": "Organizations", "value": len({flight.organization_id for flight in flights})},
+        {"label": "Units", "value": len({flight.unit_id for flight in flights if flight.unit_id})},
+        {"label": "Pilots", "value": len({flight.pilot_id for flight in flights})},
+    ]
+    summary.pending_reviews = len([flight for flight in flights if flight.status == FlightStatus.submitted])
+    summary.incomplete_entries = len([flight for flight in flights if flight.status == FlightStatus.draft])
+    return summary
+
+
 def dashboard_for_unit(db: Session, unit_id: str) -> DashboardSummary:
     unit = db.get(UnitModel, unit_id)
     if unit is None or unit.is_deleted:

@@ -73,6 +73,7 @@ from .services import (
     review_flight,
     withdraw_flight,
     submit_flight,
+    dashboard_for_global,
     update_organization,
     update_aircraft,
     update_flight,
@@ -855,6 +856,11 @@ def unit_dashboard(unit_id: str, user=Depends(require_role(RoleName.supervisor, 
         return dashboard_for_unit(db, unit_id)
     except KeyError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
+
+
+@app.get("/api/dashboards/global")
+def global_dashboard(user=Depends(require_role(RoleName.admin)), db=Depends(get_session)):
+    return dashboard_for_global(db)
 
 
 @app.get("/api/audit")

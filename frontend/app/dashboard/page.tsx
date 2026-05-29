@@ -15,16 +15,50 @@ export default async function DashboardPage() {
     return null;
   }
 
-  const summary = await apiFetch<ApiDashboardSummary>(
-    session.user.role === "pilot"
-      ? `/api/dashboards/pilot/${session.user.id}`
-      : `/api/dashboards/unit/${session.user.unit_id ?? session.user.organization_id}`,
-    {
+  let summary: ApiDashboardSummary | null = null;
+  let dashboardError: string | null = null;
+
+  try {
+    const path =
+      session.user.role === "pilot"
+        ? `/api/dashboards/pilot/${session.user.id}`
+        : session.user.role === "admin"
+          ? "/api/dashboards/global"
+          : `/api/dashboards/unit/${session.user.unit_id ?? session.user.organization_id}`;
+    summary = await apiFetch<ApiDashboardSummary>(path, {
       headers: {
         ...getAuthHeader(session.token),
       },
-    },
-  );
+    });
+  } catch (error) {
+    dashboardError = error instanceof Error ? error.message : "Dashboard data could not be loaded.";
+  }
+
+  if (!summary) {
+    return (
+      <AppShell title="Dashboard" breadcrumbs={["FlyLogX", "Dashboard"]} user={session.user}>
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Dashboard unavailable</h2>
+              <p>We could not load the operational overview right now.</p>
+            </div>
+          </div>
+          <div className="panel-body content-flow">
+            <div className="form-note" style={{ borderColor: "rgba(162, 58, 58, 0.18)", background: "rgba(162, 58, 58, 0.06)" }}>
+              <strong>Data request failed.</strong>
+              <div>{dashboardError ?? "Please try again in a moment."}</div>
+            </div>
+            <div className="form-actions">
+              <a className="button button-secondary" href="/dashboard">
+                Retry
+              </a>
+            </div>
+          </div>
+        </section>
+      </AppShell>
+    );
+  }
 
   const cards = mapDashboard(summary);
   const recentRows = mapFlightRows(summary.recent_flights);
