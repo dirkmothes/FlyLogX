@@ -52,6 +52,19 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
   const editTarget = flights.find((flight) => flight.id === editTargetId) ?? null;
   const deleteTarget = flights.find((flight) => flight.id === deleteTargetId) ?? null;
+  const activeAircraft = useMemo(() => aircraft.filter((item) => item.status === "active"), [aircraft]);
+  const editableFlightAircraft = useMemo(() => {
+    if (!editTarget) {
+      return activeAircraft;
+    }
+
+    const targetAircraft = aircraft.find((item) => item.id === editTarget.aircraft_id);
+    if (!targetAircraft || targetAircraft.status === "active") {
+      return activeAircraft;
+    }
+
+    return [...activeAircraft, targetAircraft];
+  }, [activeAircraft, aircraft, editTarget]);
   const canManageFlight = (flight: ApiFlight) => viewerRole === "admin" || flight.pilot_id === currentUserId;
   const canEditFlight = (flight: ApiFlight) => canManageFlight(flight) && (flight.status === "draft" || flight.status === "rejected");
   const canSubmitFlight = (flight: ApiFlight) => canManageFlight(flight) && flight.status === "draft";
@@ -303,7 +316,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
   return (
     <>
-      <FlightDraftDialog organizationId={organizationId} unitId={unitId} pilotId={currentUserId} aircraft={aircraft} />
+      <FlightDraftDialog organizationId={organizationId} unitId={unitId} pilotId={currentUserId} aircraft={activeAircraft} />
 
       {message ? <div className="form-note">{message}</div> : null}
 
@@ -371,7 +384,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         organizationId={editTarget?.organization_id ?? organizationId}
         unitId={editTarget?.unit_id ?? unitId}
         pilotId={editTarget?.pilot_id ?? currentUserId}
-        aircraft={aircraft}
+        aircraft={editableFlightAircraft}
         mode="edit"
         flight={editTarget}
         open={editTarget !== null}
