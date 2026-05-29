@@ -35,7 +35,7 @@ export default async function AircraftPage() {
       <AircraftManagement
         viewerRole={session.user.role}
         organizationId={session.user.organization_id}
-        units={units}
+        units={units.filter((item) => item.organization_id === session.user.organization_id)}
         aircraft={aircraft}
       />
     </AppShell>
