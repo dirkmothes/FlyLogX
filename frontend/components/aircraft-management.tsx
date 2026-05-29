@@ -12,7 +12,7 @@ import { aircraftStatusTone, mapAircraftRows } from "@/lib/view-model";
 
 type Props = {
   viewerRole: RoleName;
-  organizationId: string;
+  organizationId: string | null;
   organizations: ApiOrganization[];
   units: ApiUnit[];
   aircraft: ApiAircraft[];

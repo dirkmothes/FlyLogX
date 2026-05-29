@@ -7,7 +7,7 @@ import { AircraftCreateForm } from "@/components/aircraft-create-form";
 
 type Props = {
   viewerRole: RoleName;
-  organizationId: string;
+  organizationId: string | null;
   organizations: ApiOrganization[];
   units: ApiUnit[];
   mode?: "create" | "edit";

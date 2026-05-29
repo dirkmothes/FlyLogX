@@ -6,7 +6,7 @@ export type AircraftStatus = "active" | "maintenance" | "retired";
 
 export type ApiUser = {
   id: string;
-  organization_id: string;
+  organization_id: string | null;
   unit_id: string | null;
   role: RoleName;
   username: string;
@@ -65,11 +65,16 @@ export type ApiAircraft = {
 export type ApiFlight = {
   id: string;
   organization_id: string;
+  organization_name: string | null;
   unit_id: string;
   unit_name: string | null;
   unit_code: string | null;
   pilot_id: string;
   pilot_name: string | null;
+  created_by: string;
+  created_by_name: string | null;
+  updated_by: string;
+  updated_by_name: string | null;
   aircraft_id: string;
   aircraft_identifier: string;
   aircraft_name: string | null;
@@ -88,6 +93,9 @@ export type ApiFlight = {
   remarks: string | null;
   flight_supervisor_name: string | null;
   flight_supervisor_id: string | null;
+  reviewed_by_name: string | null;
+  approved_by_name: string | null;
+  rejected_by_name: string | null;
   flight_supervisor_signature: string | null;
   previous_flights: number;
   previous_hours: number;
@@ -97,8 +105,6 @@ export type ApiFlight = {
   total_hours: number;
   created_at: string;
   updated_at: string;
-  created_by: string;
-  updated_by: string;
   submitted_at: string | null;
   reviewed_at: string | null;
   approved_at: string | null;

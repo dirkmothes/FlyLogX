@@ -7,8 +7,8 @@ import { DropdownSelect } from "@/components/dropdown-select";
 import { API_BASE_URL, type ApiAircraft, type ApiFlight, type FlightCategory } from "@/lib/api";
 
 type Props = {
-  organizationId: string;
-  unitId: string;
+  organizationId: string | null;
+  unitId: string | null;
   pilotId: string;
   aircraft: ApiAircraft[];
   mode?: "create" | "edit";
@@ -58,8 +58,6 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
   }, [flight]);
 
   const isEdit = mode === "edit";
-  const currentOrganizationId = flight?.organization_id ?? organizationId;
-  const currentUnitId = flight?.unit_id ?? unitId;
   const currentPilotId = flight?.pilot_id ?? pilotId;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -67,6 +65,16 @@ export function FlightDraftForm({ organizationId, unitId, pilotId, aircraft, mod
     const aircraftItem = aircraft.find((item) => item.id === form.aircraft_id);
     if (!aircraftItem) {
       setMessage("Please select an aircraft.");
+      return;
+    }
+    const currentOrganizationId = flight?.organization_id ?? organizationId ?? aircraftItem.organization_id;
+    const currentUnitId = flight?.unit_id ?? unitId ?? aircraftItem.owner_unit_id;
+    if (!currentOrganizationId) {
+      setMessage("Please select an aircraft with an organization.");
+      return;
+    }
+    if (!currentUnitId) {
+      setMessage("Please select an aircraft with an assigned unit, or choose a unit for the entry.");
       return;
     }
     if (!form.category) {

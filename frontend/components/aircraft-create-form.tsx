@@ -8,7 +8,7 @@ import type { ApiAircraft, ApiOrganization, ApiUnit, AircraftStatus, RoleName } 
 import { API_BASE_URL } from "@/lib/api";
 
 type Props = {
-  organizationId: string;
+  organizationId: string | null;
   organizations: ApiOrganization[];
   units: ApiUnit[];
   viewerRole: RoleName;
@@ -37,9 +37,9 @@ function normalizeIdentifier(value: string) {
     .toUpperCase();
 }
 
-function buildFormState(aircraft?: ApiAircraft | null, defaultOrganizationId = ""): FormState {
+function buildFormState(aircraft?: ApiAircraft | null, defaultOrganizationId: string | null = ""): FormState {
   return {
-    organization_id: aircraft?.organization_id ?? defaultOrganizationId,
+    organization_id: aircraft?.organization_id ?? defaultOrganizationId ?? "",
     owner_unit_id: aircraft?.owner_unit_id ?? "",
     name: aircraft?.name ?? "",
     identifier: aircraft?.identifier ?? "",
@@ -62,7 +62,8 @@ export function AircraftCreateForm({ organizationId, organizations, units, viewe
 
   const isEdit = mode === "edit";
   const submitLabel = isEdit ? "Save aircraft" : "Create aircraft";
-  const availableUnits = viewerRole === "admin" ? units.filter((unit) => unit.organization_id === form.organization_id) : units;
+  const selectedOrganizationId = form.organization_id || organizationId || "";
+  const availableUnits = viewerRole === "admin" ? units.filter((unit) => unit.organization_id === selectedOrganizationId) : units;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +98,7 @@ export function AircraftCreateForm({ organizationId, organizations, units, viewe
           },
           credentials: "include",
           body: JSON.stringify({
-            organization_id: form.organization_id || organizationId,
+            organization_id: form.organization_id || organizationId || "",
             owner_unit_id: form.owner_unit_id || null,
             name: form.name.trim(),
             identifier,
@@ -146,7 +147,7 @@ export function AircraftCreateForm({ organizationId, organizations, units, viewe
           <label className="field">
             <span>Organization</span>
             <DropdownSelect
-              value={form.organization_id || organizationId}
+              value={form.organization_id || organizationId || ""}
               placeholder="Select organization"
               options={organizations.map((organization) => ({
                 value: organization.id,

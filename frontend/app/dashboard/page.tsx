@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/app-shell";
 import { DataTable } from "@/components/data-table";
-import { ExportActions } from "@/components/export-actions";
 import { KpiCard } from "@/components/kpi-card";
 import { StatusPill } from "@/components/status-pill";
 import { apiFetch, getAuthHeader, type DashboardSummary as ApiDashboardSummary } from "@/lib/api";
@@ -69,30 +68,6 @@ export default async function DashboardPage() {
       subtitle="Operational overview of flight duration, review status, and logbook progress."
       breadcrumbs={["FlyLogX", "Dashboard"]}
       user={session.user}
-      aside={
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <h2>Approval pipeline</h2>
-              <p>Status of the current approval flow</p>
-            </div>
-          </div>
-          <div className="panel-body workflow">
-            <div className="workflow-step">
-              <strong>1. Draft</strong>
-              <span>New flights are created and validated locally.</span>
-            </div>
-            <div className="workflow-step">
-              <strong>2. Submitted</strong>
-              <span>The pilot submits the entry for review.</span>
-            </div>
-            <div className="workflow-step">
-              <strong>3. Approved</strong>
-              <span>After review, the record is locked and logged.</span>
-            </div>
-          </div>
-        </section>
-      }
     >
       <div className="grid-4">
         {cards.map((item) => (
@@ -143,21 +118,6 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
-
-        <section className="panel">
-          <div className="panel-header">
-            <div>
-              <h2>Export & records</h2>
-              <p>Export the visible flight data as CSV or PDF for further processing and archiving.</p>
-            </div>
-          </div>
-        <div className="panel-body">
-          <div className="grid-2">
-            <ExportActions format="csv" />
-            <ExportActions format="pdf" />
-          </div>
-        </div>
-      </section>
 
       <DataTable
         title="Recent flights"

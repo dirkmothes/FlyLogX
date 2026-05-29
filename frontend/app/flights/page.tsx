@@ -34,11 +34,10 @@ export default async function FlightsPage() {
         viewerRole={session.user.role}
         currentUserId={session.user.id}
         organizationId={session.user.organization_id}
-        unitId={session.user.unit_id ?? session.user.organization_id}
-        aircraft={aircraft.filter((item) => item.organization_id === session.user.organization_id)}
+        unitId={session.user.unit_id}
+        aircraft={session.user.role === "admin" ? aircraft : aircraft.filter((item) => item.organization_id === session.user.organization_id)}
         flights={flights}
       />
-
     </AppShell>
   );
 }

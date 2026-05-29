@@ -65,7 +65,7 @@ class UserModel(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
-    organization_id: Mapped[str] = mapped_column(String(64), ForeignKey("organizations.id"), nullable=False, index=True)
+    organization_id: Mapped[str | None] = mapped_column(String(64), ForeignKey("organizations.id"), nullable=True, index=True)
     unit_id: Mapped[str | None] = mapped_column(String(64), ForeignKey("units.id"), nullable=True, index=True)
     role: Mapped[RoleName] = mapped_column(
         Enum(RoleName, name="role_name", values_callable=lambda enum_cls: [item.value for item in enum_cls]),
@@ -120,7 +120,10 @@ class FlightModel(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     organization_id: Mapped[str] = mapped_column(String(64), ForeignKey("organizations.id"), nullable=False, index=True)
+    organization_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     unit_id: Mapped[str] = mapped_column(String(64), ForeignKey("units.id"), nullable=False, index=True)
+    unit_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    unit_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     pilot_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.id"), nullable=False, index=True)
     aircraft_id: Mapped[str] = mapped_column(String(64), ForeignKey("aircraft.id"), nullable=False, index=True)
     aircraft_identifier: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -254,8 +257,8 @@ def seed_database(session) -> None:
     )
     admin = UserModel(
         id="user-admin-01",
-        organization_id=org.id,
-        unit_id=unit.id,
+        organization_id=None,
+        unit_id=None,
         role=RoleName.admin,
         username="admin",
         first_name="Frank",
@@ -318,7 +321,10 @@ def seed_database(session) -> None:
     flight_1 = FlightModel(
         id="flight-01",
         organization_id=org.id,
+        organization_name=org.name,
         unit_id=unit.id,
+        unit_name=unit.name,
+        unit_code=unit.code,
         pilot_id=pilot.id,
         aircraft_id=drone.id,
         aircraft_identifier=drone.identifier,
@@ -357,7 +363,10 @@ def seed_database(session) -> None:
     flight_2 = FlightModel(
         id="flight-02",
         organization_id=org.id,
+        organization_name=org.name,
         unit_id=unit.id,
+        unit_name=unit.name,
+        unit_code=unit.code,
         pilot_id=pilot.id,
         aircraft_id=trainer.id,
         aircraft_identifier=trainer.identifier,
@@ -391,7 +400,10 @@ def seed_database(session) -> None:
     flight_3 = FlightModel(
         id="flight-03",
         organization_id=org.id,
+        organization_name=org.name,
         unit_id=unit.id,
+        unit_name=unit.name,
+        unit_code=unit.code,
         pilot_id=pilot.id,
         aircraft_id=drone.id,
         aircraft_identifier=drone.identifier,

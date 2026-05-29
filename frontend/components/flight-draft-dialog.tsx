@@ -6,8 +6,8 @@ import type { ApiAircraft, ApiFlight } from "@/lib/api";
 import { FlightDraftForm } from "@/components/flight-draft-form";
 
 type Props = {
-  organizationId: string;
-  unitId: string;
+  organizationId: string | null;
+  unitId: string | null;
   pilotId: string;
   aircraft: ApiAircraft[];
   mode?: "create" | "edit";

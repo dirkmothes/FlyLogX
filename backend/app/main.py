@@ -68,6 +68,8 @@ from .services import (
     delete_flight,
     delete_unit,
     delete_user,
+    organization_dependency_labels,
+    unit_dependency_labels,
     unit_in_scope,
     user_in_scope,
     review_flight,
@@ -126,9 +128,10 @@ def _load_user_from_token(token: str, db):
     user = db.get(UserModel, payload["sub"])
     if not user or not user.active or user.is_deleted:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
-    organization = db.get(OrganizationModel, user.organization_id)
-    if organization is None or organization.is_deleted:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive organization")
+    if user.role != RoleName.admin:
+        organization = db.get(OrganizationModel, user.organization_id)
+        if organization is None or organization.is_deleted:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive organization")
     return user
 
 
@@ -180,6 +183,18 @@ def _ensure_scope(user, db, organization_id: str | None = None, unit_id: str | N
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     if user_id is not None and not user_in_scope(db, user, user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
+
+
+def _linked_records_detail(entity_label: str, labels: list[str]) -> str:
+    if not labels:
+        return f"{entity_label} still has linked records"
+    if len(labels) == 1:
+        area_suffix = labels[0]
+    elif len(labels) == 2:
+        area_suffix = f"{labels[0]} and {labels[1]}"
+    else:
+        area_suffix = f"{', '.join(labels[:-1])}, and {labels[-1]}"
+    return f"{entity_label} still has linked records from the following areas: {area_suffix}"
 
 
 @app.get("/")
@@ -408,7 +423,7 @@ def organization_update(
         if key == "organization_parent_invalid":
             detail = "Organization cannot reference itself as parent"
         elif key == "organization_has_dependencies":
-            detail = "Organization still has linked records"
+            detail = _linked_records_detail("Organization", organization_dependency_labels(db, organization_id))
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST if key == "organization_parent_invalid" else status.HTTP_404_NOT_FOUND, detail=detail)
 
@@ -424,7 +439,10 @@ def organization_delete(
     except KeyError as exc:
         key = exc.args[0] if exc.args else "organization_not_found"
         if key == "organization_has_dependencies":
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Organization still has linked records")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_linked_records_detail("Organization", organization_dependency_labels(db, organization_id)),
+            )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
 
 
@@ -476,7 +494,7 @@ def unit_update(
             detail = "Unit code already exists"
             status_code = status.HTTP_400_BAD_REQUEST
         elif key == "unit_has_dependencies":
-            detail = "Unit still has linked records"
+            detail = _linked_records_detail("Unit", unit_dependency_labels(db, unit_id))
             status_code = status.HTTP_409_CONFLICT
         raise HTTPException(status_code=status_code, detail=detail)
 
@@ -489,7 +507,10 @@ def unit_delete(unit_id: str, user=Depends(require_role(RoleName.admin, RoleName
     except KeyError as exc:
         key = exc.args[0] if exc.args else "unit_not_found"
         if key == "unit_has_dependencies":
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Unit still has linked records")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=_linked_records_detail("Unit", unit_dependency_labels(db, unit_id)),
+            )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
 
 
@@ -519,6 +540,12 @@ def user_create(
         if key == "organization_not_found":
             detail = "Organization not found"
             status_code = status.HTTP_404_NOT_FOUND
+        elif key == "user_organization_required":
+            detail = "Organization is required for pilot and supervisor users"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_unit_required":
+            detail = "Unit is required for pilot and supervisor users"
+            status_code = status.HTTP_400_BAD_REQUEST
         elif key == "unit_not_found":
             detail = "Unit not found"
             status_code = status.HTTP_404_NOT_FOUND
@@ -551,9 +578,9 @@ def user_update(
     db=Depends(get_session),
 ):
     target_user = db.get(UserModel, user_id)
-    if target_user is None or target_user.is_deleted:
+    if target_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    _ensure_scope(user, db, user_id=user_id)
+    _ensure_scope(user, db, organization_id=target_user.organization_id)
     changes = payload.model_dump(exclude_unset=True)
     if user.role == RoleName.supervisor:
         if target_user.role == RoleName.admin or changes.get("role") == RoleName.admin:
@@ -574,6 +601,12 @@ def user_update(
         status_code = status.HTTP_404_NOT_FOUND
         if key == "organization_not_found":
             detail = "Organization not found"
+        elif key == "user_organization_required":
+            detail = "Organization is required for pilot and supervisor users"
+            status_code = status.HTTP_400_BAD_REQUEST
+        elif key == "user_unit_required":
+            detail = "Unit is required for pilot and supervisor users"
+            status_code = status.HTTP_400_BAD_REQUEST
         elif key == "unit_not_found":
             detail = "Unit not found"
         elif key == "unit_organization_mismatch":
@@ -607,9 +640,9 @@ def user_delete(
     db=Depends(get_session),
 ):
     target_user = db.get(UserModel, user_id)
-    if target_user is None or target_user.is_deleted:
+    if target_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    _ensure_scope(user, db, user_id=user_id)
+    _ensure_scope(user, db, organization_id=target_user.organization_id)
     if user.role == RoleName.supervisor and target_user.role == RoleName.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     try:
@@ -632,9 +665,9 @@ def user_reset_password(
     db=Depends(get_session),
 ):
     target_user = db.get(UserModel, user_id)
-    if target_user is None or target_user.is_deleted:
+    if target_user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    _ensure_scope(user, db, user_id=user_id)
+    _ensure_scope(user, db, organization_id=target_user.organization_id)
     if user.role == RoleName.supervisor and target_user.role == RoleName.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
     if not payload.password.strip():
@@ -732,13 +765,16 @@ def flights(
 ):
     if user_id and user.role not in {RoleName.supervisor, RoleName.admin} and user_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to do that")
-    return list_flights(db, organization_id=user.organization_id, user_id=user_id, aircraft_id=aircraft_id, status=status_filter)
+    organization_id = None if user.role == RoleName.admin else user.organization_id
+    return list_flights(db, organization_id=organization_id, user_id=user_id, aircraft_id=aircraft_id, status=status_filter)
 
 
 @app.get("/api/flights/{flight_id}", response_model=FlightEntry)
 def flight_detail(flight_id: str, user=Depends(get_current_user), db=Depends(get_session)):
     flight = db.get(FlightModel, flight_id)
-    if flight is None or flight.organization_id != user.organization_id or flight.is_deleted:
+    if flight is None or flight.is_deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+    if user.role != RoleName.admin and flight.organization_id != user.organization_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
     return FlightEntry.model_validate(flight)
 
@@ -749,8 +785,17 @@ def flight_create(payload: FlightCreateRequest, user=Depends(get_current_user), 
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only create your own flights")
     try:
         return create_flight(db, payload, actor_id=user.id)
-    except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+    except KeyError as exc:
+        key = exc.args[0] if exc.args else ""
+        if key == "aircraft_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+        if key == "organization_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+        if key == "unit_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
+        if key == "unit_organization_mismatch":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unit does not belong to the selected organization")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Flight could not be created")
 
 
 @app.put("/api/flights/{flight_id}", response_model=FlightEntry)
@@ -772,6 +817,12 @@ def flight_update(flight_id: str, payload: FlightUpdateRequest, user=Depends(get
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Flight is no longer editable")
         if detail == "aircraft_not_found":
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aircraft not found")
+        if detail == "organization_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+        if detail == "unit_not_found":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit not found")
+        if detail == "unit_organization_mismatch":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unit does not belong to the selected organization")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Flight could not be updated")
 
 
@@ -870,6 +921,7 @@ def audit(organization_id: str | None = None, user=Depends(require_role(RoleName
 
 @app.post("/api/exports")
 def exports(payload: ExportRequest, user=Depends(get_current_user), db=Depends(get_session)):
+    scope_label = user.organization_id or "global"
     if payload.format.lower() == "csv":
         csv_content = export_flights_csv(
             db,
@@ -877,7 +929,7 @@ def exports(payload: ExportRequest, user=Depends(get_current_user), db=Depends(g
             user_id=payload.user_id,
             status=payload.status,
         )
-        filename = f"flylogx-export-{user.organization_id}.csv"
+        filename = f"flylogx-export-{scope_label}.csv"
         return PlainTextResponse(
             csv_content,
             media_type="text/csv; charset=utf-8",
@@ -891,7 +943,7 @@ def exports(payload: ExportRequest, user=Depends(get_current_user), db=Depends(g
             user_id=payload.user_id,
             status=payload.status,
         )
-        filename = f"flylogx-export-{user.organization_id}.pdf"
+        filename = f"flylogx-export-{scope_label}.pdf"
         return Response(
             content=pdf_content,
             media_type="application/pdf",

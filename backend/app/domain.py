@@ -86,7 +86,7 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    organization_id: str
+    organization_id: str | None = None
     unit_id: str | None = None
     role: RoleName
     username: str
@@ -100,7 +100,7 @@ class User(BaseModel):
 
 
 class UserCreateRequest(BaseModel):
-    organization_id: str
+    organization_id: str | None = None
     unit_id: str | None = None
     role: RoleName = RoleName.pilot
     username: str
@@ -198,8 +198,13 @@ class FlightEntry(BaseModel):
 
     id: str
     organization_id: str
+    organization_name: str | None = None
     unit_id: str
     pilot_id: str
+    created_by: str
+    created_by_name: str | None = None
+    updated_by: str
+    updated_by_name: str | None = None
     aircraft_id: str
     aircraft_identifier: str
     aircraft_name: str | None = None
@@ -221,6 +226,9 @@ class FlightEntry(BaseModel):
     unit_code: str | None = None
     flight_supervisor_name: str | None = None
     flight_supervisor_id: str | None = None
+    reviewed_by_name: str | None = None
+    approved_by_name: str | None = None
+    rejected_by_name: str | None = None
     flight_supervisor_signature: str | None = None
     previous_flights: int = 0
     previous_hours: float = 0.0

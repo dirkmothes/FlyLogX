@@ -46,12 +46,24 @@ from .domain import (
 
 def _flight_to_domain(db: Session, item: FlightModel) -> FlightEntry:
     payload = FlightEntry.model_validate(item).model_dump()
+    organization = db.get(OrganizationModel, item.organization_id)
     pilot = db.get(UserModel, item.pilot_id)
+    created_by = db.get(UserModel, item.created_by)
+    updated_by = db.get(UserModel, item.updated_by)
+    reviewed_by = db.get(UserModel, item.reviewed_by) if item.reviewed_by else None
+    approved_by = db.get(UserModel, item.approved_by) if item.approved_by else None
+    rejected_by = db.get(UserModel, item.rejected_by) if item.rejected_by else None
     unit = db.get(UnitModel, item.unit_id)
     aircraft = db.get(AircraftModel, item.aircraft_id)
+    payload["organization_name"] = item.organization_name or (organization.name if organization and not organization.is_deleted else None)
     payload["pilot_name"] = pilot.name if pilot else None
-    payload["unit_name"] = unit.name if unit else None
-    payload["unit_code"] = unit.code if unit else None
+    payload["created_by_name"] = created_by.name if created_by else None
+    payload["updated_by_name"] = updated_by.name if updated_by else None
+    payload["reviewed_by_name"] = reviewed_by.name if reviewed_by else None
+    payload["approved_by_name"] = approved_by.name if approved_by else None
+    payload["rejected_by_name"] = rejected_by.name if rejected_by else None
+    payload["unit_name"] = item.unit_name or (unit.name if unit and not unit.is_deleted else None)
+    payload["unit_code"] = item.unit_code or (unit.code if unit and not unit.is_deleted else None)
     payload["aircraft_name"] = aircraft.name if aircraft else None
     if item.flight_supervisor_id:
         reviewer = db.get(UserModel, item.flight_supervisor_id)
@@ -163,6 +175,36 @@ def _normalize_user_name(first_name: str | None, last_name: str | None) -> tuple
     return normalized_first_name, normalized_last_name, display_name
 
 
+def _first_active_organization_id(db: Session) -> str | None:
+    return db.scalar(select(OrganizationModel.id).where(OrganizationModel.is_deleted.is_(False)).order_by(OrganizationModel.name))
+
+
+def _audit_organization_id(db: Session, *candidate_ids: str | None) -> str:
+    for candidate_id in candidate_ids:
+        if candidate_id:
+            return candidate_id
+    fallback = _first_active_organization_id(db)
+    if fallback is None:
+        raise KeyError("organization_not_found")
+    return fallback
+
+
+def _resolve_user_scope(db: Session, role: RoleName, organization_id: str | None, unit_id: str | None) -> tuple[str | None, str | None]:
+    if role == RoleName.admin:
+        return None, None
+
+    if not organization_id:
+        raise KeyError("user_organization_required")
+    if not unit_id:
+        raise KeyError("user_unit_required")
+
+    _require_organization(db, organization_id)
+    unit = _require_unit(db, unit_id)
+    if unit.organization_id != organization_id:
+        raise KeyError("unit_organization_mismatch")
+    return organization_id, unit_id
+
+
 def _normalize_unit_code(name: str, code: str | None = None) -> str:
     candidate = (code or "").strip()
     if candidate:
@@ -206,35 +248,63 @@ def _ensure_unique_aircraft_identifiers(db: Session, aircraft: AircraftModel, id
 
 
 def organization_has_dependencies(db: Session, organization_id: str) -> bool:
-    scope_ids = organization_scope_ids(db, organization_id)
-    if scope_ids != {organization_id}:
-        return True
+    return bool(organization_dependency_labels(db, organization_id))
+
+
+def unit_dependency_labels(db: Session, unit_id: str) -> list[str]:
+    labels: list[str] = []
+
+    if db.scalar(select(UserModel.id).where(UserModel.unit_id == unit_id, UserModel.is_deleted.is_(False))) is not None:
+        labels.append("Users")
+
+    if db.scalar(select(AircraftModel.id).where(AircraftModel.owner_unit_id == unit_id, AircraftModel.is_deleted.is_(False))) is not None:
+        labels.append("Aircraft")
 
     if db.scalar(
-        select(OrganizationSupervisorModel.supervisor_user_id).where(OrganizationSupervisorModel.organization_id == organization_id)
+        select(FlightModel.id).where(
+            FlightModel.unit_id == unit_id,
+            FlightModel.is_deleted.is_(False),
+            FlightModel.status != FlightStatus.approved,
+        )
     ) is not None:
-        return True
+        labels.append("Flights")
+
+    return labels
+
+
+def organization_dependency_labels(db: Session, organization_id: str) -> list[str]:
+    labels: list[str] = []
+    scope_ids = organization_scope_ids(db, organization_id)
+
+    if scope_ids != {organization_id}:
+        labels.append("Suborganizations")
+
+    if db.scalar(select(OrganizationSupervisorModel.supervisor_user_id).where(OrganizationSupervisorModel.organization_id == organization_id)) is not None:
+        labels.append("Supervisors")
 
     if db.scalar(select(UserModel.id).where(UserModel.organization_id.in_(scope_ids), UserModel.is_deleted.is_(False))) is not None:
-        return True
+        labels.append("Users")
 
     if db.scalar(select(UnitModel.id).where(UnitModel.organization_id.in_(scope_ids), UnitModel.is_deleted.is_(False))) is not None:
-        return True
+        labels.append("Units")
 
     if db.scalar(select(AircraftModel.id).where(AircraftModel.organization_id.in_(scope_ids), AircraftModel.is_deleted.is_(False))) is not None:
-        return True
+        labels.append("Aircraft")
 
-    return db.scalar(select(FlightModel.id).where(FlightModel.organization_id.in_(scope_ids), FlightModel.is_deleted.is_(False))) is not None
+    if db.scalar(
+        select(FlightModel.id).where(
+            FlightModel.organization_id.in_(scope_ids),
+            FlightModel.is_deleted.is_(False),
+            FlightModel.status != FlightStatus.approved,
+        )
+    ) is not None:
+        labels.append("Flights")
+
+    return labels
 
 
 def unit_has_dependencies(db: Session, unit_id: str) -> bool:
-    if db.scalar(select(UserModel.id).where(UserModel.unit_id == unit_id, UserModel.is_deleted.is_(False))) is not None:
-        return True
-
-    if db.scalar(select(AircraftModel.id).where(AircraftModel.owner_unit_id == unit_id, AircraftModel.is_deleted.is_(False))) is not None:
-        return True
-
-    return db.scalar(select(FlightModel.id).where(FlightModel.unit_id == unit_id, FlightModel.is_deleted.is_(False))) is not None
+    return bool(unit_dependency_labels(db, unit_id))
 
 
 def aircraft_has_dependencies(db: Session, aircraft_id: str) -> bool:
@@ -551,11 +621,7 @@ def delete_unit(db: Session, unit_id: str, actor_id: str) -> Unit:
 
 
 def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
-    _require_organization(db, payload.organization_id)
-    if payload.unit_id is not None:
-        unit = _require_unit(db, payload.unit_id)
-        if unit.organization_id != payload.organization_id:
-            raise KeyError("unit_organization_mismatch")
+    organization_id, unit_id = _resolve_user_scope(db, payload.role, payload.organization_id, payload.unit_id)
 
     normalized_username = payload.username.strip()
     normalized_email = payload.email.strip()
@@ -577,8 +643,8 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
 
     user = UserModel(
         id=f"user-{uuid4().hex[:12]}",
-        organization_id=payload.organization_id,
-        unit_id=payload.unit_id,
+        organization_id=organization_id,
+        unit_id=unit_id,
         role=payload.role,
         username=normalized_username,
         first_name=normalized_first_name,
@@ -595,7 +661,7 @@ def create_user(db: Session, payload: UserCreateRequest, actor_id: str) -> User:
     domain_user = _user_to_domain(db, user)
     append_audit(
         db,
-        organization_id=user.organization_id,
+        organization_id=_audit_organization_id(db, user.organization_id),
         entity_type="user",
         entity_id=user.id,
         action="created",
@@ -613,26 +679,22 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
     changes = payload.model_dump(exclude_unset=True)
     before = User.model_validate(user).model_dump(mode="json")
     previous_role = user.role
+    effective_role = changes.get("role", user.role)
+    effective_organization_id = changes["organization_id"] if "organization_id" in changes else user.organization_id
+    effective_unit_id = changes["unit_id"] if "unit_id" in changes else user.unit_id
+
+    effective_organization_id, effective_unit_id = _resolve_user_scope(
+        db,
+        effective_role,
+        effective_organization_id,
+        effective_unit_id,
+    )
 
     if user.id == actor_id and (changes.get("active") is False or changes.get("is_deleted") is True):
         raise KeyError("cannot_delete_self")
 
-    if "organization_id" in changes and changes["organization_id"] is not None:
-        _require_organization(db, changes["organization_id"])
-        if "unit_id" not in changes and user.unit_id is not None:
-            current_unit = db.get(UnitModel, user.unit_id)
-            if current_unit is None or current_unit.organization_id != changes["organization_id"]:
-                user.unit_id = None
-    if "unit_id" in changes and changes["unit_id"] is not None:
-        unit = _require_unit(db, changes["unit_id"])
-        target_org_id = changes.get("organization_id", user.organization_id)
-        if unit.organization_id != target_org_id:
-            raise KeyError("unit_organization_mismatch")
-
-    if "organization_id" in changes:
-        user.organization_id = changes["organization_id"]
-    if "unit_id" in changes:
-        user.unit_id = changes["unit_id"]
+    user.organization_id = effective_organization_id
+    user.unit_id = effective_unit_id
     if "role" in changes and changes["role"] is not None:
         user.role = changes["role"]
     if "username" in changes and changes["username"] is not None:
@@ -683,9 +745,10 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
     if user.role == RoleName.supervisor:
         org_ids = changes.get("supervised_organization_ids")
         if org_ids is not None:
-            set_supervisor_organization_ids(db, user.id, org_ids or [user.organization_id])
+            target_org_ids = org_ids or ([user.organization_id] if user.organization_id else [])
+            set_supervisor_organization_ids(db, user.id, target_org_ids)
         elif previous_role != RoleName.supervisor:
-            set_supervisor_organization_ids(db, user.id, [user.organization_id])
+            set_supervisor_organization_ids(db, user.id, [user.organization_id] if user.organization_id else [])
     after = _user_to_domain(db, user).model_dump(mode="json")
     action = "updated"
     if before["is_deleted"] is False and after["is_deleted"] is True:
@@ -699,7 +762,7 @@ def update_user(db: Session, user_id: str, payload: UserUpdateRequest, actor_id:
 
     append_audit(
         db,
-        organization_id=user.organization_id,
+        organization_id=_audit_organization_id(db, user.organization_id, effective_organization_id),
         entity_type="user",
         entity_id=user.id,
         action=action,
@@ -901,11 +964,18 @@ def create_flight(db: Session, payload: FlightCreateRequest, actor_id: str) -> F
     aircraft = db.get(AircraftModel, payload.aircraft_id)
     if aircraft is None or aircraft.is_deleted:
         raise KeyError("aircraft_not_found")
+    organization = _require_organization(db, payload.organization_id)
+    unit = _require_unit(db, payload.unit_id)
+    if unit.organization_id != organization.id:
+        raise KeyError("unit_organization_mismatch")
 
     flight = FlightModel(
         id=f"flight-{uuid4().hex[:12]}",
         organization_id=payload.organization_id,
+        organization_name=organization.name,
         unit_id=payload.unit_id,
+        unit_name=unit.name,
+        unit_code=unit.code,
         pilot_id=payload.pilot_id,
         aircraft_id=payload.aircraft_id,
         aircraft_identifier=payload.aircraft_identifier or aircraft.identifier,
@@ -962,6 +1032,10 @@ def update_flight(db: Session, flight_id: str, payload: FlightUpdateRequest, act
     aircraft = db.get(AircraftModel, payload.aircraft_id)
     if aircraft is None or aircraft.is_deleted:
         raise KeyError("aircraft_not_found")
+    organization = _require_organization(db, payload.organization_id)
+    unit = _require_unit(db, payload.unit_id)
+    if unit.organization_id != organization.id:
+        raise KeyError("unit_organization_mismatch")
 
     before = _flight_to_domain(db, flight).model_dump(mode="json")
     if flight.status == FlightStatus.rejected:
@@ -978,7 +1052,10 @@ def update_flight(db: Session, flight_id: str, payload: FlightUpdateRequest, act
         flight.flight_supervisor_id = None
         flight.flight_supervisor_signature = None
     flight.organization_id = payload.organization_id
+    flight.organization_name = organization.name
     flight.unit_id = payload.unit_id
+    flight.unit_name = unit.name
+    flight.unit_code = unit.code
     flight.pilot_id = payload.pilot_id
     flight.aircraft_id = payload.aircraft_id
     flight.aircraft_identifier = payload.aircraft_identifier or aircraft.identifier
@@ -1137,6 +1214,11 @@ def review_flight(
     flight.reviewed_by = actor_id
     flight.updated_at = datetime.now(timezone.utc)
     flight.updated_by = actor_id
+    organization = db.get(OrganizationModel, flight.organization_id)
+    unit = db.get(UnitModel, flight.unit_id)
+    flight.organization_name = organization.name if organization and not organization.is_deleted else flight.organization_name
+    flight.unit_name = unit.name if unit and not unit.is_deleted else flight.unit_name
+    flight.unit_code = unit.code if unit and not unit.is_deleted else flight.unit_code
     flight.flight_supervisor_signature = signature or flight.flight_supervisor_signature
     flight.rejection_reason = comment if decision == ReviewDecision.reject else None
     if decision == ReviewDecision.approve:
@@ -1146,6 +1228,11 @@ def review_flight(
     else:
         flight.status = FlightStatus.rejected
         flight.rejected_by = actor_id
+    organization = db.get(OrganizationModel, flight.organization_id)
+    unit = db.get(UnitModel, flight.unit_id)
+    flight.organization_name = organization.name if organization and not organization.is_deleted else flight.organization_name
+    flight.unit_name = unit.name if unit and not unit.is_deleted else flight.unit_name
+    flight.unit_code = unit.code if unit and not unit.is_deleted else flight.unit_code
     append_audit(
         db,
         organization_id=flight.organization_id,

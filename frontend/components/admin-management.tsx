@@ -15,7 +15,7 @@ type Props = {
   users: ApiUser[];
 };
 
-type AdminTab = "users" | "units" | "organizations";
+type AdminTab = "users" | "administrators" | "units" | "organizations";
 type DialogMode = "create" | "edit";
 type DialogState =
   | { type: "organization"; mode: DialogMode; id?: string }
@@ -105,6 +105,31 @@ function normalizeSupervisorOrganizationIds(
   return Array.from(new Set([...validIds, ...fallbackIds]));
 }
 
+function firstOrganizationId(organizations: ApiOrganization[]) {
+  return organizations[0]?.id ?? "";
+}
+
+function firstUnitIdForOrganization(units: ApiUnit[], organizationId: string) {
+  return units.find((unit) => unit.organization_id === organizationId)?.id ?? "";
+}
+
+function buildDefaultUserForm(organizations: ApiOrganization[], units: ApiUnit[], role: RoleName = "pilot"): UserForm {
+  const organization_id = role === "admin" ? "" : firstOrganizationId(organizations);
+  return {
+    organization_id,
+    unit_id: role === "admin" ? "" : firstUnitIdForOrganization(units, organization_id),
+    role,
+    username: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    active: true,
+    is_deleted: false,
+    supervised_organization_ids: [],
+  };
+}
+
 function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -141,26 +166,18 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     organization_id: organizations[0]?.id ?? "",
     name: "",
   });
-  const [userForm, setUserForm] = useState<UserForm>({
-    organization_id: organizations[0]?.id ?? "",
-    unit_id: units.find((unit) => unit.organization_id === organizations[0]?.id)?.id ?? "",
-    role: "pilot",
-    username: "",
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-    active: true,
-    is_deleted: false,
-    supervised_organization_ids: [],
-  });
+  const [userForm, setUserForm] = useState<UserForm>(() => buildDefaultUserForm(organizations, units));
   const [passwordResetForm, setPasswordResetForm] = useState<PasswordResetForm>({
     password: "",
     confirm_password: "",
   });
 
+  const adminUsers = useMemo(() => users.filter((user) => user.role === "admin"), [users]);
+  const nonAdminUsers = useMemo(() => users.filter((user) => user.role !== "admin"), [users]);
+
   const tabs: Array<{ id: AdminTab; label: string; count: number }> = [
-    { id: "users", label: "User", count: users.length },
+    { id: "users", label: "User", count: nonAdminUsers.length },
+    ...(viewerRole === "admin" ? [{ id: "administrators" as const, label: "Administratoren", count: adminUsers.length }] : []),
     { id: "units", label: "Units", count: units.length },
     { id: "organizations", label: "Organizations", count: organizations.length },
   ];
@@ -169,7 +186,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const canCreateUnits = viewerRole === "admin" || viewerRole === "supervisor";
   const canCreateOrganizations = viewerRole === "admin";
   const activeCreateType =
-    activeTab === "users" && canCreateUsers
+    (activeTab === "users" || activeTab === "administrators") && canCreateUsers
       ? "user"
       : activeTab === "units" && canCreateUnits
         ? "unit"
@@ -178,7 +195,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           : null;
   const activeCreateLabel =
     activeCreateType === "user"
-      ? "Create user"
+      ? activeTab === "administrators"
+        ? "Create administrator"
+        : "Create user"
       : activeCreateType === "unit"
         ? "Create unit"
         : activeCreateType === "organization"
@@ -188,10 +207,21 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     userForm.role === "supervisor"
       ? normalizeSupervisorOrganizationIds(
           userForm.supervised_organization_ids,
-          userForm.organization_id,
+          userForm.organization_id || firstOrganizationId(organizations),
           organizations.map((organization) => organization.id),
         )
       : [];
+  const roleOptions =
+    activeTab === "administrators"
+      ? [{ value: "admin", label: "Admin" }]
+      : [
+          { value: "pilot", label: "Pilot" },
+          { value: "supervisor", label: "Supervisor" },
+        ];
+
+  useEffect(() => {
+    setRoleFilter("all");
+  }, [activeTab]);
 
   useEffect(() => {
     if (!supervisedOrganizationsOpen) {
@@ -255,7 +285,9 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     };
   }, [supervisedOrganizationsOpen, organizations]);
 
-  const filteredUsers = users.filter((user) => {
+  const visibleUsers = activeTab === "administrators" ? adminUsers : nonAdminUsers;
+
+  const filteredUsers = visibleUsers.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
     const matchesSearch =
       !normalizedSearch ||
@@ -321,20 +353,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       setUnitForm({ organization_id: organizations[0]?.id ?? "", name: "" });
     }
     if (type === "user") {
-      const organization_id = organizations[0]?.id ?? "";
-      setUserForm({
-        organization_id,
-        unit_id: units.find((unit) => unit.organization_id === organization_id)?.id ?? "",
-        role: "pilot",
-        username: "",
-        first_name: "",
-        last_name: "",
-        email: "",
-        password: "",
-        active: true,
-        is_deleted: false,
-        supervised_organization_ids: [],
-      });
+      setUserForm(buildDefaultUserForm(organizations, units, activeTab === "administrators" ? "admin" : "pilot"));
     }
     setPasswordResetTarget(null);
     setPasswordResetMessage(null);
@@ -365,8 +384,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setPasswordResetTarget(null);
     setPasswordResetMessage(null);
     setUserForm({
-      organization_id: user.organization_id,
-      unit_id: user.unit_id ?? "",
+      organization_id: user.organization_id ?? "",
+      unit_id: user.role === "admin" ? "" : user.unit_id ?? "",
       role: user.role,
       username: user.username,
       first_name: user.first_name,
@@ -379,7 +398,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
         user.role === "supervisor"
           ? normalizeSupervisorOrganizationIds(
               user.supervised_organization_ids ?? [],
-              user.organization_id,
+              user.organization_id ?? firstOrganizationId(organizations),
               organizations.map((organization) => organization.id),
             )
           : [],
@@ -461,8 +480,19 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
   async function saveUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!userForm.organization_id || !userForm.username.trim() || !userForm.first_name.trim() || !userForm.last_name.trim() || !userForm.email.trim()) {
-      setMessage("Please provide an organization, username, first name, last name, and email for the user.");
+    const requiresScope = userForm.role !== "admin";
+    if (
+      !userForm.username.trim() ||
+      !userForm.first_name.trim() ||
+      !userForm.last_name.trim() ||
+      !userForm.email.trim() ||
+      (requiresScope && (!userForm.organization_id || !userForm.unit_id))
+    ) {
+      setMessage(
+        requiresScope
+          ? "Please provide an organization, unit, username, first name, last name, and email for the user."
+          : "Please provide a username, first name, last name, and email for the user.",
+      );
       return;
     }
     if (dialog?.mode === "create" && !userForm.password.trim()) {
@@ -474,8 +504,8 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     setMessage(null);
     try {
       const body: Record<string, unknown> = {
-        organization_id: userForm.organization_id,
-        unit_id: userForm.unit_id || null,
+        organization_id: userForm.role === "admin" ? null : userForm.organization_id || null,
+        unit_id: userForm.role === "admin" ? null : userForm.unit_id || null,
         role: userForm.role,
         username: userForm.username.trim(),
         first_name: userForm.first_name.trim(),
@@ -512,22 +542,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : fallback);
-      setBusy(null);
-    }
-  }
-
-  async function restoreUser(userId: string, busyKey: string) {
-    setBusy(busyKey);
-    setMessage(null);
-    try {
-      await requestJson(`/api/users/${userId}`, "PATCH", {
-        active: true,
-        is_deleted: false,
-      });
-      setBusy(null);
-      router.refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not unlock the user.");
       setBusy(null);
     }
   }
@@ -693,7 +707,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
             ))}
           </div>
 
-          {activeTab === "users" ? (
+          {activeTab === "users" || activeTab === "administrators" ? (
             <div className="admin-user-toolbar">
               <label className="admin-search-field" aria-label="Search users">
                 <span className="admin-search-icon" aria-hidden="true">
@@ -720,9 +734,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                   >
                     All roles
                   </button>
-                  {((viewerRole === "admin"
-                    ? ["pilot", "supervisor", "admin"]
-                    : ["pilot", "supervisor"]) as RoleName[]).map((role) => (
+                  {((activeTab === "administrators" ? ["admin"] : ["pilot", "supervisor"]) as RoleName[]).map((role) => (
                     <button
                       key={role}
                       type="button"
@@ -770,63 +782,129 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           ) : null}
         </div>
 
-        <div className="admin-directory-main">
+  <div className="admin-directory-main">
           {activeTab === "users" ? (
             <div className="admin-card-list">
-              {filteredUsers.map((user) => (
-                <article className="admin-record-card admin-user-record-card" key={user.id}>
-                  <div className="admin-record-top">
-                    <div className="admin-primary-cell">
-                      <div className="admin-user-headline">
-                        <strong>{user.name}</strong>
-                        <span className="admin-user-username">@{user.username}</span>
-                        <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
-                          {user.active && !user.is_deleted ? "active" : "blocked"}
-                        </span>
-                        <span>{roleLabel[user.role]}</span>
+              {filteredUsers.map((user) => {
+                const isActive = user.active && !user.is_deleted;
+                return (
+                  <article className="admin-record-card admin-user-record-card" key={user.id}>
+                    <div className="admin-record-top">
+                      <div className="admin-primary-cell">
+                        <div className="admin-user-headline">
+                          <strong>{user.name}</strong>
+                          <span className="admin-user-username">@{user.username}</span>
+                          <span className={`admin-status-inline ${isActive ? "admin-status-active" : "admin-status-blocked"}`}>
+                            {isActive ? "active" : "blocked"}
+                          </span>
+                          <span>{roleLabel[user.role]}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="admin-record-actions">
-                      <RowActionMenu
-                        label={`Actions for user ${user.username}`}
-                        actions={[
-                          {
-                            label: "Edit",
-                            tone: "edit",
-                            onSelect: () => openEditUser(user),
-                          },
-                          ...(viewerRole === "admin" || viewerRole === "supervisor"
-                            ? [
-                                {
-                                  label: "Reset password",
-                                  tone: "neutral" as const,
-                                  onSelect: () => openResetPassword(user),
-                                },
-                                {
-                                  label: user.active && !user.is_deleted ? "Delete" : "Unlock",
-                                  tone: user.active && !user.is_deleted ? ("danger" as const) : ("submit" as const),
-                                  disabled: busy === `user-${user.id}-${user.active && !user.is_deleted ? "delete" : "restore"}`,
-                                  title: user.active && !user.is_deleted ? "Delete user" : "Unlock user",
-                                  onSelect: () => {
-                                    if (user.active && !user.is_deleted) {
+                      <div className="admin-record-actions">
+                        <RowActionMenu
+                          label={`Actions for user ${user.username}`}
+                          actions={[
+                            {
+                              label: "Edit",
+                              tone: "edit" as const,
+                              onSelect: () => openEditUser(user),
+                            },
+                            ...(viewerRole === "admin" || viewerRole === "supervisor"
+                              ? [
+                                  {
+                                    label: "Reset password",
+                                    tone: "neutral" as const,
+                                    onSelect: () => openResetPassword(user),
+                                  },
+                                  {
+                                    label: "Delete",
+                                    tone: "danger" as const,
+                                    disabled: busy === `user-${user.id}-delete`,
+                                    title: "Delete user",
+                                    onSelect: () =>
                                       openDeleteTarget({
                                         type: "user",
                                         id: user.id,
                                         label: `${user.name} (@${user.username})`,
-                                      });
-                                      return;
-                                    }
-                                    restoreUser(user.id, `user-${user.id}-restore`);
+                                      }),
                                   },
-                                },
-                              ]
-                            : []),
-                        ]}
-                      />
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {activeTab === "administrators" ? (
+            <div className="admin-card-list">
+              {adminUsers
+                .filter((user) => {
+                  const normalizedSearch = userSearch.trim().toLowerCase();
+                  const matchesSearch =
+                    !normalizedSearch ||
+                    user.name.toLowerCase().includes(normalizedSearch) ||
+                    user.username.toLowerCase().includes(normalizedSearch) ||
+                    user.first_name.toLowerCase().includes(normalizedSearch) ||
+                    user.last_name.toLowerCase().includes(normalizedSearch) ||
+                    user.email.toLowerCase().includes(normalizedSearch);
+                  const isActive = user.active && !user.is_deleted;
+                  const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? isActive : !isActive);
+                  return matchesSearch && matchesStatus;
+                })
+                .map((user) => (
+                  <article className="admin-record-card admin-user-record-card" key={user.id}>
+                    <div className="admin-record-top">
+                      <div className="admin-primary-cell">
+                        <div className="admin-user-headline">
+                          <strong>{user.name}</strong>
+                          <span className="admin-user-username">@{user.username}</span>
+                          <span className={`admin-status-inline ${user.active && !user.is_deleted ? "admin-status-active" : "admin-status-blocked"}`}>
+                            {user.active && !user.is_deleted ? "active" : "blocked"}
+                          </span>
+                          <span>{roleLabel[user.role]}</span>
+                        </div>
+                      </div>
+                      <div className="admin-record-actions">
+                        <RowActionMenu
+                          label={`Actions for administrator ${user.username}`}
+                          actions={[
+                            {
+                              label: "Edit",
+                              tone: "edit" as const,
+                              onSelect: () => openEditUser(user),
+                            },
+                            ...(viewerRole === "admin"
+                              ? [
+                                  {
+                                    label: "Reset password",
+                                    tone: "neutral" as const,
+                                    onSelect: () => openResetPassword(user),
+                                  },
+                                  {
+                                    label: "Delete",
+                                    tone: "danger" as const,
+                                    disabled: busy === `user-${user.id}-delete`,
+                                    title: "Delete administrator",
+                                    onSelect: () =>
+                                      openDeleteTarget({
+                                        type: "user",
+                                        id: user.id,
+                                        label: `${user.name} (@${user.username})`,
+                                      }),
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  </article>
+                ))}
             </div>
           ) : null}
 
@@ -1039,77 +1117,81 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     />
                   </label>
                 </div>
-                <div className="admin-dialog-grid">
-                  <label className="field">
-                    <span>Organization</span>
-                    <DropdownSelect
-                      value={userForm.organization_id}
-                      placeholder="Select organization"
-                      options={organizations.map((organization) => ({ value: organization.id, label: organization.name }))}
-                      onChange={(organization_id) => {
-                        const firstUnit = units.find((unit) => unit.organization_id === organization_id);
-                        setUserForm((current) => ({
-                          ...current,
-                          organization_id,
-                          unit_id: firstUnit?.id ?? "",
-                          supervised_organization_ids:
-                            current.role === "supervisor"
-                              ? normalizeSupervisorOrganizationIds(
-                                  current.supervised_organization_ids,
-                                  organization_id,
-                                  organizations.map((organization) => organization.id),
-                                )
-                              : [],
-                        }));
-                      }}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Unit</span>
-                    <DropdownSelect
-                      value={userForm.unit_id}
-                      placeholder="No unit"
-                      options={[
-                        { value: "", label: "No unit" },
-                        ...units
-                          .filter((unit) => unit.organization_id === userForm.organization_id)
-                          .map((unit) => ({ value: unit.id, label: unit.name })),
-                      ]}
-                      onChange={(value) => setUserForm((current) => ({ ...current, unit_id: value }))}
-                    />
-                  </label>
-                </div>
-                <div className="admin-dialog-grid admin-dialog-grid-two-columns">
-                  <label className="field">
-                    <span>Role</span>
-                    <DropdownSelect
-                      value={userForm.role}
-                      placeholder="Select role"
-                      options={[
-                        { value: "pilot", label: "Pilot" },
-                        { value: "supervisor", label: "Supervisor" },
-                        ...(viewerRole === "admin" ? [{ value: "admin", label: "Admin" }] : []),
-                      ]}
-                      onChange={(value) =>
-                        setUserForm((current) => {
-                          const role = value as RoleName;
-                          return {
+                {userForm.role !== "admin" ? (
+                  <div className="admin-dialog-grid">
+                    <label className="field">
+                      <span>Organization</span>
+                      <DropdownSelect
+                        value={userForm.organization_id}
+                        placeholder="Select organization"
+                        options={organizations.map((organization) => ({ value: organization.id, label: organization.name }))}
+                        onChange={(organization_id) => {
+                          const firstUnit = firstUnitIdForOrganization(units, organization_id);
+                          setUserForm((current) => ({
                             ...current,
-                            role,
+                            organization_id,
+                            unit_id: firstUnit,
                             supervised_organization_ids:
-                              role === "supervisor"
+                              current.role === "supervisor"
                                 ? normalizeSupervisorOrganizationIds(
                                     current.supervised_organization_ids,
-                                    current.organization_id,
+                                    organization_id,
                                     organizations.map((organization) => organization.id),
                                   )
                                 : [],
-                          };
-                        })
-                      }
-                    />
-                  </label>
-                  {viewerRole === "admin" && userForm.role === "supervisor" ? (
+                          }));
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Unit</span>
+                      <DropdownSelect
+                        value={userForm.unit_id}
+                        placeholder="Select unit"
+                        options={[
+                          { value: "", label: "Select unit" },
+                          ...units
+                            .filter((unit) => unit.organization_id === userForm.organization_id)
+                            .map((unit) => ({ value: unit.id, label: unit.name })),
+                        ]}
+                        onChange={(value) => setUserForm((current) => ({ ...current, unit_id: value }))}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+                <div className="admin-dialog-grid admin-dialog-grid-two-columns">
+                  {activeTab !== "administrators" ? (
+                    <label className="field">
+                      <span>Role</span>
+                      <DropdownSelect
+                        value={userForm.role}
+                        placeholder="Select role"
+                        options={roleOptions}
+                        onChange={(value) =>
+                          setUserForm((current) => {
+                            const role = value as RoleName;
+                            const organization_id = current.organization_id || firstOrganizationId(organizations);
+                            const unit_id = current.unit_id || firstUnitIdForOrganization(units, organization_id);
+                            return {
+                              ...current,
+                              role,
+                              organization_id: role === "admin" ? "" : organization_id,
+                              unit_id: role === "admin" ? "" : unit_id,
+                              supervised_organization_ids:
+                                role === "supervisor"
+                                  ? normalizeSupervisorOrganizationIds(
+                                      current.supervised_organization_ids,
+                                      organization_id,
+                                      organizations.map((organization) => organization.id),
+                                    )
+                                  : [],
+                            };
+                          })
+                        }
+                      />
+                    </label>
+                  ) : null}
+                  {viewerRole === "admin" && activeTab !== "administrators" && userForm.role === "supervisor" ? (
                     <label className="field">
                       <span>Supervised organizations</span>
                       <button
@@ -1163,7 +1245,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                                       setUserForm((current) => {
                                         const currentIds = normalizeSupervisorOrganizationIds(
                                           current.supervised_organization_ids,
-                                          current.organization_id,
+                                          current.organization_id || firstOrganizationId(organizations),
                                           organizations.map((item) => item.id),
                                         );
                                         const nextIds = checked
@@ -1173,7 +1255,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                                           ...current,
                                           supervised_organization_ids: normalizeSupervisorOrganizationIds(
                                             nextIds,
-                                            current.organization_id,
+                                            current.organization_id || firstOrganizationId(organizations),
                                             organizations.map((item) => item.id),
                                           ),
                                         };
@@ -1203,10 +1285,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                         onChange={(event) => setUserForm((current) => ({ ...current, password: event.target.value }))}
                       />
                     </label>
-                    <div className="account-note-box">
-                      <span>Note</span>
-                      <p>The password can later be changed with the Reset password action in the user list.</p>
-                    </div>
                   </div>
                 ) : null}
                 <div className="admin-state-group">

@@ -31,7 +31,6 @@ export default async function AuditPage() {
           <div className="panel-header">
             <div>
               <h2>Audit quality</h2>
-              <p>Immutable log</p>
             </div>
           </div>
           <div className="panel-body section-stack">

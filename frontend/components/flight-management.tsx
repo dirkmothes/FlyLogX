@@ -4,7 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { FlightDeleteDialog } from "@/components/flight-delete-dialog";
+import { FlightDetailsDialog } from "@/components/flight-details-dialog";
 import { FlightDraftDialog } from "@/components/flight-draft-dialog";
+import { ExportActions } from "@/components/export-actions";
 import { DropdownSelect } from "@/components/dropdown-select";
 import { DataTable } from "@/components/data-table";
 import { StatusPill } from "@/components/status-pill";
@@ -14,8 +16,8 @@ import { flightStatusTone, mapFlightRows, type FlightRow } from "@/lib/view-mode
 type Props = {
   viewerRole: RoleName;
   currentUserId: string;
-  organizationId: string;
-  unitId: string;
+  organizationId: string | null;
+  unitId: string | null;
   aircraft: ApiAircraft[];
   flights: ApiFlight[];
 };
@@ -24,17 +26,19 @@ type FlightTableRow = FlightRow & {
   flightId: string;
   rawStatus: ApiFlight["status"];
   pilotId: string;
+  searchableText: string;
 };
 
 export function FlightManagement({ viewerRole, currentUserId, organizationId, unitId, aircraft, flights }: Props) {
   const router = useRouter();
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
+  const [detailsTargetId, setDetailsTargetId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [pilotFilter, setPilotFilter] = useState<string>("all");
+  const [flightSearch, setFlightSearch] = useState<string>("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const menuButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -46,6 +50,46 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         flightId: flights[index]?.id ?? row.id,
         rawStatus: flights[index]?.status ?? "draft",
         pilotId: flights[index]?.pilot_id ?? "",
+        searchableText: [
+          flights[index]?.flight_number,
+          flights[index]?.id,
+          flights[index]?.organization_name,
+          flights[index]?.organization_id,
+          flights[index]?.unit_name,
+          flights[index]?.unit_code,
+          flights[index]?.unit_id,
+          flights[index]?.pilot_name,
+          flights[index]?.pilot_id,
+          flights[index]?.aircraft_identifier,
+          flights[index]?.aircraft_name,
+          flights[index]?.aircraft_id,
+          flights[index]?.flight_type,
+          flights[index]?.category,
+          flights[index]?.status,
+          flights[index]?.date,
+          flights[index]?.location,
+          flights[index]?.coordinates,
+          flights[index]?.special_notes,
+          flights[index]?.remarks,
+          flights[index]?.flight_supervisor_name,
+          flights[index]?.flight_supervisor_id,
+          flights[index]?.flight_supervisor_signature,
+          flights[index]?.created_by_name,
+          flights[index]?.created_by,
+          flights[index]?.updated_by_name,
+          flights[index]?.updated_by,
+          flights[index]?.reviewed_by_name,
+          flights[index]?.reviewed_by,
+          flights[index]?.approved_by_name,
+          flights[index]?.approved_by,
+          flights[index]?.rejected_by_name,
+          flights[index]?.rejected_by,
+          flights[index]?.rejection_reason,
+          flights[index]?.change_request,
+        ]
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+          .join(" ")
+          .toLowerCase(),
       })),
     [flights],
   );
@@ -76,20 +120,11 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
       rows.filter((row) => {
         const matchesCategory = categoryFilter === "all" || row.category === categoryFilter;
         const matchesStatus = statusFilter === "all" || row.rawStatus === statusFilter;
-        const matchesPilot = viewerRole === "supervisor" || viewerRole === "admin" ? pilotFilter === "all" || row.pilotId === pilotFilter : true;
-        return matchesCategory && matchesStatus && matchesPilot;
+        const searchTerm = flightSearch.trim().toLowerCase();
+        const matchesSearch = searchTerm === "" || row.searchableText.includes(searchTerm);
+        return matchesCategory && matchesStatus && matchesSearch;
       }),
-    [categoryFilter, pilotFilter, rows, statusFilter, viewerRole],
-  );
-
-  const pilotOptions = useMemo(
-    () =>
-      Array.from(
-        new Map(
-          rows.map((row) => [row.pilotId, { id: row.pilotId, label: row.pilot }]),
-        ).values(),
-      ).sort((left, right) => left.label.localeCompare(right.label)),
-    [rows],
+    [categoryFilter, flightSearch, rows, statusFilter],
   );
 
   useEffect(() => {
@@ -154,6 +189,12 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
       setMenuPosition(null);
     }
   }, [filteredRows, menuOpenId]);
+
+  useEffect(() => {
+    if (detailsTargetId && !flights.some((flight) => flight.id === detailsTargetId)) {
+      setDetailsTargetId(null);
+    }
+  }, [detailsTargetId, flights]);
 
   async function submitFlight(flightId: string) {
     setBusyId(flightId);
@@ -223,7 +264,7 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
         const submittable = flight ? canSubmitFlight(flight) : false;
         const withdrawable = flight ? canWithdrawFlight(flight) : false;
         const deletable = flight ? canDeleteFlight(flight) : false;
-        const hasActions = Boolean(editable || submittable || withdrawable || deletable);
+        const hasActions = Boolean(flight);
 
         return hasActions && flight ? (
           <div className="flight-action-menu">
@@ -250,6 +291,17 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
                 aria-label={`Actions for flight ${row.id}`}
                 style={{ top: `${menuPosition.top}px`, left: `${menuPosition.left}px` }}
               >
+                <button
+                  type="button"
+                  className="flight-action-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpenId(null);
+                    setDetailsTargetId(flight.id);
+                  }}
+                >
+                  Details
+                </button>
                 {editable ? (
                   <>
                     <button
@@ -320,19 +372,38 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
 
       {message ? <div className="form-note">{message}</div> : null}
 
+      <section className="admin-command flights-command">
+        <div>
+          <span className="admin-kicker">Records</span>
+          <h2>Export flight records</h2>
+        </div>
+        <div className="admin-command-actions flights-command-actions">
+          <ExportActions format="csv" />
+          <ExportActions format="pdf" />
+        </div>
+      </section>
+
       <DataTable
         title="Digital flight records"
         actions={
           <div className="flight-table-filters">
-            {viewerRole === "supervisor" || viewerRole === "admin" ? (
-              <DropdownSelect
-                className="flight-filter-select"
-                value={pilotFilter}
-                placeholder="All pilots"
-                options={[{ value: "all", label: "All pilots" }, ...pilotOptions.map((pilot) => ({ value: pilot.id, label: pilot.label }))]}
-                onChange={setPilotFilter}
+            <label className="flight-search-field" aria-label="Search flights">
+              <span className="flight-search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M10.5 4.5a6 6 0 1 0 3.73 10.69l4.54 4.54 1.41-1.41-4.54-4.54A6 6 0 0 0 10.5 4.5Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </span>
+              <input
+                className="input flight-search-input"
+                value={flightSearch}
+                placeholder="Search flights"
+                aria-label="Search flights"
+                onChange={(event) => setFlightSearch(event.target.value)}
               />
-            ) : null}
+            </label>
             <DropdownSelect
               className="flight-filter-select"
               value={categoryFilter}
@@ -361,23 +432,21 @@ export function FlightManagement({ viewerRole, currentUserId, organizationId, un
               ]}
               onChange={setStatusFilter}
             />
-            <button
-              type="button"
-              className="button button-secondary flight-filter-reset"
-              onClick={() => {
-                setCategoryFilter("all");
-                setStatusFilter("all");
-                setPilotFilter("all");
-              }}
-              disabled={categoryFilter === "all" && statusFilter === "all" && pilotFilter === "all"}
-            >
-              Reset
-            </button>
           </div>
         }
         rows={filteredRows}
         columns={columns}
         emptyMessage={rows.length ? "No flights match the selected filters." : "No data available."}
+      />
+
+      <FlightDetailsDialog
+        flight={flights.find((item) => item.id === detailsTargetId) ?? null}
+        open={detailsTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailsTargetId(null);
+          }
+        }}
       />
 
       <FlightDraftDialog

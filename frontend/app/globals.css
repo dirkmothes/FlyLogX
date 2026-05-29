@@ -1677,6 +1677,31 @@ select.input option {
   justify-content: flex-end;
 }
 
+.flights-command {
+  align-items: stretch;
+  height: 100%;
+}
+
+.flights-command-actions {
+  align-items: center;
+}
+
+.flight-table-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  width: min(100%, 720px);
+  margin-left: auto;
+}
+
+.flight-table-filters .flight-search-field,
+.flight-table-filters .flight-filter-select {
+  width: 100%;
+  min-width: 0;
+}
+
 .admin-command-button {
   width: 44px;
   height: 44px;
@@ -2091,6 +2116,68 @@ select.input option {
   border-color: rgba(67, 185, 120, 0.3);
 }
 
+.flight-search-field {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.flight-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.flight-search-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.flight-search-field .input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 11px 12px 11px 40px;
+  font-size: 0.92rem;
+}
+
+.flight-filter-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.flight-filter-select .dropdown-select-trigger {
+  width: 100%;
+  min-height: 42px;
+  padding: 11px 12px;
+  gap: 10px;
+}
+
+.flight-filter-select .dropdown-select-caret {
+  width: 14px;
+  height: 14px;
+}
+
+.flight-filter-select .dropdown-select-value {
+  line-height: 1.1;
+}
+
 .flight-action-menu {
   position: relative;
   display: flex;
@@ -2098,33 +2185,6 @@ select.input option {
   align-items: flex-start;
   justify-content: flex-start;
   gap: 6px;
-}
-
-.flight-table-filters {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.flight-filter-select {
-  width: 220px;
-  min-width: 220px;
-  padding-block: 0;
-  padding-inline: 12px 34px;
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-.flight-filter-reset {
-  height: 46px;
-  padding-inline: 12px;
-  font-size: 0.84rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
 
 .flight-status-actions {
@@ -2558,6 +2618,10 @@ select.input option {
   width: min(860px, 100%);
 }
 
+.flight-details-dialog {
+  width: min(1040px, 100%);
+}
+
 .aircraft-create-dialog {
   width: min(980px, 100%);
 }
@@ -2654,6 +2718,125 @@ select.input option {
 
 .admin-dialog-grid-two-columns {
   align-items: start;
+}
+
+.flight-details-body {
+  gap: 18px;
+}
+
+.flight-details-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.flight-details-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.flight-details-tab:hover {
+  background: rgba(47, 110, 166, 0.08);
+  color: var(--text);
+}
+
+.flight-details-tab-active {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
+.flight-details-section {
+  display: grid;
+  gap: 12px;
+}
+
+.flight-details-section h4 {
+  font-size: 1rem;
+}
+
+.flight-details-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flight-details-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.flight-details-subsection {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.flight-details-subsection h5 {
+  font-size: 0.92rem;
+}
+
+.flight-details-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.flight-details-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.flight-details-value {
+  overflow-wrap: anywhere;
+}
+
+.flight-details-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flight-details-ref {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(213, 219, 228, 0.72);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.flight-details-ref span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.flight-details-ref strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.91rem;
 }
 
 .admin-supervised-select-trigger {
@@ -3050,12 +3233,25 @@ select.input option {
     width: 100%;
   }
 
+  .panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .panel-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .admin-user-toolbar,
   .admin-dialog-grid,
   .admin-form-grid,
   .admin-item-form,
   .admin-user-form,
-  .admin-record-meta {
+  .admin-record-meta,
+  .flight-details-workflow-grid,
+  .flight-details-tabs,
+  .flight-details-list {
     grid-template-columns: 1fr;
   }
 
@@ -3105,6 +3301,30 @@ select.input option {
 
   .admin-dialog-actions {
     flex-direction: column-reverse;
+  }
+
+  .flight-details-tabs {
+    display: grid;
+  }
+
+  .flight-details-tab {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .flight-table-filters {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .flight-table-filters .flight-search-field,
+  .flight-table-filters .flight-filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .flight-details-subsection {
+    padding: 12px;
   }
 }
 
