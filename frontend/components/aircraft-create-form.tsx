@@ -4,18 +4,21 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { DropdownSelect } from "@/components/dropdown-select";
-import type { ApiAircraft, ApiUnit, AircraftStatus } from "@/lib/api";
+import type { ApiAircraft, ApiOrganization, ApiUnit, AircraftStatus, RoleName } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api";
 
 type Props = {
   organizationId: string;
+  organizations: ApiOrganization[];
   units: ApiUnit[];
+  viewerRole: RoleName;
   mode?: "create" | "edit";
   aircraft?: ApiAircraft | null;
   onSuccess?: () => void;
 };
 
 type FormState = {
+  organization_id: string;
   owner_unit_id: string;
   name: string;
   identifier: string;
@@ -34,8 +37,9 @@ function normalizeIdentifier(value: string) {
     .toUpperCase();
 }
 
-function buildFormState(aircraft?: ApiAircraft | null): FormState {
+function buildFormState(aircraft?: ApiAircraft | null, defaultOrganizationId = ""): FormState {
   return {
+    organization_id: aircraft?.organization_id ?? defaultOrganizationId,
     owner_unit_id: aircraft?.owner_unit_id ?? "",
     name: aircraft?.name ?? "",
     identifier: aircraft?.identifier ?? "",
@@ -45,19 +49,20 @@ function buildFormState(aircraft?: ApiAircraft | null): FormState {
   };
 }
 
-export function AircraftCreateForm({ organizationId, units, mode = "create", aircraft = null, onSuccess }: Props) {
+export function AircraftCreateForm({ organizationId, organizations, units, viewerRole, mode = "create", aircraft = null, onSuccess }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(() => buildFormState(aircraft));
+  const [form, setForm] = useState<FormState>(() => buildFormState(aircraft, organizationId));
 
   useEffect(() => {
-    setForm(buildFormState(aircraft));
+    setForm(buildFormState(aircraft, organizationId));
     setMessage(null);
-  }, [aircraft]);
+  }, [aircraft, organizationId]);
 
   const isEdit = mode === "edit";
   const submitLabel = isEdit ? "Save aircraft" : "Create aircraft";
+  const availableUnits = viewerRole === "admin" ? units.filter((unit) => unit.organization_id === form.organization_id) : units;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,7 +97,7 @@ export function AircraftCreateForm({ organizationId, units, mode = "create", air
           },
           credentials: "include",
           body: JSON.stringify({
-            organization_id: organizationId,
+            organization_id: form.organization_id || organizationId,
             owner_unit_id: form.owner_unit_id || null,
             name: form.name.trim(),
             identifier,
@@ -137,12 +142,35 @@ export function AircraftCreateForm({ organizationId, units, mode = "create", air
   return (
     <form className="section-stack" onSubmit={handleSubmit}>
       <div className="field-grid">
+        {viewerRole === "admin" ? (
+          <label className="field">
+            <span>Organization</span>
+            <DropdownSelect
+              value={form.organization_id || organizationId}
+              placeholder="Select organization"
+              options={organizations.map((organization) => ({
+                value: organization.id,
+                label: organization.name,
+              }))}
+              onChange={(value) =>
+                setForm((current) => ({
+                  ...current,
+                  organization_id: value,
+                  owner_unit_id: current.owner_unit_id && units.some((unit) => unit.id === current.owner_unit_id && unit.organization_id === value) ? current.owner_unit_id : "",
+                }))
+              }
+            />
+          </label>
+        ) : null}
         <label className="field">
           <span>Unit</span>
           <DropdownSelect
             value={form.owner_unit_id}
             placeholder="Select unit (optional)"
-            options={[{ value: "", label: "Select unit (optional)" }, ...units.map((unit) => ({ value: unit.id, label: unit.name }))]}
+            options={[
+              { value: "", label: "Select unit (optional)" },
+              ...availableUnits.map((unit) => ({ value: unit.id, label: unit.name })),
+            ]}
             onChange={(value) => setForm((current) => ({ ...current, owner_unit_id: value }))}
           />
         </label>

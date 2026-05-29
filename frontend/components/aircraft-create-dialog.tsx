@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-import type { ApiAircraft, ApiUnit } from "@/lib/api";
+import type { ApiAircraft, ApiOrganization, ApiUnit, RoleName } from "@/lib/api";
 import { AircraftCreateForm } from "@/components/aircraft-create-form";
 
 type Props = {
+  viewerRole: RoleName;
   organizationId: string;
+  organizations: ApiOrganization[];
   units: ApiUnit[];
   mode?: "create" | "edit";
   aircraft?: ApiAircraft | null;
@@ -31,7 +33,9 @@ function PlusIcon() {
 }
 
 export function AircraftCreateDialog({
+  viewerRole,
   organizationId,
+  organizations,
   units,
   mode = "create",
   aircraft = null,
@@ -109,7 +113,9 @@ export function AircraftCreateDialog({
 
             <div className="admin-dialog-form">
               <AircraftCreateForm
+                viewerRole={viewerRole}
                 organizationId={organizationId}
+                organizations={organizations}
                 units={units}
                 mode={mode}
                 aircraft={aircraft}

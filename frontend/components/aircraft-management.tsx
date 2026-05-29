@@ -7,17 +7,18 @@ import { AircraftDeleteDialog } from "@/components/aircraft-delete-dialog";
 import { DataTable } from "@/components/data-table";
 import { RowActionMenu } from "@/components/row-action-menu";
 import { StatusPill } from "@/components/status-pill";
-import type { ApiAircraft, ApiUnit, RoleName } from "@/lib/api";
+import type { ApiAircraft, ApiOrganization, ApiUnit, RoleName } from "@/lib/api";
 import { aircraftStatusTone, mapAircraftRows } from "@/lib/view-model";
 
 type Props = {
   viewerRole: RoleName;
   organizationId: string;
+  organizations: ApiOrganization[];
   units: ApiUnit[];
   aircraft: ApiAircraft[];
 };
 
-export function AircraftManagement({ viewerRole, organizationId, units, aircraft }: Props) {
+export function AircraftManagement({ viewerRole, organizationId, organizations, units, aircraft }: Props) {
   const canCreateAircraft = viewerRole === "admin" || viewerRole === "supervisor";
   const canManageAircraft = viewerRole === "admin" || viewerRole === "supervisor";
   const rows = useMemo(() => mapAircraftRows(aircraft), [aircraft]);
@@ -63,7 +64,14 @@ export function AircraftManagement({ viewerRole, organizationId, units, aircraft
 
   return (
     <>
-      {canCreateAircraft ? <AircraftCreateDialog organizationId={organizationId} units={units} /> : null}
+      {canCreateAircraft ? (
+        <AircraftCreateDialog
+          viewerRole={viewerRole}
+          organizationId={organizationId}
+          organizations={organizations}
+          units={units}
+        />
+      ) : null}
 
       <DataTable
         title="Aircraft master data"
@@ -72,7 +80,9 @@ export function AircraftManagement({ viewerRole, organizationId, units, aircraft
       />
 
       <AircraftCreateDialog
+        viewerRole={viewerRole}
         organizationId={organizationId}
+        organizations={organizations}
         units={units}
         mode="edit"
         aircraft={editTarget}

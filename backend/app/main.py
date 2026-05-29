@@ -652,7 +652,10 @@ def user_reset_password(
 
 @app.get("/api/aircraft")
 def aircraft(user=Depends(get_current_user), db=Depends(get_session)):
-    return [item for item in list_aircraft(db) if item.organization_id == user.organization_id]
+    aircraft_rows = list_aircraft(db)
+    if user.role == RoleName.admin:
+        return aircraft_rows
+    return [item for item in aircraft_rows if item.organization_id == user.organization_id]
 
 
 @app.post("/api/aircraft")
