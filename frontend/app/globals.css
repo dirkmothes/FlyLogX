@@ -2652,6 +2652,28 @@ select.input option {
   gap: 14px;
 }
 
+.admin-dialog-grid-two-columns {
+  align-items: start;
+}
+
+.admin-supervised-select-trigger {
+  cursor: pointer;
+}
+
+.admin-supervised-menu {
+  max-height: 280px;
+}
+
+.admin-supervised-option {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-supervised-check {
+  color: var(--blue);
+  font-weight: 900;
+}
+
 .admin-state-group {
   display: grid;
   gap: 8px;

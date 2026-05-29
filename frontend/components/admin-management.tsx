@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { DropdownSelect } from "@/components/dropdown-select";
@@ -131,6 +132,10 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | RoleName>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const supervisedOrganizationsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const supervisedOrganizationsMenuRef = useRef<HTMLDivElement | null>(null);
+  const [supervisedOrganizationsOpen, setSupervisedOrganizationsOpen] = useState(false);
+  const [supervisedOrganizationsMenuStyle, setSupervisedOrganizationsMenuStyle] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const [organizationForm, setOrganizationForm] = useState<OrganizationForm>({ name: "", parent_id: "" });
   const [unitForm, setUnitForm] = useState<UnitForm>({
@@ -188,6 +193,70 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
           organizations.map((organization) => organization.id),
         )
       : [];
+
+  useEffect(() => {
+    if (!supervisedOrganizationsOpen) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSupervisedOrganizationsOpen(false);
+      }
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+      const clickedInsideTrigger = !!target && !!supervisedOrganizationsButtonRef.current && supervisedOrganizationsButtonRef.current.contains(target);
+      const clickedInsideMenu = !!target && !!supervisedOrganizationsMenuRef.current && supervisedOrganizationsMenuRef.current.contains(target);
+      if (!clickedInsideTrigger && !clickedInsideMenu) {
+        setSupervisedOrganizationsOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [supervisedOrganizationsOpen]);
+
+  useLayoutEffect(() => {
+    if (!supervisedOrganizationsOpen) {
+      setSupervisedOrganizationsMenuStyle(null);
+      return;
+    }
+
+    function updatePosition() {
+      const button = supervisedOrganizationsButtonRef.current;
+      const menu = supervisedOrganizationsMenuRef.current;
+      if (!button || !menu) {
+        setSupervisedOrganizationsMenuStyle(null);
+        return;
+      }
+
+      const buttonRect = button.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const menuWidth = menuRect.width || 280;
+      const menuHeight = menuRect.height || 260;
+      const openBelow = buttonRect.bottom + 8 + menuHeight <= window.innerHeight || buttonRect.top < menuHeight + 24;
+
+      setSupervisedOrganizationsMenuStyle({
+        top: openBelow ? buttonRect.bottom + 8 : Math.max(12, buttonRect.top - 8 - menuHeight),
+        left: Math.max(12, Math.min(window.innerWidth - (menuWidth + 12), buttonRect.left)),
+        width: Math.max(buttonRect.width, 280),
+      });
+    }
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [supervisedOrganizationsOpen, userForm.supervised_organization_ids, userForm.organization_id, organizations]);
 
   const filteredUsers = users.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
@@ -1013,7 +1082,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     />
                   </label>
                 </div>
-                <div className="admin-dialog-grid">
+                <div className="admin-dialog-grid admin-dialog-grid-two-columns">
                   <label className="field">
                     <span>Role</span>
                     <DropdownSelect
@@ -1043,6 +1112,79 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                       }
                     />
                   </label>
+                  {viewerRole === "admin" && userForm.role === "supervisor" ? (
+                    <label className="field">
+                      <span>Supervised organizations</span>
+                      <button
+                        ref={supervisedOrganizationsButtonRef}
+                        type="button"
+                        className="input dropdown-select-trigger admin-supervised-select-trigger"
+                        onClick={() => setSupervisedOrganizationsOpen((current) => !current)}
+                      >
+                        <span className="dropdown-select-value">
+                          {activeSupervisorOrganizationIds.length > 0
+                            ? `${activeSupervisorOrganizationIds.length} selected`
+                            : "Select organizations"}
+                        </span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className="dropdown-select-caret">
+                          <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+                        </svg>
+                      </button>
+                      {supervisedOrganizationsOpen && supervisedOrganizationsMenuStyle
+                        ? createPortal(
+                            <div
+                              ref={supervisedOrganizationsMenuRef}
+                              className="dropdown-select-menu admin-supervised-menu"
+                              role="menu"
+                              aria-label="Supervised organizations"
+                              style={{
+                                top: `${supervisedOrganizationsMenuStyle.top}px`,
+                                left: `${supervisedOrganizationsMenuStyle.left}px`,
+                                width: `${supervisedOrganizationsMenuStyle.width}px`,
+                              }}
+                            >
+                              {organizations.map((organization) => {
+                                const checked = activeSupervisorOrganizationIds.includes(organization.id);
+                                return (
+                                  <button
+                                    key={organization.id}
+                                    type="button"
+                                    className={`dropdown-select-option admin-supervised-option ${checked ? "dropdown-select-option-active" : ""}`.trim()}
+                                    role="menuitemcheckbox"
+                                    aria-checked={checked}
+                                    title={organization.name}
+                                    onClick={() =>
+                                      setUserForm((current) => {
+                                        const currentIds = normalizeSupervisorOrganizationIds(
+                                          current.supervised_organization_ids,
+                                          current.organization_id,
+                                          organizations.map((item) => item.id),
+                                        );
+                                        const nextIds = checked
+                                          ? currentIds.filter((id) => id !== organization.id)
+                                          : Array.from(new Set([...currentIds, organization.id]));
+                                        return {
+                                          ...current,
+                                          supervised_organization_ids: normalizeSupervisorOrganizationIds(
+                                            nextIds,
+                                            current.organization_id,
+                                            organizations.map((item) => item.id),
+                                          ),
+                                        };
+                                      })
+                                    }
+                                  >
+                                    <span>{organization.name}</span>
+                                    <span className="admin-supervised-check">{checked ? "✓" : ""}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>,
+                            document.body,
+                          )
+                        : null}
+                    </label>
+                  ) : null}
                 </div>
                 {dialog.mode === "create" ? (
                   <div className="admin-dialog-grid">
@@ -1058,47 +1200,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                     <div className="account-note-box">
                       <span>Note</span>
                       <p>The password can later be changed with the Reset password action in the user list.</p>
-                    </div>
-                  </div>
-                ) : null}
-                {viewerRole === "admin" && userForm.role === "supervisor" ? (
-                  <div className="field">
-                    <span>Supervised organizations</span>
-                    <div className="admin-org-badge-list" role="group" aria-label="Supervised organizations">
-                      {organizations.map((organization) => {
-                        const checked = activeSupervisorOrganizationIds.includes(organization.id);
-                        return (
-                          <button
-                            key={organization.id}
-                            type="button"
-                            className={`admin-org-badge ${checked ? "admin-org-badge-active" : ""}`}
-                            aria-pressed={checked}
-                            title={organization.name}
-                            onClick={() =>
-                              setUserForm((current) => {
-                                const currentIds = normalizeSupervisorOrganizationIds(
-                                  current.supervised_organization_ids,
-                                  current.organization_id,
-                                  organizations.map((item) => item.id),
-                                );
-                                const nextIds = checked
-                                  ? currentIds.filter((id) => id !== organization.id)
-                                  : Array.from(new Set([...currentIds, organization.id]));
-                                return {
-                                  ...current,
-                                  supervised_organization_ids: normalizeSupervisorOrganizationIds(
-                                    nextIds,
-                                    current.organization_id,
-                                    organizations.map((item) => item.id),
-                                  ),
-                                };
-                              })
-                            }
-                          >
-                            <span>{organization.name}</span>
-                            </button>
-                        );
-                      })}
                     </div>
                   </div>
                 ) : null}
