@@ -133,7 +133,6 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
   const [roleFilter, setRoleFilter] = useState<"all" | RoleName>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const supervisedOrganizationsButtonRef = useRef<HTMLButtonElement | null>(null);
-  const supervisedOrganizationsMenuRef = useRef<HTMLDivElement | null>(null);
   const [supervisedOrganizationsOpen, setSupervisedOrganizationsOpen] = useState(false);
   const [supervisedOrganizationsMenuStyle, setSupervisedOrganizationsMenuStyle] = useState<{ top: number; left: number; width: number } | null>(null);
 
@@ -208,7 +207,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
     function handlePointerDown(event: PointerEvent) {
       const target = event.target as Node | null;
       const clickedInsideTrigger = !!target && !!supervisedOrganizationsButtonRef.current && supervisedOrganizationsButtonRef.current.contains(target);
-      const clickedInsideMenu = !!target && !!supervisedOrganizationsMenuRef.current && supervisedOrganizationsMenuRef.current.contains(target);
+      const clickedInsideMenu = !!target && !!(target as HTMLElement | null)?.closest(".admin-supervised-menu");
       if (!clickedInsideTrigger && !clickedInsideMenu) {
         setSupervisedOrganizationsOpen(false);
       }
@@ -230,22 +229,20 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
 
     function updatePosition() {
       const button = supervisedOrganizationsButtonRef.current;
-      const menu = supervisedOrganizationsMenuRef.current;
-      if (!button || !menu) {
+      if (!button) {
         setSupervisedOrganizationsMenuStyle(null);
         return;
       }
 
       const buttonRect = button.getBoundingClientRect();
-      const menuRect = menu.getBoundingClientRect();
-      const menuWidth = menuRect.width || 280;
-      const menuHeight = menuRect.height || 260;
+      const menuWidth = Math.max(buttonRect.width, 280);
+      const menuHeight = Math.min(320, Math.max(120, organizations.length * 42 + 16));
       const openBelow = buttonRect.bottom + 8 + menuHeight <= window.innerHeight || buttonRect.top < menuHeight + 24;
 
       setSupervisedOrganizationsMenuStyle({
         top: openBelow ? buttonRect.bottom + 8 : Math.max(12, buttonRect.top - 8 - menuHeight),
         left: Math.max(12, Math.min(window.innerWidth - (menuWidth + 12), buttonRect.left)),
-        width: Math.max(buttonRect.width, 280),
+        width: menuWidth,
       });
     }
 
@@ -256,7 +253,7 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [supervisedOrganizationsOpen, userForm.supervised_organization_ids, userForm.organization_id, organizations]);
+  }, [supervisedOrganizationsOpen, organizations]);
 
   const filteredUsers = users.filter((user) => {
     const normalizedSearch = userSearch.trim().toLowerCase();
@@ -1130,18 +1127,27 @@ export function AdminManagement({ viewerRole, organizations, units, users }: Pro
                           <path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
                         </svg>
                       </button>
-                      {supervisedOrganizationsOpen && supervisedOrganizationsMenuStyle
+                      {supervisedOrganizationsOpen
                         ? createPortal(
                             <div
-                              ref={supervisedOrganizationsMenuRef}
                               className="dropdown-select-menu admin-supervised-menu"
                               role="menu"
                               aria-label="Supervised organizations"
-                              style={{
-                                top: `${supervisedOrganizationsMenuStyle.top}px`,
-                                left: `${supervisedOrganizationsMenuStyle.left}px`,
-                                width: `${supervisedOrganizationsMenuStyle.width}px`,
-                              }}
+                              style={
+                                supervisedOrganizationsMenuStyle
+                                  ? {
+                                      top: `${supervisedOrganizationsMenuStyle.top}px`,
+                                      left: `${supervisedOrganizationsMenuStyle.left}px`,
+                                      width: `${supervisedOrganizationsMenuStyle.width}px`,
+                                    }
+                                  : {
+                                      visibility: "hidden",
+                                      pointerEvents: "none",
+                                      top: "12px",
+                                      left: "12px",
+                                      width: "280px",
+                                    }
+                              }
                             >
                               {organizations.map((organization) => {
                                 const checked = activeSupervisorOrganizationIds.includes(organization.id);
